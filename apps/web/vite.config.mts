@@ -1,5 +1,5 @@
 /// <reference types='vitest' />
-import { runtimeConfig } from '@application-template/runtime-config';
+import { runtimeConfig } from '@accounterbro/runtime-config';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
