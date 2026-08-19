@@ -1,0 +1,26 @@
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "allowJs": true,
+        "outDir": "out-tsc/playwright",
+        "sourceMap": false,
+        "allowImportingTsExtensions": true
+    },
+    "include": [
+        "**/*.ts",
+        "**/*.mts",
+        "**/*.js",
+        "playwright.config.mts",
+        "src/**/*.spec.ts",
+        "src/**/*.spec.js",
+        "src/**/*.test.ts",
+        "src/**/*.test.js",
+        "src/**/*.d.ts"
+    ],
+    "exclude": ["out-tsc", "test-output", "test-results", "eslint.config.js", "eslint.config.mjs", "eslint.config.cjs"],
+    "references": [
+        {
+            "path": "../../packages/runtime-config/tsconfig.lib.json"
+        }
+    ]
+}

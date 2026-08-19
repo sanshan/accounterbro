@@ -1,0 +1,32 @@
+{
+  "name": "@application-template/api-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/api-e2e/src",
+  "projectType": "application",
+  "tags": [],
+  "implicitDependencies": ["@application-template/api"],
+  "targets": {
+    "api-server": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm nx run @application-template/api:migration:run && pnpm nx run @application-template/api:serve:e2e"
+      }
+    },
+    "e2e": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
+      "options": {
+        "jestConfig": "apps/api-e2e/jest.config.cts",
+        "passWithNoTests": true,
+        "runInBand": true
+      },
+      "dependsOn": [
+        {
+          "projects": ["@application-template/api-e2e"],
+          "target": "api-server"
+        }
+      ]
+    }
+  }
+}

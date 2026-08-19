@@ -1,0 +1,17 @@
+{
+  "name": "@application-template/web",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@mantine/core": "^9.5.1",
+    "@mantine/hooks": "^9.5.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tslib": "catalog:"
+  },
+  "devDependencies": {
+    "@application-template/runtime-config": "workspace:*",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/user-event": "^14.6.4"
+  }
+}

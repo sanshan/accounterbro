@@ -1,0 +1,45 @@
+{
+  "name": "@application-template/api",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/api/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "options": {
+        "outputPath": "apps/api/dist",
+        "main": "apps/api/src/main.ts",
+        "tsConfig": "apps/api/tsconfig.app.json",
+        "rootDir": "apps/api/src",
+        "assets": ["apps/api/src/assets"]
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {"buildTarget": "@application-template/api:build"},
+      "configurations": {
+        "development": {"buildTarget": "@application-template/api:build"},
+        "production": {"buildTarget": "@application-template/api:build"},
+        "e2e": {
+          "buildTarget": "@application-template/api:build",
+          "watch": false,
+          "inspect": false,
+          "debounce": 0
+        }
+      }
+    },
+    "start": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {"command": "node apps/api/dist/main.js"}
+    },
+    "test": {"options": {"passWithNoTests": true}},
+    "migration:generate": {"executor":"nx:run-commands","options":{"command":"pnpm -w --filter @application-template/api run migration:generate"}},
+    "migration:run": {"executor":"nx:run-commands","options":{"command":"pnpm -w --filter @application-template/api run migration:run"}},
+    "migration:revert": {"executor":"nx:run-commands","options":{"command":"pnpm -w --filter @application-template/api run migration:revert"}},
+    "migration:show": {"executor":"nx:run-commands","options":{"command":"pnpm -w --filter @application-template/api run migration:show"}}
+  }
+}

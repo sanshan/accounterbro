@@ -1,0 +1,17 @@
+{
+  "name": "@application-template/web-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/web-e2e/src",
+  "projectType": "application",
+  "tags": [],
+  "implicitDependencies": ["@application-template/web"],
+  "targets": {
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/web-e2e",
+        "command": "pnpm exec playwright test --pass-with-no-tests"
+      }
+    }
+  }
+}

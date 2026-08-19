@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+.nx/
+.env
+.env.local
+*.log
+.DS_Store
+apps/**/test-results/
+apps/**/playwright-report/
+apps/**/.vite/
