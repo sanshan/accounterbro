@@ -1,4 +1,4 @@
-import { PortSchema } from '@application-template/runtime-config';
+import { PortSchema } from '@accounterbro/runtime-config';
 import { z } from 'zod';
 
 export const ApiEnvSchema = z.object({
