@@ -1,4 +1,4 @@
-import { runtimeConfig } from '@application-template/runtime-config';
+import { runtimeConfig } from '@accounterbro/runtime-config';
 import { z } from 'zod';
 
 const HostSchema = z.string().min(1).default('localhost');

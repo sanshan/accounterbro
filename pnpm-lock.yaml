@@ -179,7 +179,7 @@ importers:
 
   apps/api:
     dependencies:
-      '@application-template/runtime-config':
+      '@accounterbro/runtime-config':
         specifier: workspace:*
         version: link:../../packages/runtime-config
       '@nestjs/common':
@@ -237,7 +237,7 @@ importers:
 
   apps/api-e2e:
     devDependencies:
-      '@application-template/runtime-config':
+      '@accounterbro/runtime-config':
         specifier: workspace:*
         version: link:../../packages/runtime-config
       axios:
@@ -265,7 +265,7 @@ importers:
         specifier: 'catalog:'
         version: 2.8.1
     devDependencies:
-      '@application-template/runtime-config':
+      '@accounterbro/runtime-config':
         specifier: workspace:*
         version: link:../../packages/runtime-config
       '@testing-library/jest-dom':
@@ -277,7 +277,7 @@ importers:
 
   apps/web-e2e:
     devDependencies:
-      '@application-template/runtime-config':
+      '@accounterbro/runtime-config':
         specifier: workspace:*
         version: link:../../packages/runtime-config
       '@playwright/test':

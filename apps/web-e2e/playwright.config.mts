@@ -1,4 +1,4 @@
-import { runtimeConfig } from '@application-template/runtime-config';
+import { runtimeConfig } from '@accounterbro/runtime-config';
 import { defineConfig, devices } from '@playwright/test';
 
 const { port: webPort } = runtimeConfig.web;
@@ -16,10 +16,5 @@ export default defineConfig({
         url: webUrl,
         reuseExistingServer: true,
     },
-    projects: [
-        {
-            name: 'chromium',
-            use: { ...devices['Desktop Chrome'] },
-        },
-    ],
+    projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 });
