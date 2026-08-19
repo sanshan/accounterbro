@@ -45,11 +45,11 @@ MUST NOT modify a project using only root instructions when a nested `AGENTS.md`
 
 ## 2. Repository Purpose
 
-This repository is a reusable full-stack application template. It intentionally contains a small amount of real, production-oriented implementation that future developers and coding agents can inspect as architectural reference.
+AccounterBro is a product repository. It contains production-oriented baseline implementation and conventions that future developers and coding agents should inspect before introducing new patterns.
 
 Existing implementation is not placeholder/demo code to be replaced casually. Inspect it first and reuse established conventions where they apply.
 
-MUST NOT introduce example business domains, placeholder CRUD features, speculative abstractions, or parallel tooling merely to make the template look more complete.
+MUST NOT introduce placeholder CRUD features, speculative abstractions, or parallel tooling merely to make the repository look more complete.
 
 When agent assumptions conflict with the repository, the repository is the source of truth.
 
