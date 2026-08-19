@@ -1,10 +1,10 @@
 {
-  "name": "@application-template/web-e2e",
+  "name": "@accounterbro/web-e2e",
   "version": "1.0.0",
   "private": true,
-  "nx": {"implicitDependencies": ["@application-template/web"]},
+  "nx": {"implicitDependencies": ["@accounterbro/web"]},
   "devDependencies": {
-    "@application-template/runtime-config": "workspace:*",
+    "@accounterbro/runtime-config": "workspace:*",
     "@playwright/test": "catalog:"
   }
 }
