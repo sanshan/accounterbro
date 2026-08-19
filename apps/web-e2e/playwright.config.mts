@@ -1,4 +1,4 @@
-import { runtimeConfig } from '@application-template/runtime-config';
+import { runtimeConfig } from '@accounterbro/runtime-config';
 import { defineConfig, devices } from '@playwright/test';
 
 const { port: webPort } = runtimeConfig.web;

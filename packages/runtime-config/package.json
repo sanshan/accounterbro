@@ -1,5 +1,5 @@
 {
-    "name": "@application-template/runtime-config",
+    "name": "@accounterbro/runtime-config",
     "version": "1.0.0",
     "private": true,
     "main": "./src/index.ts",

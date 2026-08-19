@@ -308,10 +308,10 @@ Future subsystem health checks should become sibling application use cases when 
 For API changes, run the relevant subset of:
 
 ```bash
-pnpm nx run @application-template/api:lint
-pnpm nx run @application-template/api:typecheck
-pnpm nx run @application-template/api:test
-pnpm nx run @application-template/api:build
+pnpm nx run @accounterbro/api:lint
+pnpm nx run @accounterbro/api:typecheck
+pnpm nx run @accounterbro/api:test
+pnpm nx run @accounterbro/api:build
 ```
 
 When persistence behavior changes, run the relevant PostgreSQL-backed integration tests/migrations.

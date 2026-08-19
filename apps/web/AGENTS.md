@@ -14,7 +14,7 @@ Mantine
 Nx
 ```
 
-The repository does not currently establish a router, server-state library, global-state manager, or form framework as part of the template.
+The repository does not currently establish a router, server-state library, global-state manager, or form framework in the product baseline.
 
 MUST inspect the project's current dependencies and existing code before adding one. Do not document or introduce a library merely because it is common in generic React applications.
 
@@ -26,7 +26,7 @@ Prefer feature ownership over speculative shared architecture.
 
 Keep feature-specific code with the feature. Promote code to a shared area only after it has a real cross-feature consumer.
 
-A future application may grow toward structures such as:
+The application may grow toward structures such as:
 
 ```text
 src/
@@ -120,7 +120,7 @@ When an Effect is genuinely required, keep its dependency model explicit and mak
 
 ## 7. Remote Data and Async Work
 
-There is no template-wide server-state library today. When a feature needs remote data:
+There is no repository-wide server-state library today. When a feature needs remote data:
 
 1. inspect current dependencies and nearby code;
 2. determine whether the requirement is small enough for the existing application boundary or whether a dedicated data-fetching library is justified;
@@ -307,12 +307,12 @@ Do not create speculative architecture for features that do not yet exist.
 For Web changes, run the relevant subset of:
 
 ```bash
-pnpm nx run @application-template/web:lint
-pnpm nx run @application-template/web:typecheck
-pnpm nx run @application-template/web:test
-pnpm nx run @application-template/web:build
+pnpm nx run @accounterbro/web:lint
+pnpm nx run @accounterbro/web:typecheck
+pnpm nx run @accounterbro/web:test
+pnpm nx run @accounterbro/web:build
 ```
 
-When a user-visible browser flow changes, run the relevant `@application-template/web-e2e` target as well.
+When a user-visible browser flow changes, run the relevant `@accounterbro/web-e2e` target as well.
 
 Do not declare Web work complete with known lint/type/build/test failures or unresolved accessibility/performance issues introduced by the change.

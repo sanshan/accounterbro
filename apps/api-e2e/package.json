@@ -1,9 +1,9 @@
 {
-  "name": "@application-template/api-e2e",
+  "name": "@accounterbro/api-e2e",
   "version": "1.0.0",
   "private": true,
   "devDependencies": {
-    "@application-template/runtime-config": "workspace:*",
+    "@accounterbro/runtime-config": "workspace:*",
     "axios": "^1.19.0",
     "zod": "catalog:"
   }

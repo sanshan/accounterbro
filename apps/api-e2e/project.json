@@ -1,16 +1,16 @@
 {
-  "name": "@application-template/api-e2e",
+  "name": "@accounterbro/api-e2e",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/api-e2e/src",
   "projectType": "application",
   "tags": [],
-  "implicitDependencies": ["@application-template/api"],
+  "implicitDependencies": ["@accounterbro/api"],
   "targets": {
     "api-server": {
       "continuous": true,
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm nx run @application-template/api:migration:run && pnpm nx run @application-template/api:serve:e2e"
+        "command": "pnpm nx run @accounterbro/api:migration:run && pnpm nx run @accounterbro/api:serve:e2e"
       }
     },
     "e2e": {
@@ -23,7 +23,7 @@
       },
       "dependsOn": [
         {
-          "projects": ["@application-template/api-e2e"],
+          "projects": ["@accounterbro/api-e2e"],
           "target": "api-server"
         }
       ]
