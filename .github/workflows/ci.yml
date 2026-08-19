@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -48,6 +48,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -61,14 +63,18 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Regenerate lockfile for rename
-        run: pnpm install --no-frozen-lockfile
-
-      - name: Upload regenerated lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: regenerated-lockfile
-          path: pnpm-lock.yaml
+      - name: Regenerate and commit lockfile for rename
+        shell: bash
+        run: |
+          pnpm install --no-frozen-lockfile
+          if git diff --quiet -- pnpm-lock.yaml; then
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add pnpm-lock.yaml
+          git commit -m "chore: update lockfile for accounterbro rename"
+          git push origin HEAD:${GITHUB_HEAD_REF}
 
       - name: Run lint
         run: pnpm nx run-many -t lint
