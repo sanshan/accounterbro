@@ -1,5 +1,5 @@
 {
-  "name": "@application-template/api",
+  "name": "@accounterbro/api",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -10,7 +10,7 @@
     "migration:show": "ts-node -P ./tsconfig.app.json ./node_modules/typeorm/cli.js migration:show -d ./src/app/infrastructure/persistence/typeorm/data-source.ts"
   },
   "dependencies": {
-    "@application-template/runtime-config": "workspace:*",
+    "@accounterbro/runtime-config": "workspace:*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.0",
