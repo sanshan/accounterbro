@@ -1,29 +1,40 @@
 import type { OperationHandler } from '@event-driven-platform/operation-handler';
-import { OperationResults } from '@event-driven-platform/operation-result';
+import {
+    OperationResults,
+    type SuccessfulOperationResult,
+} from '@event-driven-platform/operation-result';
 
 import type { DocumentPersistence } from '../document-persistence.js';
 import type { Document } from '../document.js';
-import { DOCUMENT_UPLOAD_REQUESTED_EVENT } from '../events/document-upload-requested.js';
-import type { PrepareDocumentRegistrationOperation } from './prepare-document-registration-operation.js';
+import {
+    DOCUMENT_UPLOAD_REQUESTED_EVENT,
+    type DocumentUploadRequested,
+} from '../events/document-upload-requested.js';
+import type {
+    PrepareDocumentRegistrationOperation,
+    PrepareDocumentRegistrationOutcome,
+} from './prepare-document-registration-operation.js';
 
 export class PrepareDocumentRegistrationHandler
     implements OperationHandler<PrepareDocumentRegistrationOperation>
 {
     public constructor(private readonly persistence: DocumentPersistence) {}
 
-    public async execute(operation: PrepareDocumentRegistrationOperation) {
+    public async execute(
+        operation: PrepareDocumentRegistrationOperation,
+    ): Promise<SuccessfulOperationResult<PrepareDocumentRegistrationOutcome, DocumentUploadRequested>> {
         const existing = await this.persistence.findByContentHash(operation.payload.contentHash);
 
         if (existing) {
-            return OperationResults.success({
-                data: {
-                    kind: 'duplicate',
-                    document: {
-                        id: existing.id,
-                        status: existing.status,
-                    },
+            const outcome = {
+                kind: 'duplicate',
+                document: {
+                    id: existing.id,
+                    status: existing.status,
                 },
-            });
+            } satisfies PrepareDocumentRegistrationOutcome;
+
+            return OperationResults.success({ data: outcome });
         }
 
         const document: Document = {
@@ -34,21 +45,23 @@ export class PrepareDocumentRegistrationHandler
 
         await this.persistence.insert(document);
 
-        return OperationResults.success({
-            data: {
-                kind: 'created',
-                document: {
-                    id: document.id,
-                    status: document.status,
-                },
+        const outcome = {
+            kind: 'created',
+            document: {
+                id: document.id,
+                status: document.status,
             },
-            events: [
-                {
-                    name: DOCUMENT_UPLOAD_REQUESTED_EVENT,
-                    schemaVersion: 1,
-                    payload: { documentId: document.id },
-                },
-            ],
+        } satisfies PrepareDocumentRegistrationOutcome;
+
+        const event = {
+            name: DOCUMENT_UPLOAD_REQUESTED_EVENT,
+            schemaVersion: 1,
+            payload: { documentId: document.id },
+        } satisfies DocumentUploadRequested;
+
+        return OperationResults.success({
+            data: outcome,
+            events: [event],
         });
     }
 }
