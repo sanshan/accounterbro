@@ -17,6 +17,9 @@
         },
         {
             "path": "./packages/runtime-config"
+        },
+        {
+            "path": "./packages/documents"
         }
     ]
 }
