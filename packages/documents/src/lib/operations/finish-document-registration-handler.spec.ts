@@ -7,9 +7,8 @@ import type { FinishDocumentRegistrationOperation } from './finish-document-regi
 function createPersistence(document: Document | null) {
     const updated: Document[] = [];
     const persistence: DocumentPersistence = {
-        findByContentHash: async () => null,
+        createOrGetExisting: async (candidate) => ({ kind: 'created', document: candidate }),
         findById: async () => document,
-        insert: async () => undefined,
         update: async (next) => {
             updated.push(next);
         },
