@@ -5,11 +5,12 @@ import type { Operation } from '@event-driven-platform/operation';
 import type { SuccessfulOperationResult } from '@event-driven-platform/operation-result';
 import type { Subject } from '@event-driven-platform/subject';
 import type { TenantReference } from '@event-driven-platform/tenant-reference';
+import type { Brand } from '@event-driven-platform/types';
 
 import type { DocumentRegistered } from '../events/document-registered.js';
 import type { FINISH_DOCUMENT_REGISTRATION_OPERATION } from './document-operation-names.js';
 
-type StringBrand = string & { readonly __brand: string };
+type StringBrand = Brand<string, string>;
 
 export type FinishDocumentRegistrationPayload =
     | {
