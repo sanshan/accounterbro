@@ -289,6 +289,33 @@ importers:
 
   packages/documents:
     dependencies:
+      '@event-driven-platform/actor':
+        specifier: ^0.1.3
+        version: 0.1.3
+      '@event-driven-platform/aggregate-reference':
+        specifier: ^0.1.3
+        version: 0.1.3
+      '@event-driven-platform/event':
+        specifier: ^0.1.3
+        version: 0.1.3
+      '@event-driven-platform/intent':
+        specifier: ^0.1.3
+        version: 0.1.3
+      '@event-driven-platform/operation':
+        specifier: ^0.1.3
+        version: 0.1.3
+      '@event-driven-platform/operation-handler':
+        specifier: ^0.0.4
+        version: 0.0.4
+      '@event-driven-platform/operation-result':
+        specifier: ^0.1.3
+        version: 0.1.3
+      '@event-driven-platform/subject':
+        specifier: ^0.1.3
+        version: 0.1.3
+      '@event-driven-platform/tenant-reference':
+        specifier: ^0.1.3
+        version: 0.1.3
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
@@ -1105,6 +1132,36 @@ packages:
   '@eslint/plugin-kit@0.4.1':
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@event-driven-platform/actor@0.1.3':
+    resolution: {integrity: sha512-AUPmZpZBQtQE7q39buMTcG7VdMtYFAThHqfBsP79+QzVT84wgFMsJKnHKeoJDMPfRJwtpmWYpAAUz41VDFiCyw==}
+
+  '@event-driven-platform/aggregate-reference@0.1.3':
+    resolution: {integrity: sha512-k0DA4PMVBh4kxSet6NA7N6Nm0lOygQpczinUx1e+DdXXVBLeVRzOoZfUqgDHWHfKr3xYEsrGgy7PtRl14HUnZg==}
+
+  '@event-driven-platform/event@0.1.3':
+    resolution: {integrity: sha512-SXgpF27OYFhAXSSM7VTKw7R/K1k+VHxvsS/F7TzER+1957RHaM3LjThEHN+u7tmRloSz5YSHbs85GioP0n8hzw==}
+
+  '@event-driven-platform/intent@0.1.3':
+    resolution: {integrity: sha512-kakbOZg+DrFPavMjbXpUYETty1s7RJifRTjBNzJPubLS7dCl1O6p0ptEfHeCfNBEZAOMFcvY7W7jnU0Uvk8ATw==}
+
+  '@event-driven-platform/operation-handler@0.0.4':
+    resolution: {integrity: sha512-a7Tme544ADtTO9OIeK/bFM9zmYx/JUe18KjbwRRAhjXJjKbfAGkai2gRULFvMkZvlFn+9WirOXAFllRCrXTRKA==}
+
+  '@event-driven-platform/operation-result@0.1.3':
+    resolution: {integrity: sha512-6KTR9J5CdY5oj9eH9bFaaGoKt7UfdxFYN9OSgcsnQp3v2e0c9hjMP/VuxRdZ3E677UpJB3or+6h+9HngaZJGVA==}
+
+  '@event-driven-platform/operation@0.1.3':
+    resolution: {integrity: sha512-hfDKBALmX3mSUjJw+itOBESvYblfECGX6bSOk9s/xofGvrltnTqWvOQ71Mr53oXoJrzj6yr1n4oVK00t9Zi0dA==}
+
+  '@event-driven-platform/subject@0.1.3':
+    resolution: {integrity: sha512-6qypZ5RIXwmpEk4XiF6V1ofu1AoXCChoQegAlZ545O7QnxBBdUlZfJS/U3fOIHuIIFe8I0yfinB9oYi+p2voAA==}
+
+  '@event-driven-platform/tenant-reference@0.1.3':
+    resolution: {integrity: sha512-a91etb5icCcW15oJhTqcpCdHuS5hsOHJAJAKqypeSicbJ4I1r8duMUXDd2sRIQXsOrwCZFIXZeHg3inlHe6m5w==}
+
+  '@event-driven-platform/types@0.1.3':
+    resolution: {integrity: sha512-Loe6w9slxvUDkfRGd6QESQAezspj3+CpGuUBW8007dWVYQOV0vBgoNvzvJAFYe7uE4Uwbnl+ity1S8WyvAXEAQ==}
 
   '@exodus/bytes@1.15.1':
     resolution: {integrity: sha512-S6mL0yNB/Abt9Ei4tq8gDhcczc4S3+vQ4ra7vxnAf+YHC02srtqxKKZghx2Dq6p0e66THKwR6r8N6P95wEty7Q==}
@@ -7946,6 +8003,10 @@ packages:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
 
+  uuid@13.0.2:
+    resolution: {integrity: sha512-vzi9uRZ926x4XV73S/4qQaTwPXM2JBj6/6lI/byHH1jOpCzb0zDbfytgA9LcN/hzb2l7WQSQnxITOVx5un/wGw==}
+    hasBin: true
+
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
@@ -9345,6 +9406,68 @@ snapshots:
     dependencies:
       '@eslint/core': 0.17.0
       levn: 0.4.1
+
+  '@event-driven-platform/actor@0.1.3':
+    dependencies:
+      tslib: 2.8.1
+      zod: 4.4.3
+
+  '@event-driven-platform/aggregate-reference@0.1.3':
+    dependencies:
+      '@event-driven-platform/types': 0.1.3
+      tslib: 2.8.1
+      zod: 4.4.3
+
+  '@event-driven-platform/event@0.1.3':
+    dependencies:
+      '@event-driven-platform/aggregate-reference': 0.1.3
+      '@event-driven-platform/tenant-reference': 0.1.3
+      '@event-driven-platform/types': 0.1.3
+      tslib: 2.8.1
+      uuid: 13.0.2
+      zod: 4.4.3
+
+  '@event-driven-platform/intent@0.1.3':
+    dependencies:
+      '@event-driven-platform/tenant-reference': 0.1.3
+      tslib: 2.8.1
+      uuid: 13.0.2
+      zod: 4.4.3
+
+  '@event-driven-platform/operation-handler@0.0.4':
+    dependencies:
+      '@event-driven-platform/operation': 0.1.3
+      tslib: 2.8.1
+
+  '@event-driven-platform/operation-result@0.1.3':
+    dependencies:
+      '@event-driven-platform/event': 0.1.3
+      tslib: 2.8.1
+
+  '@event-driven-platform/operation@0.1.3':
+    dependencies:
+      '@event-driven-platform/actor': 0.1.3
+      '@event-driven-platform/aggregate-reference': 0.1.3
+      '@event-driven-platform/intent': 0.1.3
+      '@event-driven-platform/operation-result': 0.1.3
+      '@event-driven-platform/subject': 0.1.3
+      '@event-driven-platform/tenant-reference': 0.1.3
+      tslib: 2.8.1
+
+  '@event-driven-platform/subject@0.1.3':
+    dependencies:
+      tslib: 2.8.1
+      zod: 4.4.3
+
+  '@event-driven-platform/tenant-reference@0.1.3':
+    dependencies:
+      '@event-driven-platform/types': 0.1.3
+      tslib: 2.8.1
+      zod: 4.4.3
+
+  '@event-driven-platform/types@0.1.3':
+    dependencies:
+      tslib: 2.8.1
 
   '@exodus/bytes@1.15.1(@noble/hashes@1.8.0)':
     optionalDependencies:
@@ -17343,6 +17466,8 @@ snapshots:
   util-deprecate@1.0.2: {}
 
   utils-merge@1.0.1: {}
+
+  uuid@13.0.2: {}
 
   uuid@8.3.2: {}
 
