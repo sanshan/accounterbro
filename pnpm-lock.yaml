@@ -9,9 +9,15 @@ catalogs:
     '@playwright/test':
       specifier: 1.62.0
       version: 1.62.0
+    pg:
+      specifier: ^8.23.0
+      version: 8.23.0
     tslib:
       specifier: ^2.8.1
       version: 2.8.1
+    typeorm:
+      specifier: ^1.1.0
+      version: 1.1.0
     zod:
       specifier: ^4.4.3
       version: 4.4.3
@@ -204,7 +210,7 @@ importers:
         specifier: ^11.0.3
         version: 11.0.3(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@1.1.0(babel-plugin-macros@3.1.0)(pg@8.23.0)(ts-node@10.9.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@types/node@22.20.1)(typescript@5.9.3)))
       pg:
-        specifier: ^8.23.0
+        specifier: 'catalog:'
         version: 8.23.0
       reflect-metadata:
         specifier: ^0.2.0
@@ -216,7 +222,7 @@ importers:
         specifier: 'catalog:'
         version: 2.8.1
       typeorm:
-        specifier: ^1.1.0
+        specifier: 'catalog:'
         version: 1.1.0(babel-plugin-macros@3.1.0)(pg@8.23.0)(ts-node@10.9.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@types/node@22.20.1)(typescript@5.9.3))
       zod:
         specifier: 'catalog:'
@@ -292,6 +298,9 @@ importers:
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
+      typeorm:
+        specifier: 'catalog:'
+        version: 1.1.0(babel-plugin-macros@3.1.0)(pg@8.23.0)(ts-node@10.9.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@types/node@22.20.1)(typescript@5.9.3))
     devDependencies:
       '@event-driven-platform/actor':
         specifier: ^0.1.3
@@ -323,6 +332,9 @@ importers:
       '@event-driven-platform/types':
         specifier: ^0.1.3
         version: 0.1.3
+      pg:
+        specifier: 'catalog:'
+        version: 8.23.0
 
   packages/runtime-config:
     dependencies:
