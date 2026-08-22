@@ -5,17 +5,19 @@ import { PrepareDocumentRegistrationHandler } from './prepare-document-registrat
 import type { PrepareDocumentRegistrationOperation } from './prepare-document-registration-operation.js';
 
 function createPersistence(existing: Document | null = null) {
-    const inserted: Document[] = [];
+    const attempted: Document[] = [];
     const persistence: DocumentPersistence = {
-        findByContentHash: async () => existing,
-        findById: async () => null,
-        insert: async (document) => {
-            inserted.push(document);
+        createOrGetExisting: async (document) => {
+            attempted.push(document);
+            return existing
+                ? { kind: 'existing', document: existing }
+                : { kind: 'created', document };
         },
+        findById: async () => null,
         update: async () => undefined,
     };
 
-    return { persistence, inserted };
+    return { persistence, attempted };
 }
 
 function operation(): PrepareDocumentRegistrationOperation {
@@ -33,12 +35,12 @@ function operation(): PrepareDocumentRegistrationOperation {
 
 describe('PrepareDocumentRegistrationHandler', () => {
     it('persists a new pending document and requests upload', async () => {
-        const { persistence, inserted } = createPersistence();
+        const { persistence, attempted } = createPersistence();
         const handler = new PrepareDocumentRegistrationHandler(persistence);
 
         const result = await handler.execute(operation());
 
-        expect(inserted).toEqual([
+        expect(attempted).toEqual([
             { id: 'document-1', contentHash: 'hash-1', status: 'PENDING' },
         ]);
         expect(result).toEqual({
@@ -57,19 +59,21 @@ describe('PrepareDocumentRegistrationHandler', () => {
         });
     });
 
-    it('returns an existing document as duplicate without requesting upload', async () => {
+    it('returns the persistence winner as duplicate without requesting upload', async () => {
         const existing: Document = {
             id: 'existing-1',
             contentHash: 'hash-1',
             status: 'FAILED',
             failureReason: 'storage unavailable',
         };
-        const { persistence, inserted } = createPersistence(existing);
+        const { persistence, attempted } = createPersistence(existing);
         const handler = new PrepareDocumentRegistrationHandler(persistence);
 
         const result = await handler.execute(operation());
 
-        expect(inserted).toEqual([]);
+        expect(attempted).toEqual([
+            { id: 'document-1', contentHash: 'hash-1', status: 'PENDING' },
+        ]);
         expect(result).toEqual({
             status: 'success',
             data: {
