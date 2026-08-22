@@ -15,6 +15,6 @@
         }
     },
     "dependencies": {
-        "tslib": "catalog:"
+        "tslib": "^2.3.0"
     }
 }
