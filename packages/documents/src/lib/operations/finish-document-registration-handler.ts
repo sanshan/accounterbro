@@ -1,16 +1,27 @@
 import type { OperationHandler } from '@event-driven-platform/operation-handler';
-import { OperationResults } from '@event-driven-platform/operation-result';
+import {
+    OperationResults,
+    type SuccessfulOperationResult,
+} from '@event-driven-platform/operation-result';
 
 import type { DocumentPersistence } from '../document-persistence.js';
-import { DOCUMENT_REGISTERED_EVENT } from '../events/document-registered.js';
-import type { FinishDocumentRegistrationOperation } from './finish-document-registration-operation.js';
+import {
+    DOCUMENT_REGISTERED_EVENT,
+    type DocumentRegistered,
+} from '../events/document-registered.js';
+import type {
+    FinishDocumentRegistrationOperation,
+    FinishDocumentRegistrationOutcome,
+} from './finish-document-registration-operation.js';
 
 export class FinishDocumentRegistrationHandler
     implements OperationHandler<FinishDocumentRegistrationOperation>
 {
     public constructor(private readonly persistence: DocumentPersistence) {}
 
-    public async execute(operation: FinishDocumentRegistrationOperation) {
+    public async execute(
+        operation: FinishDocumentRegistrationOperation,
+    ): Promise<SuccessfulOperationResult<FinishDocumentRegistrationOutcome, DocumentRegistered>> {
         const document = await this.persistence.findById(operation.aggregate.id);
 
         if (!document || document.status !== 'PENDING') {
@@ -27,18 +38,23 @@ export class FinishDocumentRegistrationHandler
 
             await this.persistence.update(registered);
 
+            const outcome = {
+                id: registered.id,
+                status: registered.status,
+            } satisfies FinishDocumentRegistrationOutcome;
+
+            const event = {
+                name: DOCUMENT_REGISTERED_EVENT,
+                schemaVersion: 1,
+                payload: {
+                    documentId: registered.id,
+                    storageReference: registered.storageReference,
+                },
+            } satisfies DocumentRegistered;
+
             return OperationResults.success({
-                data: { id: registered.id, status: registered.status },
-                events: [
-                    {
-                        name: DOCUMENT_REGISTERED_EVENT,
-                        schemaVersion: 1,
-                        payload: {
-                            documentId: registered.id,
-                            storageReference: registered.storageReference,
-                        },
-                    },
-                ],
+                data: outcome,
+                events: [event],
             });
         }
 
@@ -51,8 +67,11 @@ export class FinishDocumentRegistrationHandler
 
         await this.persistence.update(failed);
 
-        return OperationResults.success({
-            data: { id: failed.id, status: failed.status },
-        });
+        const outcome = {
+            id: failed.id,
+            status: failed.status,
+        } satisfies FinishDocumentRegistrationOutcome;
+
+        return OperationResults.success({ data: outcome });
     }
 }
