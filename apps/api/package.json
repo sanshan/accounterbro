@@ -21,7 +21,7 @@
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
     "tslib": "catalog:",
-    "typeorm": "^1.1.0",
+    "typeorm": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
