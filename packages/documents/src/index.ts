@@ -1,1 +1,1 @@
-export * from './lib/documents.js';
+export {};
