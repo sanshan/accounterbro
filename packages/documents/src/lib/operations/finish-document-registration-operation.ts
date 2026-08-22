@@ -7,7 +7,7 @@ import type { Subject } from '@event-driven-platform/subject';
 import type { TenantReference } from '@event-driven-platform/tenant-reference';
 
 import type { DocumentRegistered } from '../events/document-registered.js';
-import { FINISH_DOCUMENT_REGISTRATION_OPERATION } from './document-operation-names.js';
+import type { FINISH_DOCUMENT_REGISTRATION_OPERATION } from './document-operation-names.js';
 
 type StringBrand = string & { readonly __brand: string };
 
