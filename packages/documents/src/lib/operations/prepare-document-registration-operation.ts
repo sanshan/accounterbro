@@ -8,7 +8,7 @@ import type { TenantReference } from '@event-driven-platform/tenant-reference';
 
 import type { DocumentRegistrationStatus } from '../document.js';
 import type { DocumentUploadRequested } from '../events/document-upload-requested.js';
-import { PREPARE_DOCUMENT_REGISTRATION_OPERATION } from './document-operation-names.js';
+import type { PREPARE_DOCUMENT_REGISTRATION_OPERATION } from './document-operation-names.js';
 
 type StringBrand = string & { readonly __brand: string };
 
