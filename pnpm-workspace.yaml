@@ -7,4 +7,5 @@ catalog:
   '@playwright/test': '1.62.0'
   pg: '^8.23.0'
   tslib: '^2.8.1'
+  typeorm: '^1.1.0'
   zod: '^4.4.3'
