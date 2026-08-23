@@ -168,6 +168,8 @@ Prefer official Nx generators for Nx-managed applications, libraries, and integr
 
 New business packages under `packages/` MUST be created with `pnpm nx g @accounterbro/generators:package <name>`. MUST NOT invoke `@nx/js:lib` directly for a new business package.
 
+New internal services under `apps/services/` MUST be created with `pnpm nx g @accounterbro/generators:service <name>`. MUST NOT invoke a low-level Nx/Nest/Node application generator directly for a new internal service.
+
 The section between:
 
 ```text
