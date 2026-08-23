@@ -3,10 +3,6 @@ export {
     DocumentRegistrationStatus,
     type FinishedDocumentRegistrationStatus,
 } from './lib/document/document-registration-status.js';
-export type {
-    CreateDocumentResult,
-    DocumentPersistence,
-} from './lib/ports/document-persistence.js';
 
 export { documentEventNames } from './lib/events/names.js';
 export {

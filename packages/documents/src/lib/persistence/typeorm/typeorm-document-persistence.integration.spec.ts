@@ -1,11 +1,11 @@
 import type { DocumentId } from '@accounterbro/core';
 import { DataSource } from 'typeorm';
 
+import { createDocumentPersistence } from '../../../typeorm.js';
 import { Document } from '../../document/document.aggregate.js';
 import { DocumentRegistrationStatus } from '../../document/document-registration-status.js';
 import { DocumentEntity } from './document.entity.js';
 import { CreateDocuments1787440000000 } from './migrations/1787440000000-CreateDocuments.js';
-import { TypeOrmDocumentPersistence } from './typeorm-document-persistence.js';
 
 const migration = new CreateDocuments1787440000000();
 
@@ -42,8 +42,8 @@ describe('TypeOrmDocumentPersistence', () => {
         await dataSource.destroy();
     });
 
-    it('creates exactly one document and returns that winner to concurrent duplicates', async () => {
-        const persistence = new TypeOrmDocumentPersistence(dataSource.getRepository(DocumentEntity));
+    it('creates exactly one document and returns that winner to concurrent duplicates through the public factory', async () => {
+        const persistence = createDocumentPersistence(dataSource);
         const contentHash = 'same-content-hash';
         const candidates = Array.from({ length: 10 }, (_, index) =>
             Document.pending(

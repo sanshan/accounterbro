@@ -51,6 +51,61 @@ The hosting service MUST consume those public contracts. It MUST NOT deep-import
 
 The package TypeORM entrypoint may depend on TypeORM but remains Nest-agnostic. The package does not create or manage the service `DataSource`.
 
+Persistence ports used as service DI tokens are also exposed from the package `/typeorm` entrypoint as runtime values, normally `abstract class` contracts. The package exposes a factory for each such port and keeps construction of its concrete TypeORM adapter private:
+
+```ts
+// @accounterbro/documents/typeorm
+export { DocumentPersistence } from './lib/ports/document-persistence.js';
+
+export function createDocumentPersistence(
+  dataSource: DataSource,
+): DocumentPersistence {
+  return new TypeOrmDocumentPersistence(
+    dataSource.getRepository(DocumentEntity),
+  );
+}
+```
+
+The factory accepts the TypeORM `DataSource` contract and contains no Nest-specific imports or provider types. This preserves the package boundary and allows service runtime infrastructure to supply a compatible transaction-aware `DataSource` later without changing the package factory API.
+
+The hosting service owns Nest provider wiring. Provider definitions are grouped by business package inside the TypeORM persistence boundary:
+
+```text
+infrastructure/persistence/typeorm/
+├── <service>-typeorm.module.ts
+├── typeorm-options.ts
+├── data-source.ts
+├── providers/
+│   ├── documents/
+│   │   └── documents.providers.ts
+│   ├── banking/
+│   │   └── banking.providers.ts
+│   └── <package>/
+│       └── <package>.providers.ts
+└── migrations/                 # only service-owned schema artifacts, when needed
+```
+
+A service-side package provider is composition only:
+
+```ts
+import {
+  createDocumentPersistence,
+  DocumentPersistence,
+} from '@accounterbro/documents/typeorm';
+import type { Provider } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+
+export const documentsTypeOrmProviders = [
+  {
+    provide: DocumentPersistence,
+    inject: [DataSource],
+    useFactory: createDocumentPersistence,
+  },
+] satisfies Provider[];
+```
+
+The service MUST NOT reconstruct the package adapter, import `DocumentEntity`, or duplicate the package's persistence-construction knowledge. The same package-first grouping rule is applied independently in other infrastructure concerns; TypeORM persistence providers do not become a global provider tree for execution/read/runtime concerns.
+
 ## Canonical service structure
 
 For a service named `<service>`:
@@ -60,6 +115,7 @@ infrastructure/persistence/typeorm/
 ├── <service>-typeorm.module.ts
 ├── typeorm-options.ts
 ├── data-source.ts
+├── providers/                  # package-grouped TypeORM persistence bindings, when needed
 └── migrations/                 # only service-owned schema artifacts, when needed
 ```
 
@@ -87,7 +143,9 @@ TypeOrmModule.forFeature([
 ]);
 ```
 
-A service hosting multiple business packages composes each package's entity contract into the same service-owned persistence boundary as required by that service.
+Register package persistence providers from the package-grouped `providers/<package>/` files. Those service files bind the package-exported runtime port token to the package-exported factory and inject the service-owned `DataSource`; they do not recreate the concrete adapter.
+
+A service hosting multiple business packages composes each package's entity contract and package provider group into the same service-owned persistence boundary as required by that service.
 
 Do not manually initialize or destroy the `DataSource`.
 
@@ -128,7 +186,7 @@ Infrastructure concerns that genuinely need runtime database state, including fu
 
 Such adapters may observe the data source/driver/pool but MUST NOT take ownership of initialization or shutdown.
 
-Do not expose `DataSource` to application/domain code.
+Do not expose `DataSource` to application/domain code. Business-package TypeORM factories are an infrastructure composition boundary and may receive `DataSource`; domain/application behavior must continue to depend on the package persistence port rather than TypeORM.
 
 ## Schema evolution
 
@@ -193,7 +251,7 @@ Deployment MUST have an explicit migration step/job before runtime code depends 
 - `apps/api/src/app/infrastructure/persistence/typeorm/api-typeorm.module.ts` uses `TypeOrmModule.forRootAsync(...)` for runtime;
 - `apps/api/src/app/infrastructure/persistence/typeorm/data-source.ts` is the CLI-only `DataSource` adapter.
 
-When a business service hosts a TypeORM-backed business package, extend that shell by composing package-owned entity/migration contracts from `@accounterbro/<package>/typeorm`; do not use API's service-owned schema layout as a reason to move business-package artifacts into the service.
+When a business service hosts a TypeORM-backed business package, extend that shell by composing package-owned entity/migration contracts and persistence factories from `@accounterbro/<package>/typeorm`; do not use API's service-owned schema layout as a reason to move business-package artifacts into the service.
 
 ## Generator contract
 
@@ -206,6 +264,6 @@ The service generator from issue #43 may reproduce only the reusable vendor inte
 - empty service-local `entities/`, `repositories/`, and `migrations/` locations when retained by generated project structure for future genuinely service-owned persistence;
 - migration targets/scripts.
 
-The generator MUST NOT copy API-specific entities, health behavior, migrations, repository adapters, physical database topology, package-owned business entities/migrations, or a custom database lifecycle abstraction.
+The generator MUST NOT copy API-specific entities, health behavior, migrations, repository adapters, physical database topology, package-owned business entities/migrations, package persistence adapters/factories, or a custom database lifecycle abstraction.
 
-Adding a business package to a generated service is a composition step: consume that package's public TypeORM integration contracts rather than modifying the generator to copy package persistence artifacts.
+Adding a business package to a generated service is a composition step: consume that package's public TypeORM integration contracts and factories rather than modifying the generator to copy package persistence artifacts.
