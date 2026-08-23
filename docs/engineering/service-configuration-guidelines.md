@@ -43,12 +43,15 @@ MUST NOT duplicate validation for raw variables already owned by `@accounterbro/
 
 Owns the service configuration factory.
 
-Use `registerAs('<service>', ...)` and:
+Expose a callable `create<Service>Config()` factory and register that exact factory with `registerAs('<service>', create<Service>Config)`.
 
-- read service-owned raw values from `process.env` only here;
-- parse them through `<service>-env.schema.ts`;
-- compose already-validated shared values from `@accounterbro/runtime-config` where required;
-- return one typed object containing the service runtime configuration used by bootstrap/infrastructure composition.
+The callable factory:
+
+- reads service-owned raw values from `process.env` only here;
+- parses them through `<service>-env.schema.ts`;
+- composes already-validated shared values from `@accounterbro/runtime-config` where required;
+- returns one typed object containing the service runtime configuration used by bootstrap/infrastructure composition;
+- may be called by another process-owned adapter, such as the service-local TypeORM CLI `data-source.ts`, so that raw env parsing/mapping is not duplicated.
 
 Do not create a second hand-written interface for the returned shape when `ConfigType<typeof <service>Config>` can infer it.
 
@@ -91,7 +94,7 @@ Configuration validation is fail-fast.
 
 Within one process, a raw variable is validated by its owning configuration boundary when that configuration is constructed. Validation logic MUST NOT be copied into multiple layers.
 
-Different processes may execute the same owning schema independently. For example, the Nest runtime and TypeORM CLI are separate processes. Database runtime/CLI configuration sharing is defined separately by issue #47 and MUST NOT be solved by introducing another generic config abstraction here.
+Different processes may execute the same callable owning factory independently. For example, the Nest runtime and TypeORM CLI are separate processes and both may call the same service config factory. Database runtime/CLI sharing then follows `docs/engineering/database-guidelines.md`.
 
 ## Canonical API reference
 
@@ -108,7 +111,7 @@ The API demonstrates:
 ```text
 process.env / @accounterbro/runtime-config
                   ↓
-          service config factory
+      callable service config factory
                   ↓
        registerAs + ConfigModule
                   ↓
@@ -122,8 +125,10 @@ New internal services SHOULD follow this proven shape unless a concrete requirem
 The canonical service generator from issue #43 may generate only this reusable configuration shell:
 
 - service-owned env schema file;
-- namespaced `registerAs` config factory;
+- callable namespaced `registerAs` config factory;
 - config module using `ConfigModule.forFeature`;
 - typed `KEY`/`ConfigType` consumption pattern.
 
-The generator MUST NOT invent service-specific variables, database topology, provider configuration, or a generic shared Nest configuration framework.
+Database-specific generated structure follows `docs/engineering/database-guidelines.md`.
+
+The generator MUST NOT invent service-specific variables, physical database topology, provider configuration, or a generic shared Nest configuration framework.

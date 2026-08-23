@@ -7,27 +7,17 @@ import { ApiConfigModule } from '../../config/api-config.module';
 import { apiConfig } from '../../config/api.config';
 import { DatabaseHealthProbeEntity } from './entities/database-health-probe.entity';
 import { TypeOrmDatabaseHealthCheckRepository } from './repositories/typeorm-database-health-check.repository';
+import { createApiTypeOrmOptions } from './typeorm-options';
 
 @Module({
     imports: [
         TypeOrmModule.forRootAsync({
             imports: [ApiConfigModule],
             inject: [apiConfig.KEY],
-            useFactory: (config: ConfigType<typeof apiConfig>) => {
-                const { name, host, port, username, password } = config.database;
-
-                return {
-                    type: 'postgres' as const,
-                    host,
-                    port,
-                    username,
-                    password,
-                    database: name,
-                    synchronize: false,
-                    logging: false,
-                    autoLoadEntities: true,
-                };
-            },
+            useFactory: (config: ConfigType<typeof apiConfig>) => ({
+                ...createApiTypeOrmOptions(config.database),
+                autoLoadEntities: true,
+            }),
         }),
         TypeOrmModule.forFeature([DatabaseHealthProbeEntity]),
     ],

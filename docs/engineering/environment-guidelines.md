@@ -27,7 +27,7 @@ Every environment variable has an owner.
 - Once multiple services could use the same generic name with different values, service-owned variables MUST use an owning-service prefix, for example `DOCUMENTS_*` or `API_*`.
 - Application and domain code MUST NOT read `process.env` directly.
 
-The current unqualified `DB_*` variables are the existing API/local-database setup. Their final service-specific naming and database topology are intentionally deferred to issue #47.
+Service-owned database variables are owner-qualified. The API reference uses `API_DB_HOST`, `API_DB_PORT`, `API_DB_USERNAME`, `API_DB_PASSWORD`, and `API_DB_NAME`. Future database-owning services follow the same `<SERVICE>_DB_*` shape.
 
 ## Execution environments
 
@@ -39,7 +39,7 @@ Do not add `dotenv` loading inside application entry points, TypeORM data source
 
 ### Migration CLI
 
-TypeORM data sources consume already-populated `process.env` and validate the required values through the same service-owned environment schema used by runtime configuration.
+TypeORM data sources consume already-populated `process.env` through the same callable service configuration factory used by the Nest runtime. The CLI then reuses the service-local TypeORM options factory defined in `docs/engineering/database-guidelines.md`.
 
 The canonical migration entry point is the service Nx migration target. Directly invoking a package script is an internal implementation detail; when it is invoked outside Nx, the caller is responsible for supplying the required environment explicitly.
 
@@ -66,4 +66,4 @@ Before adding an environment variable:
 5. inject the real value through CI/deployment environment configuration;
 6. do not add a new env-loading mechanism.
 
-Typed internal service configuration structure and injection conventions are defined in `docs/engineering/service-configuration-guidelines.md`. Database ownership, service-specific database variable naming, and migration topology are defined by issue #47.
+Typed internal service configuration structure and injection conventions are defined in `docs/engineering/service-configuration-guidelines.md`. Database ownership, TypeORM lifecycle, and migration conventions are defined in `docs/engineering/database-guidelines.md`.
