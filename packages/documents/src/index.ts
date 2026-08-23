@@ -1,5 +1,8 @@
 export { Document } from './lib/document/document.aggregate.js';
-export { DocumentRegistrationStatus } from './lib/document/document-registration-status.js';
+export {
+    DocumentRegistrationStatus,
+    type FinishedDocumentRegistrationStatus,
+} from './lib/document/document-registration-status.js';
 export type {
     CreateDocumentResult,
     DocumentPersistence,
