@@ -5,7 +5,7 @@ import type { Operation } from '@event-driven-platform/operation';
 import type { SuccessfulOperationResult } from '@event-driven-platform/operation-result';
 import type { Subject } from '@event-driven-platform/subject';
 
-import type { DocumentRegistrationStatus } from '../../document/document-registration-status.js';
+import type { FinishedDocumentRegistrationStatus } from '../../document/document-registration-status.js';
 import type { DocumentRegisteredEvent } from '../../events/document-registered/document-registered.event.js';
 import type { documentOperationNames } from '../names.js';
 
@@ -21,7 +21,7 @@ export type FinishDocumentRegistrationPayload =
 
 export interface FinishDocumentRegistrationOutcome {
     readonly id: DocumentReference['id'];
-    readonly status: DocumentRegistrationStatus.Registered | DocumentRegistrationStatus.Failed;
+    readonly status: FinishedDocumentRegistrationStatus;
 }
 
 export type FinishDocumentRegistrationOperation = Operation<
