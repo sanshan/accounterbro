@@ -22,6 +22,26 @@ export class Document {
         readonly storageReference?: string;
         readonly failureReason?: string;
     }): Document {
+        switch (state.status) {
+            case DocumentRegistrationStatus.Pending:
+                if (state.storageReference !== undefined || state.failureReason !== undefined) {
+                    throw new Error('PENDING Document cannot contain registration outcome data.');
+                }
+                break;
+            case DocumentRegistrationStatus.Registered:
+                if (state.storageReference === undefined || state.failureReason !== undefined) {
+                    throw new Error('REGISTERED Document must contain only a storage reference.');
+                }
+                break;
+            case DocumentRegistrationStatus.Failed:
+                if (state.failureReason === undefined || state.storageReference !== undefined) {
+                    throw new Error('FAILED Document must contain only a failure reason.');
+                }
+                break;
+            default:
+                throw new Error(`Unsupported Document registration status: ${String(state.status)}`);
+        }
+
         return new Document(
             state.id,
             state.contentHash,
