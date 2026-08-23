@@ -1,0 +1,90 @@
+# Package Engineering Guidelines
+
+Rules for implementing and reviewing AccounterBro business packages.
+
+Normative keywords:
+
+- **MUST** — required.
+- **MUST NOT** — prohibited.
+- **SHOULD** — preferred; deviation requires a concrete reason.
+
+## Package boundaries
+
+- **PKG-001** — A business package MUST NOT depend on another business package.
+- **PKG-002** — A business package MUST use cross-domain identities and references from `@accounterbro/core`.
+- **PKG-003** — A business package MUST NOT redefine an identity or reference available from `@accounterbro/core`.
+- **PKG-004** — Ports MUST be placed under `packages/[package-name]/src/lib/ports/`.
+
+## Core identities
+
+- **CORE-001** — Before implementing a business package, its domain identity MUST already exist in `@accounterbro/core`.
+- **CORE-002** — Before implementing a business package, verify that Core provides its domain name, branded ID, and required reference types.
+- **CORE-003** — If a required identity or reference is missing from Core, business-package implementation MUST stop. Add the missing Core contract first in a separate prerequisite task.
+- **CORE-004** — Core owns cross-domain names, branded IDs, and reference types.
+- **CORE-005** — Core MUST use generic primitives from `@event-driven-platform/*` instead of introducing equivalent local abstractions.
+- **CORE-006** — Core MUST NOT contain aggregates, domain statuses, operations, reads, events, persistence, or business behavior.
+
+## Domain model
+
+- **DOMAIN-001** — A domain aggregate MUST be implemented as a class.
+- **DOMAIN-002** — Each aggregate MUST be placed at `packages/[package-name]/src/lib/[domain-name]/[domain-name].aggregate.ts`.
+- **DOMAIN-003** — Domain statuses MUST be represented by enums.
+- **DOMAIN-004** — An aggregate MUST own the business invariants that govern its state.
+- **DOMAIN-005** — State-transition validation MUST be performed by the aggregate, not by an operation handler.
+- **DOMAIN-006** — State transitions SHOULD be exposed as aggregate methods instead of being constructed externally.
+
+## Typed values
+
+- **TYPE-001** — Branded IDs MUST use `Brand<TValue, TBrand>` from `@event-driven-platform/types`.
+- **TYPE-002** — Brand names MUST identify the domain identity. Generic brands such as `String`, `Id`, or `Identifier` MUST NOT be used.
+- **TYPE-003** — Code MUST use the domain-specific ID/reference exported by Core instead of reconstructing its generic EDP type.
+- **TYPE-004** — Typed object literals SHOULD use `satisfies` when the compiler cannot otherwise verify the intended contract without widening or assertion.
+- **TYPE-005** — `as unknown` and `as unknown as ...` MUST NOT be used to bypass type incompatibility. Fix the type boundary instead.
+
+## Operations
+
+- **OP-001** — Each operation MUST have its own directory: `packages/[package-name]/src/lib/operations/[operation-name]/`.
+- **OP-002** — Operation files MUST use `[operation-name].operation.ts`, `[operation-name].handler.ts`, and `[operation-name].handler.spec.ts`.
+- **OP-003** — Operation names MUST be declared in `packages/[package-name]/src/lib/operations/names.ts`.
+- **OP-004** — Operation names MUST be exposed through `[camelCaseDomainName]OperationNames`.
+- **OP-005** — An operation name MUST use the domain name from Core and an imperative kebab-case action: `[domain-name].[imperative-action]`.
+- **OP-006** — Operation handlers MUST orchestrate application flow and MUST NOT implement aggregate invariants or state-transition rules.
+
+## Reads
+
+- **READ-001** — Each read MUST have its own directory: `packages/[package-name]/src/lib/reads/[read-name]/`.
+- **READ-002** — Read files MUST use `[read-name].read.ts`, `[read-name].handler.ts`, and `[read-name].handler.spec.ts`.
+- **READ-003** — Read names MUST be declared in `packages/[package-name]/src/lib/reads/names.ts`.
+- **READ-004** — Read names MUST be exposed through `[camelCaseDomainName]ReadNames`.
+- **READ-005** — A read name MUST use the domain name from Core and an imperative kebab-case action: `[domain-name].[imperative-action]`.
+
+## Events
+
+- **EVENT-001** — Each event MUST have its own directory: `packages/[package-name]/src/lib/events/[event-name]/`.
+- **EVENT-002** — An event file MUST use `[event-name].event.ts`.
+- **EVENT-003** — Event names MUST be declared in `packages/[package-name]/src/lib/events/names.ts`.
+- **EVENT-004** — Event names MUST be exposed through `[camelCaseDomainName]EventNames`.
+- **EVENT-005** — An event name MUST use the domain name from Core and describe the completed parent operation in past tense: `[domain-name].[past-tense-event]`.
+- **EVENT-006** — Package events MUST be implemented as classes.
+- **EVENT-007** — Event class names MUST end with `Event`.
+
+## Persistence
+
+- **DB-001** — Persistence entities MUST NOT contain business behavior.
+- **DB-002** — Persistence entities and domain aggregates MUST remain separate representations.
+- **DB-003** — Persistence mappers MUST only translate between persistence and domain representations; they MUST NOT implement business rules.
+- **DB-004** — Invariants that must remain correct under concurrent writes MUST be enforced by the database.
+- **DB-005** — Expected business outcomes MUST NOT expose database-specific errors to business handlers.
+
+## Names
+
+- **NAME-001** — Domain names used by business packages MUST come from `@accounterbro/core`.
+- **NAME-002** — After an operation, read, or event name is declared in its `names.ts`, package code MUST reference that declaration instead of repeating the raw string.
+
+## Review behavior
+
+- **REVIEW-001** — Review findings MUST identify the violated rule ID.
+- **REVIEW-002** — A finding MUST cite concrete code evidence. Do not report a violation based only on speculation about future code.
+- **REVIEW-003** — Do not request abstractions, extensibility, or infrastructure that is not required by the current specification or these guidelines.
+- **REVIEW-004** — When no guideline is violated and the specification does not require a change, the reviewer MUST NOT invent a requirement.
+- **REVIEW-005** — If implementation requires violating a MUST/MUST NOT rule, stop and surface the conflict instead of silently working around it.
