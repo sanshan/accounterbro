@@ -3,11 +3,11 @@ services:
     image: postgres:17
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_NAME:-accounterbro}
-      POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${API_DB_NAME:-accounterbro}
+      POSTGRES_USER: ${API_DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${API_DB_PASSWORD:-postgres}
     ports:
-      - '${DB_PORT:-5432}:5432'
+      - '${API_DB_PORT:-5432}:5432'
     volumes:
       - accounterbro-postgres-data:/var/lib/postgresql/data
     healthcheck:
