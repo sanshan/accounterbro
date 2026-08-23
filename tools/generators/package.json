@@ -16,8 +16,7 @@
     },
     "dependencies": {
         "@nx/devkit": "23.0.2",
-        "@nx/js": "23.0.2",
-        "tslib": "^2.3.0"
+        "@nx/js": "23.0.2"
     },
     "generators": "./generators.json",
     "files": [
