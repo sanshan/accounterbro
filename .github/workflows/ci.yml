@@ -37,11 +37,11 @@ jobs:
 
     env:
       NODE_ENV: test
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: accounterbro
+      API_DB_HOST: 127.0.0.1
+      API_DB_PORT: 5432
+      API_DB_USERNAME: postgres
+      API_DB_PASSWORD: postgres
+      API_DB_NAME: accounterbro
       API_PORT: 3100
       WEB_PORT: 4300
 
