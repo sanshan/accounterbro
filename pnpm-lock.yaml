@@ -293,6 +293,22 @@ importers:
         specifier: 'catalog:'
         version: 1.62.0
 
+  packages/core:
+    dependencies:
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+    devDependencies:
+      '@event-driven-platform/aggregate-reference':
+        specifier: ^0.1.3
+        version: 0.1.3
+      '@event-driven-platform/tenant-reference':
+        specifier: ^0.1.3
+        version: 0.1.3
+      '@event-driven-platform/types':
+        specifier: ^0.1.3
+        version: 0.1.3
+
   packages/documents:
     dependencies:
       tslib:
