@@ -22,6 +22,7 @@ export async function packageGenerator(tree: Tree, options: PackageGeneratorSche
         minimal: true,
         unitTestRunner: 'vitest',
         useProjectJson: true,
+        addPlugin: true,
         skipFormat: true,
     });
 
