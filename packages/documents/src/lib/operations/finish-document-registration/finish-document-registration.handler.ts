@@ -26,12 +26,12 @@ export class FinishDocumentRegistrationHandler
         }
 
         if (operation.payload.outcome === 'registered') {
-            document.register(operation.payload.storageReference);
+            const status = document.register(operation.payload.storageReference);
             await this.persistence.update(document);
 
             const outcome = {
                 id: document.id,
-                status: document.status,
+                status,
             } satisfies FinishDocumentRegistrationOutcome;
 
             const event = new DocumentRegisteredEvent({
@@ -42,12 +42,12 @@ export class FinishDocumentRegistrationHandler
             return OperationResults.success({ data: outcome, events: [event] });
         }
 
-        document.fail(operation.payload.failureReason);
+        const status = document.fail(operation.payload.failureReason);
         await this.persistence.update(document);
 
         const outcome = {
             id: document.id,
-            status: document.status,
+            status,
         } satisfies FinishDocumentRegistrationOutcome;
 
         return OperationResults.success({ data: outcome });
