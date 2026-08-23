@@ -33,8 +33,8 @@ export async function packageGenerator(tree: Tree, options: PackageGeneratorSche
     }));
 
     updateJson(tree, `${projectRoot}/project.json`, (projectJson) => ({
-        ...projectJson,
         name: projectName,
+        $schema: projectJson.$schema,
         sourceRoot: `${projectRoot}/src`,
         projectType: 'library',
         tags: [],
