@@ -1,7 +1,7 @@
 import type { ConfigType } from '@nestjs/config';
 import type { DataSourceOptions } from 'typeorm';
 
-import { apiConfig } from '../../config/api.config';
+import type { apiConfig } from '../../config/api.config';
 
 type ApiDatabaseConfig = ConfigType<typeof apiConfig>['database'];
 
