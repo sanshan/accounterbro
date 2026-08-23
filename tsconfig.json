@@ -23,6 +23,9 @@
         },
         {
             "path": "./packages/core"
+        },
+        {
+            "path": "./tools/generators"
         }
     ]
 }

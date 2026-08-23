@@ -166,6 +166,8 @@ If code genuinely has multiple project consumers, extract an appropriate workspa
 
 Prefer official Nx generators for Nx-managed applications, libraries, and integrations. Inspect unfamiliar generator options and use dry-run when output may touch multiple files.
 
+New business packages under `packages/` MUST be created with `pnpm nx g @accounterbro/generators:package <name>`. MUST NOT invoke `@nx/js:lib` directly for a new business package.
+
 The section between:
 
 ```text

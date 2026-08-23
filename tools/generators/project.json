@@ -1,0 +1,7 @@
+{
+    "name": "@accounterbro/generators",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "tools/generators/src",
+    "projectType": "library",
+    "tags": []
+}

@@ -8,6 +8,10 @@ Normative keywords:
 - **MUST NOT** — prohibited.
 - **SHOULD** — preferred; deviation requires a concrete reason.
 
+## Package creation
+
+- **PKG-000** — A new business package MUST be created with `pnpm nx g @accounterbro/generators:package <name>`. Direct use of `@nx/js:lib` for new business packages is not supported.
+
 ## Package boundaries
 
 - **PKG-001** — A business package MUST NOT depend on another business package.
