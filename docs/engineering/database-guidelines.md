@@ -126,6 +126,17 @@ The package scripts invoke the repository-installed TypeORM CLI with the service
 
 Run normal migration commands through Nx from the repository root so environment loading follows `docs/engineering/environment-guidelines.md`.
 
+For the API reference, the canonical commands are:
+
+```bash
+pnpm nx run @accounterbro/api:migration:generate --name=CreateSomething
+pnpm nx run @accounterbro/api:migration:show
+pnpm nx run @accounterbro/api:migration:run
+pnpm nx run @accounterbro/api:migration:revert
+```
+
+A generated service uses the same target names with its own Nx project identity.
+
 Generation MUST target the owning service migration directory. TypeORM generates timestamp-prefixed migration files from entity/schema differences.
 
 `migration:run` applies pending migrations, `migration:show` reports applied/pending state, and `migration:revert` reverts the latest applied migration.
