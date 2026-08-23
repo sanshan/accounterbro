@@ -3,3 +3,7 @@ export enum DocumentRegistrationStatus {
     Registered = 'REGISTERED',
     Failed = 'FAILED',
 }
+
+export type FinishedDocumentRegistrationStatus =
+    | DocumentRegistrationStatus.Registered
+    | DocumentRegistrationStatus.Failed;
