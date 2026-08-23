@@ -1,6 +1,6 @@
 import { documentName } from '@accounterbro/core';
 
 export const documentEventNames = {
-    registrationPrepared: `${documentName}.registration-prepared`,
-    registrationFinished: `${documentName}.registration-finished`,
+    uploadRequested: `${documentName}.registration-prepared`,
+    registered: `${documentName}.registration-finished`,
 } as const;
