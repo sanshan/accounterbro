@@ -25,12 +25,16 @@ export async function packageGenerator(tree: Tree, options: PackageGeneratorSche
         skipFormat: true,
     });
 
-    updateJson(tree, `${projectRoot}/package.json`, (packageJson) => ({
-        ...packageJson,
-        name: projectName,
-        private: true,
-        type: 'module',
-    }));
+    updateJson(tree, `${projectRoot}/package.json`, (packageJson) => {
+        const { dependencies: _dependencies, devDependencies: _devDependencies, ...rest } = packageJson;
+
+        return {
+            ...rest,
+            name: projectName,
+            private: true,
+            type: 'module',
+        };
+    });
 
     updateJson(tree, `${projectRoot}/project.json`, (projectJson) => ({
         name: projectName,
