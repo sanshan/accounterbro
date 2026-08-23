@@ -15,6 +15,7 @@ describe('package generator', () => {
 
         const project = readProjectConfiguration(tree, '@accounterbro/example');
         const packageJson = readJson(tree, 'packages/example/package.json');
+        const projectJson = readJson(tree, 'packages/example/project.json');
         const eslintConfig = tree.read('packages/example/eslint.config.mjs', 'utf-8');
         const vitestConfig = tree.read('packages/example/vitest.config.mts', 'utf-8');
 
@@ -24,6 +25,15 @@ describe('package generator', () => {
             projectType: 'library',
             tags: [],
         });
+        expect(projectJson).toEqual({
+            name: '@accounterbro/example',
+            $schema: '../../node_modules/nx/schemas/project-schema.json',
+            sourceRoot: 'packages/example/src',
+            projectType: 'library',
+            tags: [],
+        });
+        expect(projectJson.targets).toBeUndefined();
+
         expect(packageJson).toMatchObject({
             name: '@accounterbro/example',
             private: true,
