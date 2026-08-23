@@ -6,8 +6,8 @@ export type CreateDocumentResult =
     | { readonly kind: 'created'; readonly document: Document }
     | { readonly kind: 'existing'; readonly document: Document };
 
-export interface DocumentPersistence {
-    createOrGetExisting(document: Document): Promise<CreateDocumentResult>;
-    findById(id: DocumentId): Promise<Document | null>;
-    update(document: Document): Promise<void>;
+export abstract class DocumentPersistence {
+    public abstract createOrGetExisting(document: Document): Promise<CreateDocumentResult>;
+    public abstract findById(id: DocumentId): Promise<Document | null>;
+    public abstract update(document: Document): Promise<void>;
 }

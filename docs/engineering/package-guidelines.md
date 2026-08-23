@@ -88,6 +88,11 @@ Normative keywords:
 - **DB-009** — The TypeORM entrypoint MUST expose package composition contracts such as `<PACKAGE>_TYPEORM_ENTITIES` and, when package-owned migrations exist, `<PACKAGE>_TYPEORM_MIGRATIONS`. Consumers MUST use those contracts instead of deep-importing concrete entity or migration implementation files.
 - **DB-010** — A package TypeORM integration boundary MAY depend on TypeORM but MUST NOT depend on NestJS merely to participate in service persistence composition.
 - **DB-011** — TypeORM-specific entities, migrations, mappers, repositories, and persistence implementation classes MUST NOT be exported from the main business entrypoint solely for service composition.
+- **DB-012** — A persistence port that is used as a Nest DI token MUST be a runtime value, normally an `abstract class`; a TypeScript-only interface is insufficient for that composition boundary.
+- **DB-013** — Infrastructure-facing persistence ports used for TypeORM service composition MUST be exported from the package's `/typeorm` entrypoint. The main business entrypoint MUST NOT be expanded merely to expose those ports to Nest wiring.
+- **DB-014** — The package `/typeorm` entrypoint MUST expose one package-owned factory per persistence port that needs service composition. The factory accepts TypeORM primitives such as `DataSource` and constructs the package-owned concrete adapter internally.
+- **DB-015** — Package TypeORM factories MUST keep entity, mapper, repository, and concrete persistence implementation knowledge inside the business package. A hosting service MUST NOT recreate adapter construction or import those implementation details.
+- **DB-016** — Package TypeORM factories MUST remain Nest-agnostic. They MUST NOT import Nest provider types or decorators; the hosting service owns Nest provider descriptors and injects its service-owned `DataSource` into the package factory.
 
 ## Names
 
