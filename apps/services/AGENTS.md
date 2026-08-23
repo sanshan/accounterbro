@@ -37,3 +37,23 @@ Persistence ports used as Nest DI tokens MUST come from the package's `/typeorm`
 Use the official Nest `@nestjs/typeorm` lifecycle pattern: `TypeOrmModule.forRootAsync(...)` for the runtime connection and `TypeOrmModule.forFeature(...)` for hosted package/service entity registration. The service-local TypeORM CLI `DataSource` reuses the same typed service config and pure TypeORM options factory and composes package-owned migrations through their public `/typeorm` contracts.
 
 MUST NOT deep-import or recreate a business package's private entities/migrations/persistence adapters in the service, add a custom database lifecycle service around `DataSource.initialize()` / `destroy()`, enable schema synchronization, auto-run migrations during application bootstrap, or share another service's persistence implementation.
+
+## Business handler provisioning
+
+When a service hosts business-package EDP Operation handlers, MUST follow the Operation handler provisioning rules in `docs/engineering/package-guidelines.md`.
+
+The business package owns concrete handler classes and their construction knowledge and exposes Nest-compatible, Nest-agnostic provider descriptors through `@accounterbro/<package>/execution`. The service registers those exported descriptors; it MUST NOT deep-import concrete handlers, recreate handler factories, or duplicate their constructor dependencies.
+
+Service-side registration files are grouped by business package inside the execution infrastructure boundary:
+
+```text
+infrastructure/execution/providers/
+├── documents/
+│   └── documents-operation-handlers.providers.ts
+├── banking/
+│   └── banking-operation-handlers.providers.ts
+└── <package>/
+    └── <package>-operation-handlers.providers.ts
+```
+
+A service-side provider file is composition only. It MAY use `satisfies Provider[]` or an equivalent Nest-side check to validate the package descriptors structurally without introducing Nest types into the business package.

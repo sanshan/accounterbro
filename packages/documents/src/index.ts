@@ -15,13 +15,11 @@ export {
 } from './lib/events/document-upload-requested/document-upload-requested.event.js';
 
 export { documentOperationNames } from './lib/operations/names.js';
-export { FinishDocumentRegistrationHandler } from './lib/operations/finish-document-registration/finish-document-registration.handler.js';
 export type {
     FinishDocumentRegistrationOperation,
     FinishDocumentRegistrationOutcome,
     FinishDocumentRegistrationPayload,
 } from './lib/operations/finish-document-registration/finish-document-registration.operation.js';
-export { PrepareDocumentRegistrationHandler } from './lib/operations/prepare-document-registration/prepare-document-registration.handler.js';
 export type {
     PrepareDocumentRegistrationOperation,
     PrepareDocumentRegistrationOutcome,

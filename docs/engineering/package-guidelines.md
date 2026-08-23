@@ -53,6 +53,12 @@ Normative keywords:
 - **OP-004** — Operation names MUST be exposed through `[camelCaseDomainName]OperationNames`.
 - **OP-005** — An operation name MUST use the domain name from Core and an imperative kebab-case action: `[domain-name].[imperative-action]`.
 - **OP-006** — Operation handlers MUST orchestrate application flow and MUST NOT implement aggregate invariants or state-transition rules.
+- **OP-007** — A business package MUST own its EDP `OperationHandler` implementations and the knowledge required to construct them.
+- **OP-008** — Business-package Operation handler classes MUST remain framework-agnostic. They MUST NOT use Nest decorators or import NestJS merely for service composition.
+- **OP-009** — Service-facing Operation handler provisioning MUST be exposed through a dedicated Nest-agnostic package entrypoint such as `@accounterbro/<package>/execution`, not by requiring the service to deep-import concrete handlers.
+- **OP-010** — The package execution entrypoint MUST expose Nest-compatible provider descriptors as ordinary object literals with `provide`, `inject`, and `useFactory`; the package MUST NOT import or reproduce Nest `Provider` / `FactoryProvider` types.
+- **OP-011** — Operation handler provider descriptors MUST inject package-owned runtime ports/contracts and construct concrete handlers inside the package. A hosting service MUST NOT recreate handler constructors or duplicate their dependency knowledge.
+- **OP-012** — Concrete Operation handler classes MUST NOT be exported from the package's main business entrypoint solely for service composition when the package execution entrypoint already owns provisioning.
 
 ## Reads
 
