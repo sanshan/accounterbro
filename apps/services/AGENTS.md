@@ -30,6 +30,8 @@ MUST NOT introduce a generic shared Nest configuration abstraction, service-loca
 
 When a service owns PostgreSQL persistence, MUST follow `docs/engineering/database-guidelines.md`.
 
-Use the official Nest `@nestjs/typeorm` lifecycle pattern: `TypeOrmModule.forRootAsync(...)` for the runtime connection, `TypeOrmModule.forFeature(...)` for service persistence registration, and a service-local TypeORM CLI `DataSource` that reuses the same typed service config and pure TypeORM options factory.
+When a service hosts a TypeORM-backed business package, MUST also follow the TypeORM integration rules in `docs/engineering/package-guidelines.md`: the service owns the real Nest/TypeORM `DataSource` lifecycle and connection configuration; the business package owns its business TypeORM entities/migrations and exposes them through `@accounterbro/<package>/typeorm` composition contracts.
 
-MUST NOT add a custom database lifecycle service around `DataSource.initialize()` / `destroy()`, enable schema synchronization, auto-run migrations during application bootstrap, or share another service's persistence implementation.
+Use the official Nest `@nestjs/typeorm` lifecycle pattern: `TypeOrmModule.forRootAsync(...)` for the runtime connection and `TypeOrmModule.forFeature(...)` for hosted package/service entity registration. The service-local TypeORM CLI `DataSource` reuses the same typed service config and pure TypeORM options factory and composes package-owned migrations through their public `/typeorm` contracts.
+
+MUST NOT deep-import or recreate a business package's private entities/migrations in the service, add a custom database lifecycle service around `DataSource.initialize()` / `destroy()`, enable schema synchronization, auto-run migrations during application bootstrap, or share another service's persistence implementation.
