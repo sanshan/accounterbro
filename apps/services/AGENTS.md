@@ -2,6 +2,22 @@
 
 These rules apply to internal services under `apps/services/` in addition to the root workspace rules.
 
+## Creation and identity
+
+New internal services MUST be created with:
+
+```bash
+pnpm nx g @accounterbro/generators:service <name>
+```
+
+The canonical layout and identity convention is:
+
+```text
+apps/services/<name> -> @accounterbro/<name>-service
+```
+
+MUST NOT create a new internal service by invoking `@nx/nest:application`, `@nx/node:application`, or another low-level application generator directly. The repository generator owns normalization to the proven non-bundled service shell.
+
 ## Configuration
 
 When creating or changing internal service configuration, MUST follow `docs/engineering/environment-guidelines.md` and `docs/engineering/service-configuration-guidelines.md`.
