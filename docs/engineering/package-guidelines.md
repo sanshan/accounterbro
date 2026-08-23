@@ -80,6 +80,15 @@ Normative keywords:
 - **DB-004** — Invariants that must remain correct under concurrent writes MUST be enforced by the database.
 - **DB-005** — Expected business outcomes MUST NOT expose database-specific errors to business handlers.
 
+## TypeORM integration
+
+- **DB-006** — A business package that persists its business state with TypeORM MUST own the corresponding TypeORM schema artifacts, including its entities and migrations.
+- **DB-007** — A business package MUST NOT create, initialize, destroy, observe, or configure a TypeORM `DataSource`; the hosting business service owns the real `DataSource` lifecycle and connection configuration.
+- **DB-008** — Package-owned TypeORM integration MUST be exposed through a dedicated Nest-agnostic public entrypoint such as `@accounterbro/<package>/typeorm`, not through the package's main business entrypoint.
+- **DB-009** — The TypeORM entrypoint MUST expose package composition contracts such as `<PACKAGE>_TYPEORM_ENTITIES` and, when package-owned migrations exist, `<PACKAGE>_TYPEORM_MIGRATIONS`. Consumers MUST use those contracts instead of deep-importing concrete entity or migration implementation files.
+- **DB-010** — A package TypeORM integration boundary MAY depend on TypeORM but MUST NOT depend on NestJS merely to participate in service persistence composition.
+- **DB-011** — TypeORM-specific entities, migrations, mappers, repositories, and persistence implementation classes MUST NOT be exported from the main business entrypoint solely for service composition.
+
 ## Names
 
 - **NAME-001** — Domain names used by business packages MUST come from `@accounterbro/core`.

@@ -12,6 +12,11 @@
             "types": "./dist/index.d.ts",
             "import": "./dist/index.js",
             "default": "./dist/index.js"
+        },
+        "./typeorm": {
+            "types": "./dist/typeorm.d.ts",
+            "import": "./dist/typeorm.js",
+            "default": "./dist/typeorm.js"
         }
     },
     "dependencies": {
