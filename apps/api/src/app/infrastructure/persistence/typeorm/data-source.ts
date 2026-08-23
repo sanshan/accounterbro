@@ -1,12 +1,5 @@
-import { resolve } from 'node:path';
-import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
 import { ApiEnvSchema } from '../../config/api-env.schema';
-
-config({
-    path: resolve(__dirname, '../../../../../../../.env'),
-    quiet: true,
-});
 
 const env = ApiEnvSchema.parse(process.env);
 
