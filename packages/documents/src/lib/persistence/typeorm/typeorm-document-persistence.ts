@@ -1,7 +1,8 @@
+import type { DocumentId } from '@accounterbro/core';
 import type { Repository } from 'typeorm';
 
-import type { CreateDocumentResult, DocumentPersistence } from '../../document-persistence.js';
-import type { Document } from '../../document.js';
+import type { Document } from '../../document/document.aggregate.js';
+import type { CreateDocumentResult, DocumentPersistence } from '../../ports/document-persistence.js';
 import { DocumentEntity } from './document.entity.js';
 import { DocumentMapper } from './document.mapper.js';
 
@@ -18,8 +19,7 @@ export class TypeOrmDocumentPersistence implements DocumentPersistence {
             .returning('id')
             .execute();
 
-        const insertedRows = insertResult.raw as unknown;
-        if (Array.isArray(insertedRows) && insertedRows.length > 0) {
+        if (Array.isArray(insertResult.raw) && insertResult.raw.length > 0) {
             return { kind: 'created', document };
         }
 
@@ -34,7 +34,7 @@ export class TypeOrmDocumentPersistence implements DocumentPersistence {
         };
     }
 
-    public async findById(id: string): Promise<Document | null> {
+    public async findById(id: DocumentId): Promise<Document | null> {
         const entity = await this.repository.findOneBy({ id });
         return entity ? DocumentMapper.toDomain(entity) : null;
     }

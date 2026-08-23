@@ -15,12 +15,8 @@
         }
     },
     "dependencies": {
-        "tslib": "^2.3.0",
-        "typeorm": "catalog:"
-    },
-    "devDependencies": {
+        "@accounterbro/core": "workspace:*",
         "@event-driven-platform/actor": "^0.1.3",
-        "@event-driven-platform/aggregate-reference": "^0.1.3",
         "@event-driven-platform/event": "^0.1.3",
         "@event-driven-platform/intent": "^0.1.3",
         "@event-driven-platform/operation": "^0.1.3",
@@ -29,8 +25,10 @@
         "@event-driven-platform/read": "^0.0.4",
         "@event-driven-platform/read-handler": "^0.0.3",
         "@event-driven-platform/subject": "^0.1.3",
-        "@event-driven-platform/tenant-reference": "^0.1.3",
-        "@event-driven-platform/types": "^0.1.3",
+        "tslib": "^2.3.0",
+        "typeorm": "catalog:"
+    },
+    "devDependencies": {
         "pg": "catalog:"
     }
 }

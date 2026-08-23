@@ -4,16 +4,13 @@ import {
     type SuccessfulOperationResult,
 } from '@event-driven-platform/operation-result';
 
-import type { DocumentPersistence } from '../document-persistence.js';
-import type { Document } from '../document.js';
-import {
-    DOCUMENT_UPLOAD_REQUESTED_EVENT,
-    type DocumentUploadRequested,
-} from '../events/document-upload-requested.js';
+import { Document } from '../../document/document.aggregate.js';
+import { DocumentUploadRequestedEvent } from '../../events/document-upload-requested/document-upload-requested.event.js';
+import type { DocumentPersistence } from '../../ports/document-persistence.js';
 import type {
     PrepareDocumentRegistrationOperation,
     PrepareDocumentRegistrationOutcome,
-} from './prepare-document-registration-operation.js';
+} from './prepare-document-registration.operation.js';
 
 export class PrepareDocumentRegistrationHandler
     implements OperationHandler<PrepareDocumentRegistrationOperation>
@@ -22,12 +19,8 @@ export class PrepareDocumentRegistrationHandler
 
     public async execute(
         operation: PrepareDocumentRegistrationOperation,
-    ): Promise<SuccessfulOperationResult<PrepareDocumentRegistrationOutcome, DocumentUploadRequested>> {
-        const document: Document = {
-            id: operation.payload.documentId,
-            contentHash: operation.payload.contentHash,
-            status: 'PENDING',
-        };
+    ): Promise<SuccessfulOperationResult<PrepareDocumentRegistrationOutcome, DocumentUploadRequestedEvent>> {
+        const document = Document.pending(operation.payload.documentId, operation.payload.contentHash);
         const creation = await this.persistence.createOrGetExisting(document);
 
         if (creation.kind === 'existing') {
@@ -50,11 +43,7 @@ export class PrepareDocumentRegistrationHandler
             },
         } satisfies PrepareDocumentRegistrationOutcome;
 
-        const event = {
-            name: DOCUMENT_UPLOAD_REQUESTED_EVENT,
-            schemaVersion: 1,
-            payload: { documentId: creation.document.id },
-        } satisfies DocumentUploadRequested;
+        const event = new DocumentUploadRequestedEvent({ documentId: creation.document.id });
 
         return OperationResults.success({
             data: outcome,

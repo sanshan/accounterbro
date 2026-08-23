@@ -1,7 +1,7 @@
 import type { ReadHandler } from '@event-driven-platform/read-handler';
 
-import type { DocumentPersistence } from '../document-persistence.js';
-import type { GetDocumentRead, GetDocumentResult } from './get-document-read.js';
+import type { DocumentPersistence } from '../../ports/document-persistence.js';
+import type { GetDocumentRead, GetDocumentResult } from './get-document.read.js';
 
 export class GetDocumentReadHandler implements ReadHandler<GetDocumentRead> {
     public constructor(private readonly persistence: DocumentPersistence) {}

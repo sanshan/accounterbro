@@ -1,12 +1,13 @@
+import type { DocumentId } from '@accounterbro/core';
 import { Column, Entity, PrimaryColumn, Unique } from 'typeorm';
 
-import type { DocumentRegistrationStatus } from '../../document.js';
+import type { DocumentRegistrationStatus } from '../../document/document-registration-status.js';
 
 @Entity('documents')
 @Unique('uq_documents_content_hash', ['contentHash'])
 export class DocumentEntity {
     @PrimaryColumn({ type: 'uuid' })
-    public id!: string;
+    public id!: DocumentId;
 
     @Column({ name: 'content_hash', type: 'varchar', nullable: false })
     public contentHash!: string;

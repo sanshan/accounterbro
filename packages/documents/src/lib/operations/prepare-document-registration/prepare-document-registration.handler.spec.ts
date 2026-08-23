@@ -1,8 +1,15 @@
-import type { DocumentPersistence } from '../document-persistence.js';
-import type { Document } from '../document.js';
-import { DOCUMENT_UPLOAD_REQUESTED_EVENT } from '../events/document-upload-requested.js';
-import { PrepareDocumentRegistrationHandler } from './prepare-document-registration-handler.js';
-import type { PrepareDocumentRegistrationOperation } from './prepare-document-registration-operation.js';
+import type { DocumentId, TenantId } from '@accounterbro/core';
+
+import { Document } from '../../document/document.aggregate.js';
+import { DocumentRegistrationStatus } from '../../document/document-registration-status.js';
+import { documentEventNames } from '../../events/names.js';
+import { documentOperationNames } from '../names.js';
+import type { DocumentPersistence } from '../../ports/document-persistence.js';
+import { PrepareDocumentRegistrationHandler } from './prepare-document-registration.handler.js';
+import type { PrepareDocumentRegistrationOperation } from './prepare-document-registration.operation.js';
+
+const documentId = 'document-1' as DocumentId;
+const tenantId = 'tenant-1' as TenantId;
 
 function createPersistence(existing: Document | null = null) {
     const attempted: Document[] = [];
@@ -22,14 +29,14 @@ function createPersistence(existing: Document | null = null) {
 
 function operation(): PrepareDocumentRegistrationOperation {
     return {
-        name: 'documents.prepare-registration',
+        name: documentOperationNames.prepareRegistration,
         schemaVersion: 1,
         intent: { id: 'intent-1', key: 'intent-key' },
         actor: { type: 'user', id: 'user-1', origin: {} },
-        tenant: { type: 'tenant', id: 'tenant-1' } as PrepareDocumentRegistrationOperation['tenant'],
-        subject: { type: 'document', id: 'document-1' },
-        aggregate: { type: 'document', id: 'document-1' } as PrepareDocumentRegistrationOperation['aggregate'],
-        payload: { documentId: 'document-1', contentHash: 'hash-1' },
+        tenant: { type: 'tenant', id: tenantId },
+        subject: { type: 'document', id: documentId },
+        aggregate: { type: 'document', id: documentId },
+        payload: { documentId, contentHash: 'hash-1' },
     };
 }
 
@@ -40,45 +47,46 @@ describe('PrepareDocumentRegistrationHandler', () => {
 
         const result = await handler.execute(operation());
 
-        expect(attempted).toEqual([
-            { id: 'document-1', contentHash: 'hash-1', status: 'PENDING' },
-        ]);
+        expect(attempted).toHaveLength(1);
+        expect(attempted[0]?.id).toBe(documentId);
+        expect(attempted[0]?.contentHash).toBe('hash-1');
+        expect(attempted[0]?.status).toBe(DocumentRegistrationStatus.Pending);
         expect(result).toEqual({
             status: 'success',
             data: {
                 kind: 'created',
-                document: { id: 'document-1', status: 'PENDING' },
+                document: { id: documentId, status: DocumentRegistrationStatus.Pending },
             },
             events: [
                 {
-                    name: DOCUMENT_UPLOAD_REQUESTED_EVENT,
+                    name: documentEventNames.uploadRequested,
                     schemaVersion: 1,
-                    payload: { documentId: 'document-1' },
+                    payload: { documentId },
                 },
             ],
         });
     });
 
     it('returns the persistence winner as duplicate without requesting upload', async () => {
-        const existing: Document = {
-            id: 'existing-1',
+        const existingId = 'existing-1' as DocumentId;
+        const existing = Document.restore({
+            id: existingId,
             contentHash: 'hash-1',
-            status: 'FAILED',
+            status: DocumentRegistrationStatus.Failed,
             failureReason: 'storage unavailable',
-        };
+        });
         const { persistence, attempted } = createPersistence(existing);
         const handler = new PrepareDocumentRegistrationHandler(persistence);
 
         const result = await handler.execute(operation());
 
-        expect(attempted).toEqual([
-            { id: 'document-1', contentHash: 'hash-1', status: 'PENDING' },
-        ]);
+        expect(attempted).toHaveLength(1);
+        expect(attempted[0]?.id).toBe(documentId);
         expect(result).toEqual({
             status: 'success',
             data: {
                 kind: 'duplicate',
-                document: { id: 'existing-1', status: 'FAILED' },
+                document: { id: existingId, status: DocumentRegistrationStatus.Failed },
             },
             events: [],
         });
