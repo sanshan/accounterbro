@@ -63,18 +63,22 @@ export class Document {
         return this.registrationFailureReason;
     }
 
-    public register(storageReference: string): void {
+    public register(storageReference: string): DocumentRegistrationStatus.Registered {
         this.assertPending();
         this.registrationStatus = DocumentRegistrationStatus.Registered;
         this.storedAt = storageReference;
         this.registrationFailureReason = undefined;
+
+        return DocumentRegistrationStatus.Registered;
     }
 
-    public fail(failureReason: string): void {
+    public fail(failureReason: string): DocumentRegistrationStatus.Failed {
         this.assertPending();
         this.registrationStatus = DocumentRegistrationStatus.Failed;
         this.storedAt = undefined;
         this.registrationFailureReason = failureReason;
+
+        return DocumentRegistrationStatus.Failed;
     }
 
     private assertPending(): void {
