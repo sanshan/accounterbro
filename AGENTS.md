@@ -43,6 +43,8 @@ Rules are cumulative:
 
 MUST NOT modify a project using only root instructions when a nested `AGENTS.md` exists for that project.
 
+When implementing or reviewing code under `packages/`, MUST follow `docs/engineering/package-guidelines.md`.
+
 ## 2. Repository Purpose
 
 AccounterBro is a product repository. It contains production-oriented baseline implementation and conventions that future developers and coding agents should inspect before introducing new patterns.
