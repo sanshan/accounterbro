@@ -36,3 +36,11 @@ export { DocumentEntity } from './lib/persistence/typeorm/document.entity.js';
 export { DocumentMapper } from './lib/persistence/typeorm/document.mapper.js';
 export { CreateDocuments1787440000000 } from './lib/persistence/typeorm/migrations/1787440000000-CreateDocuments.js';
 export { TypeOrmDocumentPersistence } from './lib/persistence/typeorm/typeorm-document-persistence.js';
+
+export { GET_DOCUMENT_READ } from './lib/reads/document-read-names.js';
+export { GetDocumentReadHandler } from './lib/reads/get-document-read-handler.js';
+export type {
+    GetDocumentParameters,
+    GetDocumentRead,
+    GetDocumentResult,
+} from './lib/reads/get-document-read.js';
