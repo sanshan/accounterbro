@@ -23,40 +23,37 @@ export class PrepareDocumentRegistrationHandler
     public async execute(
         operation: PrepareDocumentRegistrationOperation,
     ): Promise<SuccessfulOperationResult<PrepareDocumentRegistrationOutcome, DocumentUploadRequested>> {
-        const existing = await this.persistence.findByContentHash(operation.payload.contentHash);
+        const document: Document = {
+            id: operation.payload.documentId,
+            contentHash: operation.payload.contentHash,
+            status: 'PENDING',
+        };
+        const creation = await this.persistence.createOrGetExisting(document);
 
-        if (existing) {
+        if (creation.kind === 'existing') {
             const outcome = {
                 kind: 'duplicate',
                 document: {
-                    id: existing.id,
-                    status: existing.status,
+                    id: creation.document.id,
+                    status: creation.document.status,
                 },
             } satisfies PrepareDocumentRegistrationOutcome;
 
             return OperationResults.success({ data: outcome });
         }
 
-        const document: Document = {
-            id: operation.payload.documentId,
-            contentHash: operation.payload.contentHash,
-            status: 'PENDING',
-        };
-
-        await this.persistence.insert(document);
-
         const outcome = {
             kind: 'created',
             document: {
-                id: document.id,
-                status: document.status,
+                id: creation.document.id,
+                status: creation.document.status,
             },
         } satisfies PrepareDocumentRegistrationOutcome;
 
         const event = {
             name: DOCUMENT_UPLOAD_REQUESTED_EVENT,
             schemaVersion: 1,
-            payload: { documentId: document.id },
+            payload: { documentId: creation.document.id },
         } satisfies DocumentUploadRequested;
 
         return OperationResults.success({
