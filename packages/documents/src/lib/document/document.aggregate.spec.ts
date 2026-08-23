@@ -31,4 +31,22 @@ describe('Document', () => {
             'Document registration can only finish from PENDING state.',
         );
     });
+
+    it('rejects restored state that contradicts its registration status', () => {
+        expect(() =>
+            Document.restore({
+                id: documentId,
+                contentHash: 'hash-1',
+                status: DocumentRegistrationStatus.Registered,
+            }),
+        ).toThrow('REGISTERED Document must contain only a storage reference.');
+
+        expect(() =>
+            Document.restore({
+                id: documentId,
+                contentHash: 'hash-1',
+                status: DocumentRegistrationStatus.Failed,
+            }),
+        ).toThrow('FAILED Document must contain only a failure reason.');
+    });
 });
