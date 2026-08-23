@@ -66,4 +66,4 @@ Before adding an environment variable:
 5. inject the real value through CI/deployment environment configuration;
 6. do not add a new env-loading mechanism.
 
-Typed internal service configuration structure and injection conventions are defined by issue #46. Database ownership, service-specific database variable naming, and migration topology are defined by issue #47.
+Typed internal service configuration structure and injection conventions are defined in `docs/engineering/service-configuration-guidelines.md`. Database ownership, service-specific database variable naming, and migration topology are defined by issue #47.
