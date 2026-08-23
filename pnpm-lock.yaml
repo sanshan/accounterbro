@@ -293,6 +293,12 @@ importers:
         specifier: 'catalog:'
         version: 1.62.0
 
+  packages/core:
+    dependencies:
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
   packages/documents:
     dependencies:
       tslib:

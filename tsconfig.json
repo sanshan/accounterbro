@@ -20,6 +20,9 @@
         },
         {
             "path": "./packages/documents"
+        },
+        {
+            "path": "./packages/core"
         }
     ]
 }
