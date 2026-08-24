@@ -32,6 +32,9 @@
         },
         {
             "path": "./packages/service-runtime"
+        },
+        {
+            "path": "./packages/object-storage"
         }
     ]
 }
