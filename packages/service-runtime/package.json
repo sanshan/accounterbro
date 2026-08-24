@@ -37,6 +37,11 @@
             "types": "./dist/reader.d.ts",
             "import": "./dist/reader.js",
             "default": "./dist/reader.js"
+        },
+        "./use-case-execution/typeorm": {
+            "types": "./dist/use-case-execution/typeorm.d.ts",
+            "import": "./dist/use-case-execution/typeorm.js",
+            "default": "./dist/use-case-execution/typeorm.js"
         }
     },
     "dependencies": {
