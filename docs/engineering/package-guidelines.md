@@ -124,6 +124,10 @@ Normative keywords:
 - **DB-023** — Tests for shared runtime persistence MUST verify AccounterBro-owned adapter guarantees only, such as database concurrency, fencing, schema invariants, or transaction participation. They MUST NOT duplicate EDP contract-shape or Runner behavior tests.
 - **DB-024** — EDP `OutboxStore` TypeORM integration MUST use `@accounterbro/service-runtime/outbox/typeorm`; services MUST NOT implement a local Outbox adapter or application polling publisher.
 - **DB-025** — Shared Outbox persistence MUST remain append-only, store the authoritative EDP Event envelope plus required search/CDC projections, and MUST NOT add application delivery lifecycle state because publication is CDC-owned.
+- **DB-026** — EDP `UseCaseExecutionStore` TypeORM integration MUST use `@accounterbro/service-runtime/use-case-execution/typeorm`; services MUST NOT implement local UseCase execution tables or claim/reclaim/fencing adapters.
+- **DB-027** — Shared UseCase execution persistence MUST use one durable row per logical invocation and MUST NOT add attempts, failure history, lease renewal, heartbeat, progress state, child-step state, or Outbox behavior. `release()` makes the same invocation claimable again, and only a new claim advancing the lease generation fences the previous owner.
+- **DB-028** — `UseCaseExecutionStore` uses the service-owned real `DataSource` for short atomic transitions and MUST NOT imply one SQL transaction spanning child Operations/Reads of a UseCase.
+- **DB-029** — Completed durable UseCase results MUST be JSON-serializable for `jsonb` replay. Do not introduce a serializer abstraction until a concrete non-JSON requirement exists.
 
 ## Service runtime composition
 
