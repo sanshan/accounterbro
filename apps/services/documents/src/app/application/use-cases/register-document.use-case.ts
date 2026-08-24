@@ -13,7 +13,7 @@ import {
     type FinishDocumentRegistrationPayload,
     type PrepareDocumentRegistrationOperation,
 } from '@accounterbro/documents';
-import { ObjectStorage } from '@accounterbro/object-storage';
+import type { ObjectStorage } from '@accounterbro/object-storage';
 import type { Actor } from '@event-driven-platform/actor';
 import { IntentFactory } from '@event-driven-platform/intent';
 import type { Runner } from '@event-driven-platform/runner';
