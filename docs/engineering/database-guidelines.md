@@ -212,6 +212,16 @@ The shared runtime MUST NOT initialize, destroy, wrap ownership of, or replace t
 
 Tests for this integration MUST cover only AccounterBro-owned TypeORM wiring and transaction participation. They MUST NOT duplicate generic EDP `ExecutionTransaction` semantics, TypeORM transaction behavior, or `AsyncLocalStorage` implementation tests.
 
+## EDP execution-log persistence
+
+Transactional business services use `@accounterbro/service-runtime/execution-log/typeorm` for durable EDP `ExecutionLogStore` persistence. Shared runtime owns the reusable `execution_log` / `execution_attempt` entities, migrations, and store factory; each service composes those artifacts into its own service-owned database, so execution data is not centralized across services.
+
+Construct the store with the same transaction-aware `DataSource` supplied to business-package persistence factories. `claim()` obtains ownership through database-level atomicity outside the Runner business transaction, while `complete()` / `fail()` use the supplied `DataSource` and therefore join the active `ExecutionTransaction` when one exists. The execution-log adapter MUST NOT create another `AsyncLocalStorage`, `QueryRunner`, database lifecycle, or transaction-propagation mechanism.
+
+The persistence model keeps the full Operation snapshot for deterministic Intent-conflict detection, searchable operation/tenant/aggregate/actor columns for incident investigation, complete attempt history, and fenced lease generations. Services MUST consume the exported `EXECUTION_LOG_TYPEORM_ENTITIES` and `EXECUTION_LOG_TYPEORM_MIGRATIONS` contracts instead of deep-importing the shared implementation or recreating the schema/store locally.
+
+Tests for this adapter MUST target AccounterBro-owned database concurrency, fencing, and transaction-participation guarantees. They MUST NOT restate EDP `ExecutionLogStore` request/result contracts or generic EDP transition semantics.
+
 ## Schema evolution
 
 Schema evolution is migration-driven.

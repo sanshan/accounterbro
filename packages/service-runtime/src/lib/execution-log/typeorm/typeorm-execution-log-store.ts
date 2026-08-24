@@ -75,31 +75,46 @@ export class TypeOrmExecutionLogStore implements ExecutionLogStore {
             const attempts = manager.getRepository(ExecutionAttemptEntity);
             const requestedAt = new Date(request.requestedAt);
 
-            const candidate = executions.create({
-                executionId: request.executionId,
-                intentId: request.operation.intent.id,
-                operationName: request.operation.name,
-                operationSchemaVersion: request.operation.schemaVersion,
-                tenantType: request.operation.tenant.type,
-                tenantId: request.operation.tenant.id,
-                aggregateType: request.operation.aggregate.type,
-                aggregateId: request.operation.aggregate.id,
-                actorType: request.operation.actor.type,
-                actorId: request.operation.actor.id,
-                operation: request.operation,
-                status: 'in-progress',
-                attemptCount: 1,
-                result: null,
-                createdAt: requestedAt,
-                finishedAt: null,
-            });
-
-            await executions
-                .createQueryBuilder()
-                .insert()
-                .values(candidate)
-                .orIgnore()
-                .execute();
+            await manager.query(
+                `
+                    INSERT INTO "execution_log" (
+                        "execution_id",
+                        "intent_id",
+                        "operation_name",
+                        "operation_schema_version",
+                        "tenant_type",
+                        "tenant_id",
+                        "aggregate_type",
+                        "aggregate_id",
+                        "actor_type",
+                        "actor_id",
+                        "operation",
+                        "status",
+                        "attempt_count",
+                        "result",
+                        "created_at",
+                        "finished_at"
+                    ) VALUES (
+                        $1, $2, $3, $4, $5, $6, $7, $8,
+                        $9, $10, $11, 'in-progress', 1, NULL, $12, NULL
+                    )
+                    ON CONFLICT DO NOTHING
+                `,
+                [
+                    request.executionId,
+                    request.operation.intent.id,
+                    request.operation.name,
+                    request.operation.schemaVersion,
+                    request.operation.tenant.type,
+                    request.operation.tenant.id,
+                    request.operation.aggregate.type,
+                    request.operation.aggregate.id,
+                    request.operation.actor.type,
+                    request.operation.actor.id,
+                    request.operation,
+                    requestedAt,
+                ],
+            );
 
             const execution = await executions.findOne({
                 where: { intentId: request.operation.intent.id },
@@ -373,7 +388,10 @@ export class TypeOrmExecutionLogStore implements ExecutionLogStore {
         execution: ExecutionLogEntity,
         attempt: ExecutionAttemptEntity,
         attemptId: ExecutionAttemptEntity['attemptId'],
-        lease: { readonly ownerId: ExecutionAttemptEntity['runnerId']; readonly version: ExecutionLeaseVersion },
+        lease: {
+            readonly ownerId: ExecutionAttemptEntity['runnerId'];
+            readonly version: ExecutionLeaseVersion;
+        },
     ): boolean {
         return (
             attempt.attemptNumber === execution.attemptCount &&
