@@ -26,6 +26,9 @@
         },
         {
             "path": "./tools/generators"
+        },
+        {
+            "path": "./packages/service-runtime"
         }
     ]
 }
