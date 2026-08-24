@@ -42,6 +42,11 @@
             "types": "./dist/use-case-execution/typeorm.d.ts",
             "import": "./dist/use-case-execution/typeorm.js",
             "default": "./dist/use-case-execution/typeorm.js"
+        },
+        "./use-case-executor": {
+            "types": "./dist/use-case-executor.d.ts",
+            "import": "./dist/use-case-executor.js",
+            "default": "./dist/use-case-executor.js"
         }
     },
     "dependencies": {
