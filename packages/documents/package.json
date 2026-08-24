@@ -1,0 +1,45 @@
+{
+    "name": "@accounterbro/documents",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
+        "./execution": {
+            "types": "./dist/execution.d.ts",
+            "import": "./dist/execution.js",
+            "default": "./dist/execution.js"
+        },
+        "./typeorm": {
+            "types": "./dist/typeorm.d.ts",
+            "import": "./dist/typeorm.js",
+            "default": "./dist/typeorm.js"
+        }
+    },
+    "dependencies": {
+        "@accounterbro/core": "workspace:*",
+        "@accounterbro/service-runtime": "workspace:*",
+        "@event-driven-platform/actor": "^0.1.3",
+        "@event-driven-platform/event": "^0.1.3",
+        "@event-driven-platform/intent": "^0.2.0",
+        "@event-driven-platform/operation": "^0.1.4",
+        "@event-driven-platform/operation-handler": "^0.0.5",
+        "@event-driven-platform/operation-result": "^0.1.3",
+        "@event-driven-platform/read": "^0.0.4",
+        "@event-driven-platform/read-handler": "^0.0.3",
+        "@event-driven-platform/subject": "^0.1.3",
+        "tslib": "^2.3.0",
+        "typeorm": "catalog:"
+    },
+    "devDependencies": {
+        "pg": "catalog:"
+    }
+}

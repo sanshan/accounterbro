@@ -17,11 +17,11 @@
     "@nestjs/platform-express": "^11.0.0",
     "@nestjs/terminus": "^11.1.0",
     "@nestjs/typeorm": "^11.0.3",
-    "pg": "^8.23.0",
+    "pg": "catalog:",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
     "tslib": "catalog:",
-    "typeorm": "^1.1.0",
+    "typeorm": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

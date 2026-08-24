@@ -43,6 +43,8 @@ Rules are cumulative:
 
 MUST NOT modify a project using only root instructions when a nested `AGENTS.md` exists for that project.
 
+When implementing or reviewing code under `packages/`, MUST follow `docs/engineering/package-guidelines.md`.
+
 ## 2. Repository Purpose
 
 AccounterBro is a product repository. It contains production-oriented baseline implementation and conventions that future developers and coding agents should inspect before introducing new patterns.
@@ -69,6 +71,14 @@ When asked to plan or implement new behavior:
 10. Avoid unrelated refactoring.
 
 Reference implementations are architectural guidance, not templates that must be copied mechanically.
+
+### UseCase implementation task readiness
+
+Before finalizing an implementation issue for a concrete UseCase, perform the UseCase preflight required by the applicable service `AGENTS.md`.
+
+The issue MUST contain a `## Do not` section populated with concrete behaviors already owned by EDP runtime, called Operations/Reads, handlers, or persistence/DB semantics discovered during that preflight. Generic statements such as "do not duplicate existing mechanisms" are insufficient when the investigation can name the existing owner or mechanism.
+
+MUST NOT start UseCase implementation from assumptions about idempotency, deduplication, recovery, retry, transactions, concurrency, or read/write behavior that can be verified in the current runtime and called boundaries.
 
 ## 4. Repository Navigation
 
@@ -163,6 +173,10 @@ If code genuinely has multiple project consumers, extract an appropriate workspa
 ## 8. Nx-Managed Configuration and Generators
 
 Prefer official Nx generators for Nx-managed applications, libraries, and integrations. Inspect unfamiliar generator options and use dry-run when output may touch multiple files.
+
+New business packages under `packages/` MUST be created with `pnpm nx g @accounterbro/generators:package <name>`. MUST NOT invoke `@nx/js:lib` directly for a new business package.
+
+New internal services under `apps/services/` MUST be created with `pnpm nx g @accounterbro/generators:service <name>`. MUST NOT invoke a low-level Nx/Nest/Node application generator directly for a new internal service.
 
 The section between:
 

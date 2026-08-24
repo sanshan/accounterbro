@@ -4,17 +4,19 @@ import { ApiEnvSchema } from './api-env.schema';
 
 export const CONFIG_API_TOKEN = 'api';
 
-export const apiConfig = registerAs(CONFIG_API_TOKEN, () => {
+export function createApiConfig() {
     const env = ApiEnvSchema.parse(process.env);
 
     return {
         port: runtimeConfig.api.port,
         database: {
-            host: env.DB_HOST,
-            port: env.DB_PORT,
-            username: env.DB_USERNAME,
-            password: env.DB_PASSWORD,
-            name: env.DB_NAME,
+            host: env.API_DB_HOST,
+            port: env.API_DB_PORT,
+            username: env.API_DB_USERNAME,
+            password: env.API_DB_PASSWORD,
+            name: env.API_DB_NAME,
         },
     };
-});
+}
+
+export const apiConfig = registerAs(CONFIG_API_TOKEN, createApiConfig);

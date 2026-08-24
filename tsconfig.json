@@ -16,7 +16,25 @@
             "path": "./apps/web-e2e"
         },
         {
+            "path": "./apps/services/documents"
+        },
+        {
             "path": "./packages/runtime-config"
+        },
+        {
+            "path": "./packages/documents"
+        },
+        {
+            "path": "./packages/core"
+        },
+        {
+            "path": "./tools/generators"
+        },
+        {
+            "path": "./packages/service-runtime"
+        },
+        {
+            "path": "./packages/object-storage"
         }
     ]
 }

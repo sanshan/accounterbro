@@ -1,0 +1,39 @@
+{
+    "extends": "../../../tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "dist",
+        "types": ["node"],
+        "rootDir": "src",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
+        "target": "es2021"
+    },
+    "include": ["src/**/*.ts"],
+    "exclude": [
+        "out-tsc",
+        "dist",
+        "jest.config.ts",
+        "jest.config.cts",
+        "src/**/*.spec.ts",
+        "src/**/*.test.ts",
+        "src/**/*.e2e-spec.ts",
+        "eslint.config.js",
+        "eslint.config.cjs",
+        "eslint.config.mjs"
+    ],
+    "references": [
+        {
+            "path": "../../../packages/runtime-config/tsconfig.lib.json"
+        },
+        {
+            "path": "../../../packages/documents/tsconfig.lib.json"
+        },
+        {
+            "path": "../../../packages/object-storage/tsconfig.lib.json"
+        },
+        {
+            "path": "../../../packages/service-runtime/tsconfig.lib.json"
+        }
+    ]
+}
