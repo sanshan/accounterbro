@@ -2,7 +2,6 @@ import type { DocumentId, TenantId } from '@accounterbro/core';
 
 import { Document } from '../../document/document.aggregate.js';
 import { DocumentRegistrationStatus } from '../../document/document-registration-status.js';
-import { documentEventNames } from '../../events/names.js';
 import { documentOperationNames } from '../names.js';
 import type { DocumentPersistence } from '../../ports/document-persistence.js';
 import { PrepareDocumentRegistrationHandler } from './prepare-document-registration.handler.js';
@@ -41,7 +40,7 @@ function operation(): PrepareDocumentRegistrationOperation {
 }
 
 describe('PrepareDocumentRegistrationHandler', () => {
-    it('persists a new pending document and requests upload', async () => {
+    it('persists a new pending document without emitting an upload continuation', async () => {
         const { persistence, attempted } = createPersistence();
         const handler = new PrepareDocumentRegistrationHandler(persistence);
 
@@ -55,16 +54,10 @@ describe('PrepareDocumentRegistrationHandler', () => {
             kind: 'created',
             document: { id: documentId, status: DocumentRegistrationStatus.Pending },
         });
-        expect(result.events).toEqual([
-            {
-                name: documentEventNames.uploadRequested,
-                schemaVersion: 1,
-                payload: { documentId },
-            },
-        ]);
+        expect(result.events).toEqual([]);
     });
 
-    it('returns the persistence winner as duplicate without requesting upload', async () => {
+    it('returns the persistence winner as duplicate without emitting events', async () => {
         const existingId = 'existing-1' as DocumentId;
         const existing = Document.restore({
             id: existingId,
