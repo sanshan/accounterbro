@@ -404,6 +404,15 @@ importers:
       '@event-driven-platform/outbox-store':
         specifier: ^0.0.5
         version: 0.0.5
+      '@event-driven-platform/read':
+        specifier: ^0.0.4
+        version: 0.0.4
+      '@event-driven-platform/read-handler':
+        specifier: ^0.0.3
+        version: 0.0.3
+      '@event-driven-platform/read-handler-resolver':
+        specifier: ^0.0.3
+        version: 0.0.3
       '@event-driven-platform/runner':
         specifier: ^0.0.5
         version: 0.0.5
@@ -1296,6 +1305,9 @@ packages:
 
   '@event-driven-platform/rate-limit@0.0.4':
     resolution: {integrity: sha512-cZ6Y+UjtFy5sDLEY8gMn59SeHR6fVM/FuR3/1j8/iLmFlUUbmuCuS1Dje9aYzfYX/c49/XsaRApl6MYgyIjpCw==}
+
+  '@event-driven-platform/read-handler-resolver@0.0.3':
+    resolution: {integrity: sha512-gR+aT78CEWIl554sAFiOkUzK2HJ6fzW3WZoC7nzgyw6oc5378cnQqHQO6qsveoJCiWzV0hLyaxVnOig4rlOR/w==}
 
   '@event-driven-platform/read-handler@0.0.3':
     resolution: {integrity: sha512-nQhCGsgQ9zyp2karljytZ6PSjONegnB1GejsZNSX1N6Ua6qz3x0Aw7My3QhBP4VMp/SxnZ9aLmNrisGJlbb4IA==}
@@ -9819,6 +9831,12 @@ snapshots:
 
   '@event-driven-platform/rate-limit@0.0.4':
     dependencies:
+      tslib: 2.8.1
+
+  '@event-driven-platform/read-handler-resolver@0.0.3':
+    dependencies:
+      '@event-driven-platform/read': 0.0.4
+      '@event-driven-platform/read-handler': 0.0.3
       tslib: 2.8.1
 
   '@event-driven-platform/read-handler@0.0.3':

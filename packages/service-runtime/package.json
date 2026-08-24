@@ -47,6 +47,9 @@
         "@event-driven-platform/operation-handler-resolver": "^0.0.4",
         "@event-driven-platform/outbox": "^0.0.5",
         "@event-driven-platform/outbox-store": "^0.0.5",
+        "@event-driven-platform/read": "^0.0.4",
+        "@event-driven-platform/read-handler": "^0.0.3",
+        "@event-driven-platform/read-handler-resolver": "^0.0.3",
         "@event-driven-platform/runner": "^0.0.5",
         "typeorm": "catalog:"
     },
