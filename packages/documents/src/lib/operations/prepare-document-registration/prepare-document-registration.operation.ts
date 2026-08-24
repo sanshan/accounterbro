@@ -6,7 +6,6 @@ import type { SuccessfulOperationResult } from '@event-driven-platform/operation
 import type { Subject } from '@event-driven-platform/subject';
 
 import type { DocumentRegistrationStatus } from '../../document/document-registration-status.js';
-import type { DocumentUploadRequestedEvent } from '../../events/document-upload-requested/document-upload-requested.event.js';
 import type { documentOperationNames } from '../names.js';
 
 export interface PrepareDocumentRegistrationPayload {
@@ -28,7 +27,7 @@ export type PrepareDocumentRegistrationOperation = Operation<
     TenantReference,
     DocumentReference,
     PrepareDocumentRegistrationPayload,
-    SuccessfulOperationResult<PrepareDocumentRegistrationOutcome, DocumentUploadRequestedEvent>
+    SuccessfulOperationResult<PrepareDocumentRegistrationOutcome>
 > & {
     readonly intent: Intent;
     readonly actor: Actor;
