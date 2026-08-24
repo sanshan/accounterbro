@@ -64,6 +64,7 @@
         "@event-driven-platform/reader": "^0.0.3",
         "@event-driven-platform/runner": "^0.0.5",
         "@event-driven-platform/use-case-execution-store": "^0.0.2",
+        "@event-driven-platform/use-case-executor": "^0.0.2",
         "typeorm": "catalog:"
     },
     "devDependencies": {
