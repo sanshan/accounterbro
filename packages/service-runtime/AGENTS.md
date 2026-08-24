@@ -37,3 +37,14 @@ The canonical shared TypeORM execution boundary is exported from `@accounterbro/
 - repositories obtained from that adapter select the real service repository outside an execution transaction and the current transaction-manager repository while the context is active;
 - `TypeOrmExecutionTransaction` implements the published EDP `ExecutionTransaction` contract through a real service-owned `QueryRunner` and exposes that runner's manager through the same context while EDP work executes;
 - this package MUST NOT initialize, destroy, or otherwise replace ownership of the service `DataSource`, and MUST NOT reproduce EDP transaction semantics beyond the TypeORM integration required by the published contract.
+
+## TypeORM execution log persistence
+
+The canonical shared EDP `ExecutionLogStore` adapter is exported from `@accounterbro/service-runtime/execution-log/typeorm`.
+
+- `service-runtime` owns the reusable `execution_log` and `execution_attempt` TypeORM entities/migration and exposes their composition contracts from that subpath;
+- every transactional business service composes those artifacts into its own service-owned database; execution data is not centralized across services;
+- the store receives the transaction-aware `DataSource` from the shared TypeORM execution boundary so `complete()` / `fail()` participate in the same Runner transaction as business persistence and Outbox writes without knowing about `AsyncLocalStorage` or `QueryRunner`;
+- claim/reclaim and terminal transitions MUST preserve atomic same-Intent ownership, deterministic EDP attempt identities, persisted attempt history, and lease-generation fencing;
+- lease expiry alone MUST NOT make `complete()` / `fail()` stale; a reclaim advances the lease generation and that generation change fences the previous owner;
+- tests MUST stay focused on the AccounterBro TypeORM adapter guarantees such as database concurrency, fencing, and ambient transaction participation. Do not repeat EDP contract-shape or Runner behavior tests.
