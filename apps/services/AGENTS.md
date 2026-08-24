@@ -36,6 +36,8 @@ Persistence ports used as Nest DI tokens MUST come from the package's `/typeorm`
 
 Services that execute EDP Operations transactionally MUST use the shared `@accounterbro/service-runtime/typeorm` transaction boundary described in `docs/engineering/database-guidelines.md`: keep the real Nest-managed `DataSource` as lifecycle owner, share one `TypeOrmTransactionContext`, pass the transaction-aware `DataSource` to package persistence factories, and use the shared TypeORM `ExecutionTransaction` adapter. MUST NOT implement service-local `AsyncLocalStorage`, `QueryRunner`, or repository-switching transaction plumbing.
 
+The same services MUST use the shared `@accounterbro/service-runtime/execution-log/typeorm` adapter and compose its exported entities/migrations into that service's own database. Bind the store to the transaction-aware `DataSource`; do not create a Documents-specific execution-log adapter, central execution-log database, or service-local copy of claim/reclaim/fencing behavior.
+
 Use the official Nest `@nestjs/typeorm` lifecycle pattern: `TypeOrmModule.forRootAsync(...)` for the runtime connection and `TypeOrmModule.forFeature(...)` for hosted package/service entity registration. The service-local TypeORM CLI `DataSource` reuses the same typed service config and pure TypeORM options factory and composes package-owned migrations through their public `/typeorm` contracts.
 
 MUST NOT deep-import or recreate a business package's private entities/migrations/persistence adapters in the service, add a custom database lifecycle service around `DataSource.initialize()` / `destroy()`, enable schema synchronization, auto-run migrations during application bootstrap, or share another service's persistence implementation.
