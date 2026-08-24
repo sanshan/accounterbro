@@ -75,6 +75,20 @@ The canonical shared EDP `OutboxStore` adapter is exported from `@accounterbro/s
 - publication is CDC-owned. MUST NOT add Outbox delivery lifecycle state such as status, published timestamps, retry counters, locks/leases, or an application polling publisher;
 - tests MUST stay focused on AccounterBro-owned projection and ambient transaction participation. Do not repeat EDP Outbox record/factory contract tests.
 
+## TypeORM UseCase execution persistence
+
+The canonical shared EDP `UseCaseExecutionStore` adapter is exported from `@accounterbro/service-runtime/use-case-execution/typeorm`.
+
+- `service-runtime` owns one reusable `use_case_execution` entity/migration and exposes its composition contracts and factory from that subpath;
+- every business service that uses durable UseCase execution composes that schema into its own service-owned database; UseCase execution state is not centralized across services;
+- the store uses the real service-owned `DataSource` boundary and its own short atomic database transitions. It MUST NOT imply one SQL transaction spanning child Operations/Reads executed by a UseCase;
+- one row represents one logical UseCase invocation and preserves its authoritative Intent association, correlation id, current fenced lease generation, completion/release state, and durable completed result;
+- `release()` makes the same invocation immediately claimable again and MUST NOT create attempt or failure history;
+- lease expiry makes an invocation reclaimable but does not itself fence the current owner. Only a successful new claim that advances `lease_version` fences the previous owner;
+- completed results must be JSON-serializable for durable `jsonb` replay. Do not introduce a serializer framework without a concrete non-JSON requirement;
+- MUST NOT add attempts, failure history, lease renewal, heartbeat, progress detection, child-step state, Outbox behavior, or service-local copies of the store;
+- tests MUST stay focused on AccounterBro-owned PostgreSQL concurrency, fencing, schema-state, release/reclaim, and durable replay guarantees. Do not repeat EDP contract or UseCaseExecutor tests.
+
 ## Runner composition
 
 The canonical shared Runner composition is exported from `@accounterbro/service-runtime/runner`.
