@@ -13,11 +13,17 @@ import {
     type PrepareDocumentRegistrationOperation,
 } from '@accounterbro/documents';
 import type { Actor } from '@event-driven-platform/actor';
-import type { Intent, IntentFactory } from '@event-driven-platform/intent';
+import { IntentFactory, type Intent } from '@event-driven-platform/intent';
 import type { Runner } from '@event-driven-platform/runner';
 import type { UseCaseContext } from '@event-driven-platform/use-case';
 
 import { RegisterDocumentUseCase } from './register-document.use-case';
+
+jest.mock('@event-driven-platform/intent', () => ({
+    IntentFactory: {
+        derive: jest.fn(),
+    },
+}));
 
 type PrepareRegistrationCommand = {
     readonly operation: PrepareDocumentRegistrationOperation;
@@ -50,6 +56,8 @@ const childIntent = {
     key: 'child-intent-key',
 } satisfies Intent;
 
+const deriveIntent = jest.mocked(IntentFactory.derive);
+
 function asRunner(execute: (command: PrepareRegistrationCommand) => Promise<unknown>): Runner {
     return {
         execute,
@@ -57,24 +65,12 @@ function asRunner(execute: (command: PrepareRegistrationCommand) => Promise<unkn
     } as unknown as Runner;
 }
 
-function createIntentFactory(): {
-    readonly intentFactory: IntentFactory;
-    readonly derive: jest.Mock;
-} {
-    const derive = jest.fn(() => childIntent);
-
-    return {
-        intentFactory: {
-            create: () => {
-                throw new Error('create is not used by RegisterDocumentUseCase');
-            },
-            derive,
-        },
-        derive,
-    };
-}
-
 describe('RegisterDocumentUseCase', () => {
+    beforeEach(() => {
+        deriveIntent.mockReset();
+        deriveIntent.mockReturnValue(childIntent);
+    });
+
     it('DOC-REG-001 maps a created PENDING result to initial registration success', async () => {
         const file = Uint8Array.from([0, 1, 2, 3, 255]);
         let capturedCommand: PrepareRegistrationCommand | undefined;
@@ -93,8 +89,7 @@ describe('RegisterDocumentUseCase', () => {
                 events: [],
             };
         });
-        const { intentFactory, derive } = createIntentFactory();
-        const useCase = new RegisterDocumentUseCase(asRunner(execute), actor, tenant, intentFactory);
+        const useCase = new RegisterDocumentUseCase(asRunner(execute), actor, tenant);
 
         const result = await useCase.execute({ file }, context);
 
@@ -128,8 +123,8 @@ describe('RegisterDocumentUseCase', () => {
                 contentHash: createHash('sha256').update(file).digest('hex'),
             },
         });
-        expect(derive).toHaveBeenCalledTimes(1);
-        expect(derive).toHaveBeenCalledWith({
+        expect(deriveIntent).toHaveBeenCalledTimes(1);
+        expect(deriveIntent).toHaveBeenCalledWith({
             parent: { id: context.intent.id },
             slot: 'prepare-registration',
         });
@@ -141,8 +136,7 @@ describe('RegisterDocumentUseCase', () => {
         const execute = jest.fn(async (_command: PrepareRegistrationCommand): Promise<never> => {
             throw failure;
         });
-        const { intentFactory } = createIntentFactory();
-        const useCase = new RegisterDocumentUseCase(asRunner(execute), actor, tenant, intentFactory);
+        const useCase = new RegisterDocumentUseCase(asRunner(execute), actor, tenant);
 
         await expect(useCase.execute({ file: Uint8Array.from([1]) }, context)).rejects.toBe(failure);
         expect(execute).toHaveBeenCalledTimes(1);
@@ -165,8 +159,7 @@ describe('RegisterDocumentUseCase', () => {
             },
             events: [],
         }));
-        const { intentFactory } = createIntentFactory();
-        const useCase = new RegisterDocumentUseCase(asRunner(execute), actor, tenant, intentFactory);
+        const useCase = new RegisterDocumentUseCase(asRunner(execute), actor, tenant);
 
         const result = await useCase.execute({ file: Uint8Array.from([4, 5, 6]) }, context);
 
