@@ -9,10 +9,6 @@ export {
     DocumentRegisteredEvent,
     type DocumentRegisteredPayload,
 } from './lib/events/document-registered/document-registered.event.js';
-export {
-    DocumentUploadRequestedEvent,
-    type DocumentUploadRequestedPayload,
-} from './lib/events/document-upload-requested/document-upload-requested.event.js';
 
 export { documentOperationNames } from './lib/operations/names.js';
 export type {
