@@ -106,4 +106,17 @@ EDP owns UseCaseExecutor lease duration, claim/replay/release, transition/error,
 
 Concrete UseCases remain caller-supplied through EDP execution requests. Concrete Nest provider/module wiring remains service-owned composition, but it MUST delegate executor construction to the shared runtime factory.
 
+## UseCase implementation preflight
+
+Before designing or modifying a concrete UseCase, MUST inspect the current implementation and semantics of the execution boundaries that UseCase will actually use:
+
+- `UseCaseExecutor` for durable UseCase execution;
+- `Runner` for child Operations and `Reader` for child Reads, when those paths are used;
+- every concrete Operation/Read invoked by the UseCase and its handler;
+- the handler's persistence/DB implementation and constraints when they own behavior relevant to deduplication, idempotency, transactions, recovery, concurrency, or result semantics.
+
+The purpose of this inspection is to establish ownership before adding orchestration logic. MUST NOT add a UseCase-local check, recovery Read, idempotency/deduplication mechanism, retry policy, progress state, transaction workaround, concurrency guard, or other execution behavior until inspection proves that the EDP runtime and called Operation/Read/persistence boundaries do not already own the required semantics.
+
+Findings that constrain the implementation MUST be copied into the UseCase task's required `## Do not` section. Those entries MUST name the concrete existing owner/mechanism where practical; they MUST NOT be reduced to a generic instruction such as "do not duplicate EDP behavior".
+
 Service tests MUST cover service-owned composition only. They MUST NOT duplicate EDP resolver/Runner/Reader/UseCase semantics already owned and tested by EDP.

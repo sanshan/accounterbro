@@ -72,6 +72,14 @@ When asked to plan or implement new behavior:
 
 Reference implementations are architectural guidance, not templates that must be copied mechanically.
 
+### UseCase implementation task readiness
+
+Before finalizing an implementation issue for a concrete UseCase, perform the UseCase preflight required by the applicable service `AGENTS.md`.
+
+The issue MUST contain a `## Do not` section populated with concrete behaviors already owned by EDP runtime, called Operations/Reads, handlers, or persistence/DB semantics discovered during that preflight. Generic statements such as "do not duplicate existing mechanisms" are insufficient when the investigation can name the existing owner or mechanism.
+
+MUST NOT start UseCase implementation from assumptions about idempotency, deduplication, recovery, retry, transactions, concurrency, or read/write behavior that can be verified in the current runtime and called boundaries.
+
 ## 4. Repository Navigation
 
 Before adding code, inspect the owning project and, when relevant:
