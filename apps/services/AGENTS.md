@@ -70,4 +70,14 @@ Use `OperationHandlerResolver` and `MapOperationHandlerResolver` from `@accounte
 
 Each business package owns its Operation-name-to-handler binding group and exposes its binding token/provider from `@accounterbro/<package>/execution`. A service MUST compose exactly one resolver from the package binding groups it hosts. It MUST NOT recreate Operation-name-to-handler mappings, deep-import concrete handlers for resolver wiring, or introduce a service-specific resolver token such as `SERVICE_OPERATION_HANDLER_RESOLVER`.
 
+## Runner runtime composition
+
+Services that execute EDP Operations MUST use `createServiceRunner(...)` from `@accounterbro/service-runtime/runner` rather than constructing the standard EDP Runner dependency graph locally.
+
+The hosting service owns only process/runtime inputs: one shared EDP `SystemClock`, one fresh process-level `ExecutionLeaseOwnerId`, the service-wide `OperationHandlerResolver`, and the shared `ExecutionTransaction`, `ExecutionLogStore`, and `OutboxStore` instances. The same Clock instance MUST be reused for the process runtime. A lease owner identifies one running replica and MUST NOT be a stable logical service name shared by replicas.
+
+The shared runtime owns the canonical EDP defaults and fixed `30_000` ms Runner lease duration. Services MUST NOT introduce local Runner implementations/wrappers, duplicate `DefaultExecutionIdFactory`, `DefaultEventIdFactory`, `DefaultOperationEventEnvelopeFactory`, or `DefaultOutboxRecordFactory` wiring, enable optional Runner policies, or add per-service lease-duration configuration without a concrete reviewed requirement.
+
+Concrete Nest provider/module wiring remains service-owned composition, but it MUST delegate Runner construction to the shared runtime factory.
+
 Service tests MUST cover service-owned composition only. They MUST NOT duplicate EDP resolver/Runner/Reader/UseCase semantics already owned and tested by EDP.
