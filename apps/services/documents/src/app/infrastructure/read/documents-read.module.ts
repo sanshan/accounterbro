@@ -1,8 +1,4 @@
-import {
-    DOCUMENTS_READ_HANDLER_BINDINGS,
-    documentsReadHandlerBindingsProvider,
-    documentsReadHandlerProviders,
-} from '@accounterbro/documents/execution';
+import { DOCUMENTS_READ_HANDLER_BINDINGS } from '@accounterbro/documents/execution';
 import {
     MapReadHandlerResolver,
     ReadHandlerResolver,
@@ -13,12 +9,12 @@ import { Module } from '@nestjs/common';
 
 import { DocumentsTypeormModule } from '../persistence/typeorm/documents-typeorm.module';
 import { DOCUMENTS_READER } from '../runtime/runtime.tokens';
+import { documentsReadProviders } from './providers/documents/documents-read-handlers.providers';
 
 @Module({
     imports: [DocumentsTypeormModule],
     providers: [
-        ...documentsReadHandlerProviders,
-        documentsReadHandlerBindingsProvider,
+        ...documentsReadProviders,
         {
             provide: ReadHandlerResolver,
             inject: [DOCUMENTS_READ_HANDLER_BINDINGS],
