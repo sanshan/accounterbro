@@ -25,6 +25,12 @@
     "references": [
         {
             "path": "../../../packages/runtime-config/tsconfig.lib.json"
+        },
+        {
+            "path": "../../../packages/documents/tsconfig.lib.json"
+        },
+        {
+            "path": "../../../packages/service-runtime/tsconfig.lib.json"
         }
     ]
 }
