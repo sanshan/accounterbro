@@ -73,4 +73,38 @@ describe('TypeOrmDocumentPersistence', () => {
         expect(existing.every((result) => result.document.status === winner.document.status)).toBe(true);
         expect(await dataSource.getRepository(DocumentEntity).countBy({ contentHash })).toBe(1);
     });
+
+    it('round-trips aggregate state through find and update', async () => {
+        const persistence = createDocumentPersistence(dataSource);
+        const documentId = '00000000-0000-4000-8000-000000000100' as DocumentId;
+
+        await persistence.createOrGetExisting(Document.pending(documentId, 'round-trip-hash'));
+
+        const pending = await persistence.findById(documentId);
+        expect(pending).not.toBeNull();
+        if (!pending) {
+            throw new Error('Expected persisted Document to be found.');
+        }
+
+        expect(pending.id).toBe(documentId);
+        expect(pending.contentHash).toBe('round-trip-hash');
+        expect(pending.status).toBe(DocumentRegistrationStatus.Pending);
+        expect(pending.storageReference).toBeUndefined();
+        expect(pending.failureReason).toBeUndefined();
+
+        pending.register('storage://document-round-trip');
+        await persistence.update(pending);
+
+        const registered = await persistence.findById(documentId);
+        expect(registered).not.toBeNull();
+        if (!registered) {
+            throw new Error('Expected updated Document to be found.');
+        }
+
+        expect(registered.id).toBe(documentId);
+        expect(registered.contentHash).toBe('round-trip-hash');
+        expect(registered.status).toBe(DocumentRegistrationStatus.Registered);
+        expect(registered.storageReference).toBe('storage://document-round-trip');
+        expect(registered.failureReason).toBeUndefined();
+    });
 });

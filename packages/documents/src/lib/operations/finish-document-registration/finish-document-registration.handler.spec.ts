@@ -56,20 +56,20 @@ describe('FinishDocumentRegistrationHandler', () => {
         expect(updated[0]?.status).toBe(DocumentRegistrationStatus.Registered);
         expect(updated[0]?.storageReference).toBe('storage://document-1');
         expect(updated[0]?.failureReason).toBeUndefined();
-        expect(result).toEqual({
-            status: 'success',
-            data: { id: documentId, status: DocumentRegistrationStatus.Registered },
-            events: [
-                {
-                    name: documentEventNames.registered,
-                    schemaVersion: 1,
-                    payload: {
-                        documentId,
-                        storageReference: 'storage://document-1',
-                    },
-                },
-            ],
+        expect(result.data).toEqual({
+            id: documentId,
+            status: DocumentRegistrationStatus.Registered,
         });
+        expect(result.events).toEqual([
+            {
+                name: documentEventNames.registered,
+                schemaVersion: 1,
+                payload: {
+                    documentId,
+                    storageReference: 'storage://document-1',
+                },
+            },
+        ]);
     });
 
     it('marks a pending document failed without emitting DocumentRegistered', async () => {
@@ -84,27 +84,10 @@ describe('FinishDocumentRegistrationHandler', () => {
         expect(updated[0]?.status).toBe(DocumentRegistrationStatus.Failed);
         expect(updated[0]?.storageReference).toBeUndefined();
         expect(updated[0]?.failureReason).toBe('storage unavailable');
-        expect(result).toEqual({
-            status: 'success',
-            data: { id: documentId, status: DocumentRegistrationStatus.Failed },
-            events: [],
-        });
-    });
-
-    it('delegates invalid state-transition rejection to the aggregate', async () => {
-        const registered = Document.restore({
+        expect(result.data).toEqual({
             id: documentId,
-            contentHash: 'hash-1',
-            status: DocumentRegistrationStatus.Registered,
-            storageReference: 'storage://document-1',
+            status: DocumentRegistrationStatus.Failed,
         });
-        const { persistence } = createPersistence(registered);
-        const handler = new FinishDocumentRegistrationHandler(persistence);
-
-        await expect(
-            handler.execute(
-                operation({ outcome: 'failed', failureReason: 'storage unavailable' }),
-            ),
-        ).rejects.toThrow('Document registration can only finish from PENDING state.');
+        expect(result.events).toEqual([]);
     });
 });

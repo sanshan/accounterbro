@@ -1,7 +1,6 @@
 import {
     DOCUMENTS_TYPEORM_ENTITIES,
     DocumentPersistence,
-    createDocumentPersistence,
 } from '@accounterbro/documents/typeorm';
 import {
     EXECUTION_LOG_TYPEORM_ENTITIES,
@@ -33,6 +32,7 @@ import {
     TRANSACTION_AWARE_DATA_SOURCE,
     USE_CASE_EXECUTION_STORE,
 } from '../../runtime/runtime.tokens';
+import { documentsTypeOrmProviders } from './providers/documents/documents.providers';
 import { createDocumentsTypeOrmOptions } from './typeorm-options';
 
 @Module({
@@ -69,11 +69,7 @@ import { createDocumentsTypeOrmOptions } from './typeorm-options';
             useFactory: (dataSource: DataSource, context: TypeOrmTransactionContext) =>
                 new TypeOrmExecutionTransaction(dataSource, context),
         },
-        {
-            provide: DocumentPersistence,
-            inject: [TRANSACTION_AWARE_DATA_SOURCE],
-            useFactory: createDocumentPersistence,
-        },
+        ...documentsTypeOrmProviders,
         {
             provide: EXECUTION_LOG_STORE,
             inject: [TRANSACTION_AWARE_DATA_SOURCE],

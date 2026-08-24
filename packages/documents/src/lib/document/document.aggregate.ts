@@ -7,7 +7,7 @@ export class Document {
         public readonly id: DocumentId,
         public readonly contentHash: string,
         private registrationStatus: DocumentRegistrationStatus,
-        private storedAt?: string,
+        private registrationStorageReference?: string,
         private registrationFailureReason?: string,
     ) {}
 
@@ -56,7 +56,7 @@ export class Document {
     }
 
     public get storageReference(): string | undefined {
-        return this.storedAt;
+        return this.registrationStorageReference;
     }
 
     public get failureReason(): string | undefined {
@@ -66,7 +66,7 @@ export class Document {
     public register(storageReference: string): DocumentRegistrationStatus.Registered {
         this.assertPending();
         this.registrationStatus = DocumentRegistrationStatus.Registered;
-        this.storedAt = storageReference;
+        this.registrationStorageReference = storageReference;
         this.registrationFailureReason = undefined;
 
         return DocumentRegistrationStatus.Registered;
@@ -75,7 +75,7 @@ export class Document {
     public fail(failureReason: string): DocumentRegistrationStatus.Failed {
         this.assertPending();
         this.registrationStatus = DocumentRegistrationStatus.Failed;
-        this.storedAt = undefined;
+        this.registrationStorageReference = undefined;
         this.registrationFailureReason = failureReason;
 
         return DocumentRegistrationStatus.Failed;
