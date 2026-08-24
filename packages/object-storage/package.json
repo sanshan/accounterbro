@@ -12,6 +12,11 @@
             "types": "./dist/index.d.ts",
             "import": "./dist/index.js",
             "default": "./dist/index.js"
+        },
+        "./local-folder": {
+            "types": "./dist/local-folder.d.ts",
+            "import": "./dist/local-folder.js",
+            "default": "./dist/local-folder.js"
         }
     }
 }
