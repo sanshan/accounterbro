@@ -1,5 +1,8 @@
+import type { OperationHandlerBinding } from '@accounterbro/service-runtime';
+
 import { FinishDocumentRegistrationHandler } from './lib/operations/finish-document-registration/finish-document-registration.handler.js';
 import { PrepareDocumentRegistrationHandler } from './lib/operations/prepare-document-registration/prepare-document-registration.handler.js';
+import { documentOperationNames } from './lib/operations/names.js';
 import { DocumentPersistence } from './lib/ports/document-persistence.js';
 
 const prepareDocumentRegistrationHandlerProvider = {
@@ -20,3 +23,25 @@ export const documentsOperationHandlerProviders = [
     prepareDocumentRegistrationHandlerProvider,
     finishDocumentRegistrationHandlerProvider,
 ] as const;
+
+export const DOCUMENTS_OPERATION_HANDLER_BINDINGS = Symbol(
+    'DOCUMENTS_OPERATION_HANDLER_BINDINGS',
+);
+
+export const documentsOperationHandlerBindingsProvider = {
+    provide: DOCUMENTS_OPERATION_HANDLER_BINDINGS,
+    inject: [PrepareDocumentRegistrationHandler, FinishDocumentRegistrationHandler],
+    useFactory: (
+        prepare: PrepareDocumentRegistrationHandler,
+        finish: FinishDocumentRegistrationHandler,
+    ): readonly OperationHandlerBinding[] => [
+        {
+            operationName: documentOperationNames.prepareRegistration,
+            handler: prepare,
+        },
+        {
+            operationName: documentOperationNames.finishRegistration,
+            handler: finish,
+        },
+    ],
+} as const;
