@@ -12,7 +12,7 @@ import {
     type PrepareDocumentRegistrationOperation,
 } from '@accounterbro/documents';
 import type { Actor } from '@event-driven-platform/actor';
-import { DefaultIntentFactory } from '@event-driven-platform/intent';
+import { DefaultIntentFactory, type IntentFactory } from '@event-driven-platform/intent';
 import type { Runner } from '@event-driven-platform/runner';
 import type { UseCase, UseCaseContext } from '@event-driven-platform/use-case';
 
@@ -29,12 +29,11 @@ export interface RegisterDocumentResult {
 }
 
 export class RegisterDocumentUseCase implements UseCase<RegisterDocumentInput, RegisterDocumentResult> {
-    private readonly intentFactory = new DefaultIntentFactory();
-
     public constructor(
         private readonly runner: Runner,
         private readonly actor: Actor,
         private readonly tenant: TenantReference,
+        private readonly intentFactory: IntentFactory = new DefaultIntentFactory(),
     ) {}
 
     public async execute(
@@ -51,7 +50,7 @@ export class RegisterDocumentUseCase implements UseCase<RegisterDocumentInput, R
             name: documentOperationNames.prepareRegistration,
             schemaVersion: 1,
             intent: this.intentFactory.derive({
-                parent: context.intent,
+                parent: { id: context.intent.id },
                 slot: prepareRegistrationIntentSlot,
             }),
             actor: this.actor,
