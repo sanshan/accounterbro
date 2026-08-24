@@ -51,20 +51,17 @@ describe('PrepareDocumentRegistrationHandler', () => {
         expect(attempted[0]?.id).toBe(documentId);
         expect(attempted[0]?.contentHash).toBe('hash-1');
         expect(attempted[0]?.status).toBe(DocumentRegistrationStatus.Pending);
-        expect(result).toEqual({
-            status: 'success',
-            data: {
-                kind: 'created',
-                document: { id: documentId, status: DocumentRegistrationStatus.Pending },
-            },
-            events: [
-                {
-                    name: documentEventNames.uploadRequested,
-                    schemaVersion: 1,
-                    payload: { documentId },
-                },
-            ],
+        expect(result.data).toEqual({
+            kind: 'created',
+            document: { id: documentId, status: DocumentRegistrationStatus.Pending },
         });
+        expect(result.events).toEqual([
+            {
+                name: documentEventNames.uploadRequested,
+                schemaVersion: 1,
+                payload: { documentId },
+            },
+        ]);
     });
 
     it('returns the persistence winner as duplicate without requesting upload', async () => {
@@ -82,13 +79,10 @@ describe('PrepareDocumentRegistrationHandler', () => {
 
         expect(attempted).toHaveLength(1);
         expect(attempted[0]?.id).toBe(documentId);
-        expect(result).toEqual({
-            status: 'success',
-            data: {
-                kind: 'duplicate',
-                document: { id: existingId, status: DocumentRegistrationStatus.Failed },
-            },
-            events: [],
+        expect(result.data).toEqual({
+            kind: 'duplicate',
+            document: { id: existingId, status: DocumentRegistrationStatus.Failed },
         });
+        expect(result.events).toEqual([]);
     });
 });
