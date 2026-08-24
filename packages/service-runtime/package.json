@@ -27,6 +27,11 @@
             "types": "./dist/outbox/typeorm.d.ts",
             "import": "./dist/outbox/typeorm.js",
             "default": "./dist/outbox/typeorm.js"
+        },
+        "./runner": {
+            "types": "./dist/runner.d.ts",
+            "import": "./dist/runner.js",
+            "default": "./dist/runner.js"
         }
     },
     "dependencies": {
