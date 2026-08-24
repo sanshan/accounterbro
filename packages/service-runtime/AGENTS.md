@@ -23,9 +23,24 @@ The canonical Operation resolver boundary is:
 - `OperationHandlerBinding` is shared runtime composition data and does not belong in `@accounterbro/core`;
 - `OperationHandlerResolver` is the runtime-valued AccounterBro DI identity implementing the EDP resolver contract;
 - `MapOperationHandlerResolver` owns only AccounterBro's operation-name-to-handler lookup, including duplicate-binding and missing-binding rejection;
+- one Operation name MUST map to exactly one Operation handler; duplicate Operation bindings are invalid composition;
 - business packages own their Operation-name-to-handler binding groups and expose them from their Nest-agnostic `/execution` entrypoint;
 - each service composes one `OperationHandlerResolver` from the binding groups of the business packages it hosts;
 - do not introduce service-specific resolver tokens such as `SERVICE_OPERATION_HANDLER_RESOLVER`.
+
+## Read handler resolution
+
+The canonical Read resolver boundary mirrors the Operation resolver where the EDP contract permits it:
+
+- `ReadHandlerBinding` is shared runtime composition data and does not belong in `@accounterbro/core`;
+- `ReadHandlerResolver` is the runtime-valued AccounterBro DI identity implementing the published EDP resolver contract;
+- `MapReadHandlerResolver` owns only exact Read-name lookup and AccounterBro composition validation;
+- one Read name MUST map to exactly one Read handler; duplicate Read bindings are invalid composition and are rejected deterministically during resolver construction;
+- the EDP Read resolver contract represents `resolved.handlers` as a non-empty tuple, so the AccounterBro single-handler invariant is adapted as a singleton tuple `[handler]`;
+- an unbound Read returns the EDP `not-found` outcome; the canonical exact-name resolver does not turn duplicate configuration into EDP `ambiguous`;
+- business packages own their Read-name-to-handler binding groups and expose them from their Nest-agnostic `/execution` entrypoint;
+- each service composes one `ReadHandlerResolver` from the binding groups of the business packages it hosts;
+- do not introduce service-specific Read resolver tokens or local resolver implementations.
 
 ## TypeORM execution transactions
 
