@@ -15,20 +15,20 @@ const prepareDocumentRegistrationHandlerProvider = {
     inject: [DocumentPersistence],
     useFactory: (persistence: DocumentPersistence) =>
         new PrepareDocumentRegistrationHandler(persistence),
-} as const;
+};
 
 const finishDocumentRegistrationHandlerProvider = {
     provide: FinishDocumentRegistrationHandler,
     inject: [DocumentPersistence],
     useFactory: (persistence: DocumentPersistence) =>
         new FinishDocumentRegistrationHandler(persistence),
-} as const;
+};
 
 const getDocumentReadHandlerProvider = {
     provide: GetDocumentReadHandler,
     inject: [DocumentPersistence],
     useFactory: (persistence: DocumentPersistence) => new GetDocumentReadHandler(persistence),
-} as const;
+};
 
 export const documentsOperationHandlerProviders = [
     prepareDocumentRegistrationHandlerProvider,
@@ -57,7 +57,7 @@ export const documentsOperationHandlerBindingsProvider = {
             handler: finish,
         },
     ],
-} as const;
+};
 
 export const DOCUMENTS_READ_HANDLER_BINDINGS = Symbol('DOCUMENTS_READ_HANDLER_BINDINGS');
 
@@ -70,4 +70,4 @@ export const documentsReadHandlerBindingsProvider = {
             handler: getDocument,
         },
     ],
-} as const;
+};
