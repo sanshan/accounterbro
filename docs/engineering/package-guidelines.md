@@ -103,6 +103,9 @@ Normative keywords:
 - **DB-014** — The package `/typeorm` entrypoint MUST expose one package-owned factory per persistence port that needs service composition. The factory accepts TypeORM primitives such as `DataSource` and constructs the package-owned concrete adapter internally.
 - **DB-015** — Package TypeORM factories MUST keep entity, mapper, repository, and concrete persistence implementation knowledge inside the business package. A hosting service MUST NOT recreate adapter construction or import those implementation details.
 - **DB-016** — Package TypeORM factories MUST remain Nest-agnostic. They MUST NOT import Nest provider types or decorators; the hosting service owns Nest provider descriptors and injects its service-owned `DataSource` into the package factory.
+- **DB-017** — Package TypeORM factories MUST continue to accept the normal TypeORM `DataSource` contract and MUST remain unaware of `AsyncLocalStorage`, `QueryRunner`, or execution-transaction propagation.
+- **DB-018** — Transaction participation for package persistence is a hosting-runtime concern. A service that needs EDP execution transactions MUST supply the shared transaction-aware `DataSource` from `@accounterbro/service-runtime/typeorm` to the unchanged package factory instead of adding transaction plumbing to the business package.
+- **DB-019** — A business package MUST NOT introduce its own ambient transaction context or repository-switching proxy to participate in EDP execution; the canonical implementation belongs to shared service runtime.
 
 ## Names
 
