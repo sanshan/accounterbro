@@ -60,6 +60,66 @@ function createOperation(intentId = 'intent-1'): AnyOperation {
     };
 }
 
+const conflictingOperationCases: readonly {
+    readonly label: string;
+    readonly mutate: (operation: AnyOperation) => AnyOperation;
+}[] = [
+    {
+        label: 'operation name',
+        mutate: (operation) => ({
+            ...operation,
+            name: 'documents.finish-registration',
+        }),
+    },
+    {
+        label: 'schema version',
+        mutate: (operation) => ({
+            ...operation,
+            schemaVersion: 2,
+        }),
+    },
+    {
+        label: 'tenant type',
+        mutate: (operation) => ({
+            ...operation,
+            tenant: {
+                ...operation.tenant,
+                type: 'other-business',
+            },
+        }),
+    },
+    {
+        label: 'tenant id',
+        mutate: (operation) => ({
+            ...operation,
+            tenant: {
+                ...operation.tenant,
+                id: 'tenant-2' as AnyOperation['tenant']['id'],
+            },
+        }),
+    },
+    {
+        label: 'actor type',
+        mutate: (operation) => ({
+            ...operation,
+            actor: {
+                ...operation.actor,
+                type: 'service',
+            },
+        }),
+    },
+    {
+        label: 'actor id',
+        mutate: (operation) => ({
+            ...operation,
+            actor: {
+                ...operation.actor,
+                id: 'user-2',
+            },
+        }),
+    },
+];
+
 function createDataSource(): DataSource {
     return new DataSource({
         type: 'postgres',
@@ -171,6 +231,87 @@ describe('TypeOrmExecutionLogStore', () => {
         expect(execution.attemptCount).toBe(2);
         expect(execution.result).toBeNull();
     });
+
+    it('reuses the same Intent when only non-identity execution data differs', async () => {
+        const store = createExecutionLogStore(dataSource);
+        const operation = createOperation('intent-non-identity-replay');
+        const executionId = new DefaultExecutionIdFactory().create(operation.intent.id);
+        const firstRequest = {
+            executionId,
+            operation,
+            correlationId: 'correlation-1',
+            leaseOwnerId: runnerA,
+            leaseDurationMs: 30_000,
+            requestedAt: '2026-08-24T06:10:00.000Z',
+        };
+
+        const firstClaim = await store.claim(firstRequest);
+        expect(firstClaim.type).toBe('claimed');
+
+        const replayedOperation: AnyOperation = {
+            ...operation,
+            actor: {
+                ...operation.actor,
+                origin: {
+                    ipAddress: '203.0.113.10',
+                    instance: 'runner-b',
+                },
+            },
+            subject: {
+                type: 'document',
+                id: 'different-subject',
+            },
+            aggregate: {
+                type: 'document',
+                id: '00000000-0000-4000-8000-000000000002' as AnyOperation['aggregate']['id'],
+            },
+            payload: {
+                contentHash: 'content-hash-2',
+            },
+        };
+
+        const replay = await store.claim({
+            ...firstRequest,
+            operation: replayedOperation,
+            correlationId: 'correlation-2',
+            leaseOwnerId: runnerB,
+            requestedAt: '2026-08-24T06:10:01.000Z',
+        });
+
+        expect(replay.type).toBe('already-in-progress');
+
+        const persisted = await store.findByIntentId(operation.intent.id);
+        expect(persisted?.operation).toEqual(operation);
+    });
+
+    it.each(conflictingOperationCases)(
+        'returns intent-conflict when the same Intent changes $label',
+        async ({ mutate }) => {
+            const store = createExecutionLogStore(dataSource);
+            const operation = createOperation('intent-conflict');
+            const executionId = new DefaultExecutionIdFactory().create(operation.intent.id);
+            const firstRequest = {
+                executionId,
+                operation,
+                correlationId: 'correlation-1',
+                leaseOwnerId: runnerA,
+                leaseDurationMs: 30_000,
+                requestedAt: '2026-08-24T06:20:00.000Z',
+            };
+
+            const firstClaim = await store.claim(firstRequest);
+            expect(firstClaim.type).toBe('claimed');
+
+            const conflictingClaim = await store.claim({
+                ...firstRequest,
+                operation: mutate(operation),
+                leaseOwnerId: runnerB,
+                requestedAt: '2026-08-24T06:20:01.000Z',
+            });
+
+            expect(conflictingClaim.type).toBe('intent-conflict');
+        },
+    );
 
     it('joins terminal persistence to the shared execution transaction', async () => {
         const operation = createOperation('intent-transaction');
