@@ -12,6 +12,7 @@
     "dependencies": {
         "@accounterbro/core": "workspace:*",
         "@accounterbro/documents": "workspace:*",
+        "@accounterbro/object-storage": "workspace:*",
         "@accounterbro/runtime-config": "workspace:*",
         "@accounterbro/service-runtime": "workspace:*",
         "@event-driven-platform/actor": "^0.1.3",
