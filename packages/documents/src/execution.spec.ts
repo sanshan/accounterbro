@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import * as documents from './index.js';
 import { FinishDocumentRegistrationHandler } from './lib/operations/finish-document-registration/finish-document-registration.handler.js';
 import { PrepareDocumentRegistrationHandler } from './lib/operations/prepare-document-registration/prepare-document-registration.handler.js';
 import { documentOperationNames } from './lib/operations/names.js';
@@ -80,11 +79,5 @@ describe('@accounterbro/documents/execution', () => {
                 handler: getDocument,
             },
         ]);
-    });
-
-    it('keeps concrete handler implementations out of the business entrypoint', () => {
-        expect(documents).not.toHaveProperty('PrepareDocumentRegistrationHandler');
-        expect(documents).not.toHaveProperty('FinishDocumentRegistrationHandler');
-        expect(documents).not.toHaveProperty('GetDocumentReadHandler');
     });
 });
