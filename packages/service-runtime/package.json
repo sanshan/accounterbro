@@ -32,6 +32,11 @@
             "types": "./dist/runner.d.ts",
             "import": "./dist/runner.js",
             "default": "./dist/runner.js"
+        },
+        "./reader": {
+            "types": "./dist/reader.d.ts",
+            "import": "./dist/reader.js",
+            "default": "./dist/reader.js"
         }
     },
     "dependencies": {
@@ -50,6 +55,7 @@
         "@event-driven-platform/read": "^0.0.4",
         "@event-driven-platform/read-handler": "^0.0.3",
         "@event-driven-platform/read-handler-resolver": "^0.0.3",
+        "@event-driven-platform/reader": "^0.0.3",
         "@event-driven-platform/runner": "^0.0.5",
         "typeorm": "catalog:"
     },
