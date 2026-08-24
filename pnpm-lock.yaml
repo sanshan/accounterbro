@@ -264,6 +264,9 @@ importers:
 
   apps/services/documents:
     dependencies:
+      '@accounterbro/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
       '@accounterbro/documents':
         specifier: workspace:*
         version: link:../../../packages/documents
@@ -273,12 +276,24 @@ importers:
       '@accounterbro/service-runtime':
         specifier: workspace:*
         version: link:../../../packages/service-runtime
+      '@event-driven-platform/actor':
+        specifier: ^0.1.3
+        version: 0.1.3
       '@event-driven-platform/clock':
         specifier: ^0.0.5
         version: 0.0.5
       '@event-driven-platform/execution':
         specifier: ^0.0.4
         version: 0.0.4
+      '@event-driven-platform/intent':
+        specifier: ^0.1.3
+        version: 0.1.3
+      '@event-driven-platform/runner':
+        specifier: ^0.0.5
+        version: 0.0.5
+      '@event-driven-platform/use-case':
+        specifier: ^0.0.2
+        version: 0.0.2
       '@nestjs/common':
         specifier: ^11.0.0
         version: 11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2)
