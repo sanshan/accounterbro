@@ -5,21 +5,10 @@
         "outDir": "dist",
         "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
         "emitDeclarationOnly": false,
-        "importHelpers": true,
-        "noImplicitReturns": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
         "types": ["node"]
     },
     "include": ["src/**/*.ts"],
-    "references": [
-        {
-            "path": "../service-runtime/tsconfig.lib.json"
-        },
-        {
-            "path": "../core/tsconfig.lib.json"
-        }
-    ],
+    "references": [],
     "exclude": [
         "vite.config.ts",
         "vite.config.mts",

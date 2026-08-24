@@ -319,6 +319,9 @@ importers:
       '@accounterbro/core':
         specifier: workspace:*
         version: link:../core
+      '@accounterbro/service-runtime':
+        specifier: workspace:*
+        version: link:../service-runtime
       '@event-driven-platform/actor':
         specifier: ^0.1.3
         version: 0.1.3
@@ -362,6 +365,18 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 4.4.3
+
+  packages/service-runtime:
+    dependencies:
+      '@event-driven-platform/operation':
+        specifier: ^0.1.3
+        version: 0.1.3
+      '@event-driven-platform/operation-handler':
+        specifier: ^0.0.4
+        version: 0.0.4
+      '@event-driven-platform/operation-handler-resolver':
+        specifier: ^0.0.4
+        version: 0.0.4
 
   tools/generators:
     dependencies:
@@ -1199,6 +1214,9 @@ packages:
 
   '@event-driven-platform/intent@0.1.3':
     resolution: {integrity: sha512-kakbOZg+DrFPavMjbXpUYETty1s7RJifRTjBNzJPubLS7dCl1O6p0ptEfHeCfNBEZAOMFcvY7W7jnU0Uvk8ATw==}
+
+  '@event-driven-platform/operation-handler-resolver@0.0.4':
+    resolution: {integrity: sha512-bntkkyiqv4jZPTDuR4ct5/bI+PYHp2MgFM6KdKny5r4j9V4WSAj/MCWcOCas9hgsOrK0wg9kF2UmJnnhQ6UybA==}
 
   '@event-driven-platform/operation-handler@0.0.4':
     resolution: {integrity: sha512-a7Tme544ADtTO9OIeK/bFM9zmYx/JUe18KjbwRRAhjXJjKbfAGkai2gRULFvMkZvlFn+9WirOXAFllRCrXTRKA==}
@@ -9637,6 +9655,12 @@ snapshots:
       tslib: 2.8.1
       uuid: 13.0.2
       zod: 4.4.3
+
+  '@event-driven-platform/operation-handler-resolver@0.0.4':
+    dependencies:
+      '@event-driven-platform/operation': 0.1.3
+      '@event-driven-platform/operation-handler': 0.0.4
+      tslib: 2.8.1
 
   '@event-driven-platform/operation-handler@0.0.4':
     dependencies:
