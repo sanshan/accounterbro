@@ -11,14 +11,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MapOperationHandlerResolver } from '../operation-handler-resolver/map-operation-handler-resolver.js';
 import { createServiceRunner } from './create-service-runner.js';
 
-vi.mock('@event-driven-platform/runner', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('@event-driven-platform/runner')>();
-
-    return {
-        ...actual,
-        createRunner: vi.fn(actual.createRunner),
-    };
-});
+vi.mock('@event-driven-platform/runner', () => ({
+    createRunner: vi.fn(() => ({
+        execute: vi.fn(),
+        executeDetailed: vi.fn(),
+    })),
+}));
 
 describe('createServiceRunner', () => {
     beforeEach(() => {
