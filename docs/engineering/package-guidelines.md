@@ -106,6 +106,10 @@ Normative keywords:
 - **DB-017** — Package TypeORM factories MUST continue to accept the normal TypeORM `DataSource` contract and MUST remain unaware of `AsyncLocalStorage`, `QueryRunner`, or execution-transaction propagation.
 - **DB-018** — Transaction participation for package persistence is a hosting-runtime concern. A service that needs EDP execution transactions MUST supply the shared transaction-aware `DataSource` from `@accounterbro/service-runtime/typeorm` to the unchanged package factory instead of adding transaction plumbing to the business package.
 - **DB-019** — A business package MUST NOT introduce its own ambient transaction context or repository-switching proxy to participate in EDP execution; the canonical implementation belongs to shared service runtime.
+- **DB-020** — Reusable service-runtime TypeORM persistence belongs to the shared runtime package that owns the behavior and schema, not to a business package or individual service. Its public integration MUST use a focused Nest-agnostic subpath and expose entity/migration composition contracts.
+- **DB-021** — EDP `ExecutionLogStore` TypeORM integration MUST use `@accounterbro/service-runtime/execution-log/typeorm`; services MUST NOT implement a local execution-log adapter or copy claim/reclaim/fencing behavior.
+- **DB-022** — Shared runtime stores that must participate in an EDP execution transaction MUST receive the transaction-aware `DataSource` from `@accounterbro/service-runtime/typeorm` and remain unaware of `AsyncLocalStorage` / `QueryRunner` transaction plumbing.
+- **DB-023** — Tests for shared runtime persistence MUST verify AccounterBro-owned adapter guarantees only, such as database concurrency, fencing, schema invariants, or transaction participation. They MUST NOT duplicate EDP contract-shape or Runner behavior tests.
 
 ## Names
 
