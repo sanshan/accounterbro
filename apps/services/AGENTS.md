@@ -57,3 +57,11 @@ infrastructure/execution/providers/
 ```
 
 A service-side provider file is composition only. It MAY use `satisfies Provider[]` or an equivalent Nest-side check to validate the package descriptors structurally without introducing Nest types into the business package.
+
+## Operation handler resolution
+
+Use `OperationHandlerResolver` and `MapOperationHandlerResolver` from `@accounterbro/service-runtime`; EDP remains the behavioral contract source of truth.
+
+Each business package owns its Operation-name-to-handler binding group and exposes its binding token/provider from `@accounterbro/<package>/execution`. A service MUST compose exactly one resolver from the package binding groups it hosts. It MUST NOT recreate Operation-name-to-handler mappings, deep-import concrete handlers for resolver wiring, or introduce a service-specific resolver token such as `SERVICE_OPERATION_HANDLER_RESOLVER`.
+
+Service tests MUST cover service-owned composition only. They MUST NOT duplicate EDP resolver/Runner/Reader/UseCase semantics already owned and tested by EDP.
