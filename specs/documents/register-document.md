@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Allow a user to submit a file for registration as a Document and receive a stable Document identifier immediately after the initial registration step succeeds.
+Allow a user to submit a file for registration as a Document and receive the resulting Document state after original storage has completed within the same registration UseCase execution.
 
 ## Input
 
@@ -12,33 +12,40 @@ This specification does not currently define file type or size restrictions.
 
 ## Document statuses
 
-- `PENDING` — the Document has been created and processing of the original file has not finished.
+- `PENDING` — the Document has been created and registration has not yet finished.
 - `REGISTERED` — the original file has been stored successfully and registration is complete.
 - `FAILED` — the system could not store the original file.
 
+`PENDING` is the durable intermediate state between preparing a new Document and recording the storage outcome. It may be observable while registration is in progress, after an interrupted execution, or by a concurrent duplicate request.
+
 ## Requirements
 
-### DOC-REG-001 — Start a new registration
+### DOC-REG-001 — Register a new file
 
 Given file content that is not already known to the system,
-when the initial registration step succeeds,
-then a new Document is created with status `PENDING` and the request succeeds with:
+when the registration UseCase completes,
+then exactly one new Document has been created and the request succeeds with:
 
 ```text
 {
   id,
-  status: PENDING,
+  status: REGISTERED | FAILED,
   duplicate: false
 }
 ```
 
-If the initial registration step fails, the request fails and does not return a successful result.
+The Document first enters `PENDING`, then the original file is stored outside Documents Operation transactions, and finally the storage outcome is recorded before the UseCase returns:
+
+- storage success results in `REGISTERED` and stores the original storage reference;
+- storage failure results in `FAILED` and stores the failure reason.
+
+If registration is interrupted after the Document is prepared but before the final outcome is recorded, the durable intermediate state remains `PENDING` until the same logical registration execution is recovered or retried through the platform execution mechanism.
 
 ### DOC-REG-002 — Return an existing duplicate
 
 Given file content whose complete binary content is identical to content already known to the system,
 when a new registration request is made,
-then no new Document is created and the request succeeds with:
+then no new Document is created, the file is not stored again, and the request succeeds with:
 
 ```text
 {
@@ -58,18 +65,20 @@ Given concurrent registration requests with identical binary content,
 when those requests are processed,
 then only one Document exists for that content.
 
-One request may create the Document; the other requests succeed by returning that Document as a duplicate.
+One request may create and continue registering the Document; the other requests succeed by returning that Document as a duplicate and do not store the file again.
 
-### DOC-REG-004 — Complete registration asynchronously
+A concurrent duplicate request may observe the existing Document while its status is still `PENDING`.
+
+### DOC-REG-004 — Complete original storage within the registration UseCase
 
 Given a newly created `PENDING` Document,
-when asynchronous processing of its original file finishes,
-then its status eventually becomes:
+when the same Register Document UseCase stores its original file,
+then before that UseCase completes it records the storage outcome so the Document becomes:
 
-- `REGISTERED` if the original file was stored successfully; or
-- `FAILED` if the system could not store the original file.
+- `REGISTERED` with the original storage reference when storage succeeds; or
+- `FAILED` with the failure reason when storage fails.
 
-The initial `Register Document` request does not wait for this transition after it has successfully returned the `PENDING` result.
+External original-storage I/O does not run inside a transactional Documents Operation handler. The UseCase orchestrates the storage call between the operation that prepares the Document and the operation that records the final registration outcome.
 
 ## Out of scope
 
@@ -79,6 +88,7 @@ This specification does not define:
 - retry behavior initiated after a Document is `FAILED`;
 - request-idempotency semantics separate from duplicate content detection;
 - the mechanism used to identify identical binary content;
-- storage technology or storage orchestration;
-- internal Operations, events, transactions, Outbox behavior, or other implementation details;
+- storage technology;
+- transport, consumers, staging storage, asynchronous delivery, or broker behavior;
+- internal transaction, Outbox, execution-log, or recovery implementation details;
 - file type or size restrictions.
