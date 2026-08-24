@@ -12,7 +12,7 @@ import {
     type PrepareDocumentRegistrationOperation,
 } from '@accounterbro/documents';
 import type { Actor } from '@event-driven-platform/actor';
-import { DefaultIntentFactory, type IntentFactory } from '@event-driven-platform/intent';
+import type { IntentFactory } from '@event-driven-platform/intent';
 import type { Runner } from '@event-driven-platform/runner';
 import type { UseCase, UseCaseContext } from '@event-driven-platform/use-case';
 
@@ -33,7 +33,7 @@ export class RegisterDocumentUseCase implements UseCase<RegisterDocumentInput, R
         private readonly runner: Runner,
         private readonly actor: Actor,
         private readonly tenant: TenantReference,
-        private readonly intentFactory: IntentFactory = new DefaultIntentFactory(),
+        private readonly intentFactory: IntentFactory,
     ) {}
 
     public async execute(
