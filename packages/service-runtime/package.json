@@ -17,6 +17,11 @@
             "types": "./dist/typeorm.d.ts",
             "import": "./dist/typeorm.js",
             "default": "./dist/typeorm.js"
+        },
+        "./execution-log/typeorm": {
+            "types": "./dist/execution-log/typeorm.d.ts",
+            "import": "./dist/execution-log/typeorm.js",
+            "default": "./dist/execution-log/typeorm.js"
         }
     },
     "dependencies": {
