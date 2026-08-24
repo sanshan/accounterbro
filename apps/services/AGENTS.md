@@ -38,6 +38,8 @@ Services that execute EDP Operations transactionally MUST use the shared `@accou
 
 The same services MUST use the shared `@accounterbro/service-runtime/execution-log/typeorm` adapter and compose its exported entities/migrations into that service's own database. Bind the store to the transaction-aware `DataSource`; do not create a Documents-specific execution-log adapter, central execution-log database, or service-local copy of claim/reclaim/fencing behavior.
 
+The same services MUST use `@accounterbro/service-runtime/outbox/typeorm` for transactional Outbox persistence and compose its exported entities/migrations into the service-owned database. Bind the Outbox store to the transaction-aware `DataSource`. Publication is CDC-owned; services MUST NOT add a polling publisher, delivery status, published timestamps, retries, locks/leases, or a service-local Outbox adapter/schema.
+
 Use the official Nest `@nestjs/typeorm` lifecycle pattern: `TypeOrmModule.forRootAsync(...)` for the runtime connection and `TypeOrmModule.forFeature(...)` for hosted package/service entity registration. The service-local TypeORM CLI `DataSource` reuses the same typed service config and pure TypeORM options factory and composes package-owned migrations through their public `/typeorm` contracts.
 
 MUST NOT deep-import or recreate a business package's private entities/migrations/persistence adapters in the service, add a custom database lifecycle service around `DataSource.initialize()` / `destroy()`, enable schema synchronization, auto-run migrations during application bootstrap, or share another service's persistence implementation.

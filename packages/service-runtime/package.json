@@ -22,6 +22,11 @@
             "types": "./dist/execution-log/typeorm.d.ts",
             "import": "./dist/execution-log/typeorm.js",
             "default": "./dist/execution-log/typeorm.js"
+        },
+        "./outbox/typeorm": {
+            "types": "./dist/outbox/typeorm.d.ts",
+            "import": "./dist/outbox/typeorm.js",
+            "default": "./dist/outbox/typeorm.js"
         }
     },
     "dependencies": {

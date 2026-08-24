@@ -48,3 +48,14 @@ The canonical shared EDP `ExecutionLogStore` adapter is exported from `@accounte
 - claim/reclaim and terminal transitions MUST preserve atomic same-Intent ownership, deterministic EDP attempt identities, persisted attempt history, and lease-generation fencing;
 - lease expiry alone MUST NOT make `complete()` / `fail()` stale; a reclaim advances the lease generation and that generation change fences the previous owner;
 - tests MUST stay focused on the AccounterBro TypeORM adapter guarantees such as database concurrency, fencing, and ambient transaction participation. Do not repeat EDP contract-shape or Runner behavior tests.
+
+## TypeORM Outbox persistence
+
+The canonical shared EDP `OutboxStore` adapter is exported from `@accounterbro/service-runtime/outbox/typeorm`.
+
+- `service-runtime` owns the reusable append-only `outbox` TypeORM entity/migration and exposes their composition contracts from that subpath;
+- every transactional business service composes those artifacts into its own service-owned database; Outbox data is not centralized across services;
+- the store receives the same transaction-aware `DataSource` used by business persistence and execution-log terminal writes so `append()` participates in the active execution transaction without knowing about `AsyncLocalStorage` or `QueryRunner`;
+- the authoritative persisted event representation is the complete EDP Event envelope; searchable/CDC columns are projections of that envelope and MUST NOT replace or redefine EDP event semantics;
+- publication is CDC-owned. MUST NOT add Outbox delivery lifecycle state such as status, published timestamps, retry counters, locks/leases, or an application polling publisher;
+- tests MUST stay focused on AccounterBro-owned projection and ambient transaction participation. Do not repeat EDP Outbox record/factory contract tests.

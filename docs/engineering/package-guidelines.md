@@ -110,6 +110,8 @@ Normative keywords:
 - **DB-021** — EDP `ExecutionLogStore` TypeORM integration MUST use `@accounterbro/service-runtime/execution-log/typeorm`; services MUST NOT implement a local execution-log adapter or copy claim/reclaim/fencing behavior.
 - **DB-022** — Shared runtime stores that must participate in an EDP execution transaction MUST receive the transaction-aware `DataSource` from `@accounterbro/service-runtime/typeorm` and remain unaware of `AsyncLocalStorage` / `QueryRunner` transaction plumbing.
 - **DB-023** — Tests for shared runtime persistence MUST verify AccounterBro-owned adapter guarantees only, such as database concurrency, fencing, schema invariants, or transaction participation. They MUST NOT duplicate EDP contract-shape or Runner behavior tests.
+- **DB-024** — EDP `OutboxStore` TypeORM integration MUST use `@accounterbro/service-runtime/outbox/typeorm`; services MUST NOT implement a local Outbox adapter or application polling publisher.
+- **DB-025** — Shared Outbox persistence MUST remain append-only, store the authoritative EDP Event envelope plus required search/CDC projections, and MUST NOT add application delivery lifecycle state because publication is CDC-owned.
 
 ## Names
 
