@@ -86,3 +86,14 @@ The canonical shared Runner composition is exported from `@accounterbro/service-
 - the baseline Runner lease duration is `30_000` ms and MUST NOT become per-service configuration without a concrete reviewed requirement;
 - optional EDP Runner policies such as guards, rate limiting, custom retry delay, or custom execution timeout are not part of the baseline composition and MUST NOT be added speculatively;
 - tests MUST verify only these AccounterBro composition choices and MUST NOT repeat EDP Runner, factory, transition, retry, timeout, guard, or rate-limit behavior tests.
+
+## Reader composition
+
+The canonical shared Reader composition is exported from `@accounterbro/service-runtime/reader`.
+
+- `createServiceReader(...)` MUST construct the published EDP `DefaultReader` directly; this package MUST NOT implement, subclass, or wrap Reader behavior;
+- the only baseline dependency supplied by shared composition is the service-wide `ReadHandlerResolver`;
+- EDP default timeout behavior remains canonical and MUST NOT be overridden without a concrete reviewed requirement;
+- cache plans remain Query-owned and are interpreted by EDP Reader; shared service runtime MUST NOT introduce service-wide cache-key, cache-level, traversal, promotion, or backfill policy;
+- `ReadExecutionCoordinator` and a custom read-execution owner-id factory are not part of baseline composition and MUST remain opt-in until a concrete Query requires distributed coordination;
+- tests MUST verify only the AccounterBro composition choice and MUST NOT repeat EDP Reader dispatch, timeout, cache, inflight, coordination, or error behavior tests.
