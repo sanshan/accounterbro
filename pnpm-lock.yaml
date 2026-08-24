@@ -413,6 +413,9 @@ importers:
       '@event-driven-platform/read-handler-resolver':
         specifier: ^0.0.3
         version: 0.0.3
+      '@event-driven-platform/reader':
+        specifier: ^0.0.3
+        version: 0.0.3
       '@event-driven-platform/runner':
         specifier: ^0.0.5
         version: 0.0.5
@@ -1303,8 +1306,14 @@ packages:
   '@event-driven-platform/outbox@0.0.5':
     resolution: {integrity: sha512-y9V0iJcr0g80u/7jHUQSOXFrFrNQIC/mzGmYOioXUKYSa4RZSBx76XhO2NlMw5FZIrfrb07bhI+79lsS1tn1jg==}
 
+  '@event-driven-platform/query@0.0.4':
+    resolution: {integrity: sha512-KoY0hMox4Y+3Or/4+1cGWy/0Rv8okFGQu+Tn4usCf97zcCMyFAV2TlGKLbLvEEYmRx6AP8NBBWcyFimUdPH9dw==}
+
   '@event-driven-platform/rate-limit@0.0.4':
     resolution: {integrity: sha512-cZ6Y+UjtFy5sDLEY8gMn59SeHR6fVM/FuR3/1j8/iLmFlUUbmuCuS1Dje9aYzfYX/c49/XsaRApl6MYgyIjpCw==}
+
+  '@event-driven-platform/read-execution-coordinator@0.0.3':
+    resolution: {integrity: sha512-zFv2qO0LmHRk9iAApyqZ3he7TikE/ctUtlF3MT5Bc3akfaKMNvA6anUVRd3bo5qfTD0qZ2OAXRq0WwWSuOSUGw==}
 
   '@event-driven-platform/read-handler-resolver@0.0.3':
     resolution: {integrity: sha512-gR+aT78CEWIl554sAFiOkUzK2HJ6fzW3WZoC7nzgyw6oc5378cnQqHQO6qsveoJCiWzV0hLyaxVnOig4rlOR/w==}
@@ -1314,6 +1323,9 @@ packages:
 
   '@event-driven-platform/read@0.0.4':
     resolution: {integrity: sha512-+TsZtSYLHeSiRueEPxaYbY+4SCQdkRNX+G7MHk4pqaixK1V9+V4lB1i+IogaIzF4u+pr9fdQPnBkJ/D8bg00mw==}
+
+  '@event-driven-platform/reader@0.0.3':
+    resolution: {integrity: sha512-qgT/Mmhyw04E9VMdRSxZSsZeXWSfS3+XWSyMwXkqEi+qpP+xUY2Rz4rg40D47gnyU7Q70qo9+8wubFlANeGMUw==}
 
   '@event-driven-platform/retry@0.0.4':
     resolution: {integrity: sha512-00dyfcnzG+k7v2mBwcVDNLPJnTXOQsNFop0Ba4uftPy0UVa3YMwYTQ2FKm6yp/davDZn8fGfA4jl4Y4teYhhGw==}
@@ -9829,8 +9841,18 @@ snapshots:
       '@event-driven-platform/event': 0.1.3
       tslib: 2.8.1
 
+  '@event-driven-platform/query@0.0.4':
+    dependencies:
+      '@event-driven-platform/read': 0.0.4
+      tslib: 2.8.1
+
   '@event-driven-platform/rate-limit@0.0.4':
     dependencies:
+      tslib: 2.8.1
+
+  '@event-driven-platform/read-execution-coordinator@0.0.3':
+    dependencies:
+      '@event-driven-platform/query': 0.0.4
       tslib: 2.8.1
 
   '@event-driven-platform/read-handler-resolver@0.0.3':
@@ -9847,6 +9869,14 @@ snapshots:
   '@event-driven-platform/read@0.0.4':
     dependencies:
       '@event-driven-platform/actor': 0.1.3
+      tslib: 2.8.1
+
+  '@event-driven-platform/reader@0.0.3':
+    dependencies:
+      '@event-driven-platform/query': 0.0.4
+      '@event-driven-platform/read': 0.0.4
+      '@event-driven-platform/read-execution-coordinator': 0.0.3
+      '@event-driven-platform/read-handler-resolver': 0.0.3
       tslib: 2.8.1
 
   '@event-driven-platform/retry@0.0.4':
