@@ -188,6 +188,30 @@ Such adapters may observe the data source/driver/pool but MUST NOT take ownershi
 
 Do not expose `DataSource` to application/domain code. Business-package TypeORM factories are an infrastructure composition boundary and may receive `DataSource`; domain/application behavior must continue to depend on the package persistence port rather than TypeORM.
 
+## EDP execution transaction propagation
+
+Services that execute EDP Operations against TypeORM persistence use the shared `@accounterbro/service-runtime/typeorm` integration. This is transaction plumbing, not database lifecycle ownership: the real Nest-managed `DataSource` remains the canonical service database object and remains responsible for its connection pool lifecycle.
+
+The shared runtime provides one `TypeOrmTransactionContext` per service process. It stores the current transaction-bound `EntityManager` in `AsyncLocalStorage` and scopes it with `run(...)`. The context is the source of truth for the current async execution chain; services MUST NOT infer transaction state from a process-global flag or attempt to discover an active transaction globally from TypeORM.
+
+Package persistence factories continue to receive the normal TypeORM `DataSource` contract. For transactional Runner composition, the service supplies `createTransactionAwareDataSource(realDataSource, transactionContext)` to those unchanged factories. Its `getRepository(entity)` result chooses the repository at use time:
+
+```text
+transaction context has EntityManager
+    -> transactionManager.getRepository(entity)
+
+no transaction manager in context
+    -> realDataSource.manager.getRepository(entity)
+```
+
+Repository methods are invoked with the selected real repository as `this`, preserving TypeORM repository internals. Business packages remain unaware of `AsyncLocalStorage`, `QueryRunner`, and transaction propagation.
+
+`TypeOrmExecutionTransaction` implements the published EDP `ExecutionTransaction` contract using a `QueryRunner` from the real service-owned `DataSource`. After the QueryRunner transaction starts, EDP work runs inside `transactionContext.run(queryRunner.manager, work)`. Therefore business persistence using the transaction-aware `DataSource` can join the same transaction as later execution-log and Outbox persistence without changing package adapters.
+
+The shared runtime MUST NOT initialize, destroy, wrap ownership of, or replace the real service `DataSource`. A service MUST NOT copy this `AsyncLocalStorage`, transaction-aware repository proxy, or `QueryRunner` transaction implementation locally.
+
+Tests for this integration MUST cover only AccounterBro-owned TypeORM wiring and transaction participation. They MUST NOT duplicate generic EDP `ExecutionTransaction` semantics, TypeORM transaction behavior, or `AsyncLocalStorage` implementation tests.
+
 ## Schema evolution
 
 Schema evolution is migration-driven.
