@@ -1,10 +1,14 @@
-import type { OperationHandlerBinding } from '@accounterbro/service-runtime';
+import type {
+    OperationHandlerBinding,
+    ReadHandlerBinding,
+} from '@accounterbro/service-runtime';
 
 import { FinishDocumentRegistrationHandler } from './lib/operations/finish-document-registration/finish-document-registration.handler.js';
 import { PrepareDocumentRegistrationHandler } from './lib/operations/prepare-document-registration/prepare-document-registration.handler.js';
 import { documentOperationNames } from './lib/operations/names.js';
 import { DocumentPersistence } from './lib/ports/document-persistence.js';
 import { GetDocumentReadHandler } from './lib/reads/get-document/get-document.handler.js';
+import { documentReadNames } from './lib/reads/names.js';
 
 const prepareDocumentRegistrationHandlerProvider = {
     provide: PrepareDocumentRegistrationHandler,
@@ -51,6 +55,19 @@ export const documentsOperationHandlerBindingsProvider = {
         {
             operationName: documentOperationNames.finishRegistration,
             handler: finish,
+        },
+    ],
+} as const;
+
+export const DOCUMENTS_READ_HANDLER_BINDINGS = Symbol('DOCUMENTS_READ_HANDLER_BINDINGS');
+
+export const documentsReadHandlerBindingsProvider = {
+    provide: DOCUMENTS_READ_HANDLER_BINDINGS,
+    inject: [GetDocumentReadHandler],
+    useFactory: (getDocument: GetDocumentReadHandler): readonly ReadHandlerBinding[] => [
+        {
+            readName: documentReadNames.getDocument,
+            handler: getDocument,
         },
     ],
 } as const;

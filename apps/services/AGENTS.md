@@ -66,11 +66,13 @@ Read-handler registration follows the same package-first grouping rule inside th
 
 A service-side provider file is composition only. It MAY use `satisfies Provider[]` or an equivalent Nest-side check to validate the package descriptors structurally without introducing Nest types into the business package.
 
-## Operation handler resolution
+## Operation and Read handler resolution
 
-Use `OperationHandlerResolver` and `MapOperationHandlerResolver` from `@accounterbro/service-runtime`; EDP remains the behavioral contract source of truth.
+Use `OperationHandlerResolver` / `MapOperationHandlerResolver` and `ReadHandlerResolver` / `MapReadHandlerResolver` from `@accounterbro/service-runtime`; EDP remains the contract source of truth.
 
-Each business package owns its Operation-name-to-handler binding group and exposes its binding token/provider from `@accounterbro/<package>/execution`. A service MUST compose exactly one resolver from the package binding groups it hosts. It MUST NOT recreate Operation-name-to-handler mappings, deep-import concrete handlers for resolver wiring, or introduce a service-specific resolver token such as `SERVICE_OPERATION_HANDLER_RESOLVER`.
+Each business package owns its Operation-name-to-handler and Read-name-to-handler binding groups and exposes their tokens/providers from `@accounterbro/<package>/execution`. A service MUST compose exactly one resolver of each kind from the package binding groups it hosts. It MUST NOT recreate mappings, deep-import concrete handlers for resolver wiring, or introduce service-specific resolver tokens.
+
+AccounterBro requires exactly one handler per Operation name and exactly one handler per Read name. Duplicate bindings are invalid service composition and MUST fail during shared resolver construction. The EDP Read resolver contract represents a resolved handler set as a non-empty tuple; the shared AccounterBro Read resolver therefore supplies a singleton tuple only.
 
 ## Runner runtime composition
 

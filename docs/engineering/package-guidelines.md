@@ -63,6 +63,7 @@ Normative keywords:
 - **OP-014** — Package Operation-handler binding descriptors MUST remain Nest-compatible and Nest-agnostic ordinary objects. They MAY depend on `OperationHandlerBinding` from `@accounterbro/service-runtime`, but MUST NOT import Nest provider types.
 - **OP-015** — A package binding group MUST reference the package's exported Operation-name constants rather than repeating raw Operation names.
 - **OP-016** — Shared resolver identity and lookup implementation belong to `@accounterbro/service-runtime`, not `@accounterbro/core` or a business package.
+- **OP-017** — Each Operation name MUST map to exactly one Operation handler in AccounterBro. Duplicate bindings are invalid service composition and MUST be rejected by the shared resolver.
 
 ## Reads
 
@@ -77,6 +78,11 @@ Normative keywords:
 - **READ-009** — Read handler provider descriptors MUST be Nest-compatible ordinary objects with `provide`, `inject`, and `useFactory`; the business package MUST NOT import or reproduce Nest provider types.
 - **READ-010** — Read handler provider descriptors MUST inject package-owned runtime ports/contracts and construct concrete handlers inside the package. A hosting service MUST NOT recreate handler constructors or duplicate their dependency knowledge.
 - **READ-011** — Concrete Read handler classes MUST NOT be exported from the package's main business entrypoint solely for service composition when the package `/execution` entrypoint already owns provisioning.
+- **READ-012** — A business package MUST own its Read-name-to-handler mapping and expose one package-specific binding group from its `/execution` entrypoint. A hosting service MUST NOT recreate that mapping.
+- **READ-013** — Package Read-handler binding descriptors MUST remain Nest-compatible and Nest-agnostic ordinary objects. They MAY depend on `ReadHandlerBinding` from `@accounterbro/service-runtime`, but MUST NOT import Nest provider types.
+- **READ-014** — A package Read binding group MUST reference the package's exported Read-name constants rather than repeating raw Read names.
+- **READ-015** — Shared Read resolver identity and lookup implementation belong to `@accounterbro/service-runtime`, not `@accounterbro/core` or a business package.
+- **READ-016** — Each Read name MUST map to exactly one Read handler in AccounterBro. Duplicate bindings are invalid service composition and MUST be rejected by the shared resolver. When adapting to the EDP resolver contract, a successful resolution MUST contain a singleton handler tuple.
 
 ## Events
 
