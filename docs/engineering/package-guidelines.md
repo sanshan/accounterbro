@@ -59,6 +59,10 @@ Normative keywords:
 - **OP-010** — The package execution entrypoint MUST expose Nest-compatible provider descriptors as ordinary object literals with `provide`, `inject`, and `useFactory`; the package MUST NOT import or reproduce Nest `Provider` / `FactoryProvider` types.
 - **OP-011** — Operation handler provider descriptors MUST inject package-owned runtime ports/contracts and construct concrete handlers inside the package. A hosting service MUST NOT recreate handler constructors or duplicate their dependency knowledge.
 - **OP-012** — Concrete Operation handler classes MUST NOT be exported from the package's main business entrypoint solely for service composition when the package execution entrypoint already owns provisioning.
+- **OP-013** — A business package MUST own its Operation-name-to-handler mapping and expose one package-specific binding group from its `/execution` entrypoint. A hosting service MUST NOT recreate that mapping.
+- **OP-014** — Package Operation-handler binding descriptors MUST remain Nest-compatible and Nest-agnostic ordinary objects. They MAY depend on `OperationHandlerBinding` from `@accounterbro/service-runtime`, but MUST NOT import Nest provider types.
+- **OP-015** — A package binding group MUST reference the package's exported Operation-name constants rather than repeating raw Operation names.
+- **OP-016** — Shared resolver identity and lookup implementation belong to `@accounterbro/service-runtime`, not `@accounterbro/core` or a business package.
 
 ## Reads
 
@@ -104,6 +108,11 @@ Normative keywords:
 
 - **NAME-001** — Domain names used by business packages MUST come from `@accounterbro/core`.
 - **NAME-002** — After an operation, read, or event name is declared in its `names.ts`, package code MUST reference that declaration instead of repeating the raw string.
+
+## Platform integration tests
+
+- **TEST-001** — Tests MUST verify behavior implemented by AccounterBro at the owning boundary. They MUST NOT duplicate EDP tests or restate EDP-owned semantics merely because AccounterBro consumes an EDP contract.
+- **TEST-002** — When an AccounterBro package adds composition around EDP, tests SHOULD target only the added mapping, adapter, provider, invariant, or failure behavior; use typecheck/build evidence for structural contract compatibility where sufficient.
 
 ## Review behavior
 
