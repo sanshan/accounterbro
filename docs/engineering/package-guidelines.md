@@ -113,6 +113,15 @@ Normative keywords:
 - **DB-024** — EDP `OutboxStore` TypeORM integration MUST use `@accounterbro/service-runtime/outbox/typeorm`; services MUST NOT implement a local Outbox adapter or application polling publisher.
 - **DB-025** — Shared Outbox persistence MUST remain append-only, store the authoritative EDP Event envelope plus required search/CDC projections, and MUST NOT add application delivery lifecycle state because publication is CDC-owned.
 
+## Service runtime composition
+
+- **RUNTIME-001** — Reusable Runner composition MUST be exposed from `@accounterbro/service-runtime/runner` and MUST delegate construction to the published EDP `createRunner()` API. AccounterBro MUST NOT implement, subclass, or fork Runner behavior.
+- **RUNTIME-002** — The shared Runner composition MUST use the published EDP `DefaultExecutionIdFactory`, `DefaultEventIdFactory`, `DefaultOperationEventEnvelopeFactory`, and `DefaultOutboxRecordFactory` directly. Services MUST NOT introduce local replacements or duplicate the standard factory graph.
+- **RUNTIME-003** — One caller-supplied EDP `Clock` instance MUST be reused by Runner and the EDP event/outbox factories. Production services use one `SystemClock`; deterministic tests MAY use `FixedClock`.
+- **RUNTIME-004** — `ExecutionLeaseOwnerId` MUST identify one concrete running process/replica and MUST NOT be a stable logical service name shared across replicas. The hosting service creates it once for the process lifetime and supplies it to shared runtime composition.
+- **RUNTIME-005** — The canonical Runner lease duration is `30_000` ms. Services MUST NOT add per-service lease-duration configuration or enable optional Runner policies without a concrete reviewed requirement.
+- **RUNTIME-006** — Tests for shared runtime composition MUST verify only AccounterBro-owned wiring/default choices. They MUST NOT duplicate EDP Runner, factory, transition, retry, timeout, guard, or rate-limit behavior tests.
+
 ## Names
 
 - **NAME-001** — Domain names used by business packages MUST come from `@accounterbro/core`.

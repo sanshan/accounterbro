@@ -59,3 +59,15 @@ The canonical shared EDP `OutboxStore` adapter is exported from `@accounterbro/s
 - the authoritative persisted event representation is the complete EDP Event envelope; searchable/CDC columns are projections of that envelope and MUST NOT replace or redefine EDP event semantics;
 - publication is CDC-owned. MUST NOT add Outbox delivery lifecycle state such as status, published timestamps, retry counters, locks/leases, or an application polling publisher;
 - tests MUST stay focused on AccounterBro-owned projection and ambient transaction participation. Do not repeat EDP Outbox record/factory contract tests.
+
+## Runner composition
+
+The canonical shared Runner composition is exported from `@accounterbro/service-runtime/runner`.
+
+- `createServiceRunner(...)` MUST delegate Runner construction to the published EDP `createRunner()` API; this package MUST NOT implement, subclass, or wrap Runner behavior;
+- shared composition owns only the AccounterBro baseline dependency graph: EDP `DefaultExecutionIdFactory`, `DefaultEventIdFactory`, `DefaultOperationEventEnvelopeFactory`, `DefaultOutboxRecordFactory`, the shared resolver and execution-persistence ports, process lease owner, and Runner options;
+- one caller-supplied EDP `Clock` instance MUST be reused by Runner and the EDP event/outbox factories; production services use one `SystemClock`, while deterministic tests may supply `FixedClock`;
+- the process-level `ExecutionLeaseOwnerId` is supplied by the hosting service and identifies one running process/replica, not a stable logical service name;
+- the baseline Runner lease duration is `30_000` ms and MUST NOT become per-service configuration without a concrete reviewed requirement;
+- optional EDP Runner policies such as guards, rate limiting, custom retry delay, or custom execution timeout are not part of the baseline composition and MUST NOT be added speculatively;
+- tests MUST verify only these AccounterBro composition choices and MUST NOT repeat EDP Runner, factory, transition, retry, timeout, guard, or rate-limit behavior tests.
