@@ -15,8 +15,10 @@
         }
     },
     "dependencies": {
+        "@event-driven-platform/execution-transaction": "^0.0.4",
         "@event-driven-platform/operation": "^0.1.3",
         "@event-driven-platform/operation-handler": "^0.0.4",
-        "@event-driven-platform/operation-handler-resolver": "^0.0.4"
+        "@event-driven-platform/operation-handler-resolver": "^0.0.4",
+        "typeorm": "catalog:"
     }
 }
