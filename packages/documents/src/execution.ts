@@ -4,6 +4,7 @@ import { FinishDocumentRegistrationHandler } from './lib/operations/finish-docum
 import { PrepareDocumentRegistrationHandler } from './lib/operations/prepare-document-registration/prepare-document-registration.handler.js';
 import { documentOperationNames } from './lib/operations/names.js';
 import { DocumentPersistence } from './lib/ports/document-persistence.js';
+import { GetDocumentReadHandler } from './lib/reads/get-document/get-document.handler.js';
 
 const prepareDocumentRegistrationHandlerProvider = {
     provide: PrepareDocumentRegistrationHandler,
@@ -19,10 +20,18 @@ const finishDocumentRegistrationHandlerProvider = {
         new FinishDocumentRegistrationHandler(persistence),
 } as const;
 
+const getDocumentReadHandlerProvider = {
+    provide: GetDocumentReadHandler,
+    inject: [DocumentPersistence],
+    useFactory: (persistence: DocumentPersistence) => new GetDocumentReadHandler(persistence),
+} as const;
+
 export const documentsOperationHandlerProviders = [
     prepareDocumentRegistrationHandlerProvider,
     finishDocumentRegistrationHandlerProvider,
 ] as const;
+
+export const documentsReadHandlerProviders = [getDocumentReadHandlerProvider] as const;
 
 export const DOCUMENTS_OPERATION_HANDLER_BINDINGS = Symbol(
     'DOCUMENTS_OPERATION_HANDLER_BINDINGS',
