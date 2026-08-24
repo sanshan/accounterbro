@@ -16,9 +16,15 @@ class TestEntity {
 }
 
 function createRepository(id: string): Repository<TestEntity> {
-    return {
-        findOneBy: vi.fn(async () => ({ id })),
+    let repository: Repository<TestEntity>;
+
+    repository = {
+        findOneBy: vi.fn(async function (this: Repository<TestEntity>) {
+            return { id: this === repository ? id : 'unbound' };
+        }),
     } as Repository<TestEntity>;
+
+    return repository;
 }
 
 function createManager(repository: Repository<TestEntity>): EntityManager {
