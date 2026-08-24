@@ -141,6 +141,10 @@ Normative keywords:
 - **RUNTIME-008** — The baseline Reader composition MUST supply only the service-wide `ReadHandlerResolver`. EDP default timeout behavior remains canonical unless a concrete reviewed requirement justifies an override.
 - **RUNTIME-009** — Reader cache policy MUST remain Query-owned. Shared service runtime MUST NOT add service-wide cache-key, cache-level, traversal, promotion, backfill, or cache-adapter policy.
 - **RUNTIME-010** — `ReadExecutionCoordinator` and custom read-execution owner-id factories MUST remain opt-in and MUST NOT be part of baseline Reader composition until a concrete Query requires distributed coordination.
+- **RUNTIME-011** — Reusable UseCaseExecutor composition MUST be exposed from `@accounterbro/service-runtime/use-case-executor` and MUST delegate construction to the published EDP `createUseCaseExecutor()` API. AccounterBro MUST NOT implement, subclass, or behavior-wrap UseCaseExecutor.
+- **RUNTIME-012** — The shared UseCaseExecutor composition MUST use EDP `DefaultExecutionIdFactory` directly and pass through the caller-supplied shared `Clock`, shared `UseCaseExecutionStore`, and process-level `ExecutionLeaseOwnerId` unchanged.
+- **RUNTIME-013** — Services MUST reuse the same process Clock and lease owner across Runner and UseCaseExecutor composition. AccounterBro MUST NOT expose UseCaseExecutor lease-duration configuration, alternate lease semantics, retry policy, executor options, or a UseCase registry/resolver without a concrete reviewed requirement.
+- **RUNTIME-014** — Tests for shared UseCaseExecutor composition MUST verify only the AccounterBro dependency/runtime wiring passed to EDP. They MUST NOT execute UseCases merely to duplicate EDP claim, replay, release, transition, error, or fixed-lease tests.
 
 ## Names
 
