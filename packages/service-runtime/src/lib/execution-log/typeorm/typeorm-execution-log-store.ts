@@ -1,5 +1,3 @@
-import { isDeepStrictEqual } from 'node:util';
-
 import {
     DefaultExecutionAttemptIdFactory,
     type ExecutionFailure,
@@ -34,20 +32,18 @@ const EXPIRED_LEASE_FAILURE: ExecutionFailure = {
     retryable: true,
 };
 
-function normalizeJson(value: unknown): unknown {
-    const serialized = JSON.stringify(value);
-
-    if (serialized === undefined) {
-        return undefined;
-    }
-
-    const parsed: unknown = JSON.parse(serialized);
-
-    return parsed;
-}
-
-function sameOperation(persisted: AnyOperation, requested: AnyOperation): boolean {
-    return isDeepStrictEqual(persisted, normalizeJson(requested));
+function hasSameExecutionIdentity(
+    persisted: ExecutionLogEntity,
+    requested: AnyOperation,
+): boolean {
+    return (
+        persisted.operationName === requested.name &&
+        persisted.operationSchemaVersion === requested.schemaVersion &&
+        persisted.tenantType === requested.tenant.type &&
+        persisted.tenantId === requested.tenant.id &&
+        persisted.actorType === requested.actor.type &&
+        persisted.actorId === requested.actor.id
+    );
 }
 
 interface LockedExecution {
@@ -136,7 +132,7 @@ export class TypeOrmExecutionLogStore implements ExecutionLogStore {
             if (!latestAttempt) {
                 if (
                     execution.executionId !== request.executionId ||
-                    !sameOperation(execution.operation, request.operation)
+                    !hasSameExecutionIdentity(execution, request.operation)
                 ) {
                     throw new Error(
                         `Execution ${execution.executionId} has no persisted attempt for its existing Intent.`,
@@ -161,7 +157,7 @@ export class TypeOrmExecutionLogStore implements ExecutionLogStore {
 
             if (
                 execution.executionId !== request.executionId ||
-                !sameOperation(execution.operation, request.operation)
+                !hasSameExecutionIdentity(execution, request.operation)
             ) {
                 return {
                     type: 'intent-conflict',
