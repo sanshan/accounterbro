@@ -270,6 +270,9 @@ importers:
       '@accounterbro/documents':
         specifier: workspace:*
         version: link:../../../packages/documents
+      '@accounterbro/object-storage':
+        specifier: workspace:*
+        version: link:../../../packages/object-storage
       '@accounterbro/runtime-config':
         specifier: workspace:*
         version: link:../../../packages/runtime-config
@@ -422,6 +425,8 @@ importers:
       pg:
         specifier: 'catalog:'
         version: 8.23.0
+
+  packages/object-storage: {}
 
   packages/runtime-config:
     dependencies:

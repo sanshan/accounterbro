@@ -30,6 +30,9 @@
             "path": "../../../packages/documents/tsconfig.lib.json"
         },
         {
+            "path": "../../../packages/object-storage/tsconfig.lib.json"
+        },
+        {
             "path": "../../../packages/service-runtime/tsconfig.lib.json"
         }
     ]
