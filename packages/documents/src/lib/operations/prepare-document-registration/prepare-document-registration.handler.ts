@@ -5,7 +5,6 @@ import {
 } from '@event-driven-platform/operation-result';
 
 import { Document } from '../../document/document.aggregate.js';
-import { DocumentUploadRequestedEvent } from '../../events/document-upload-requested/document-upload-requested.event.js';
 import type { DocumentPersistence } from '../../ports/document-persistence.js';
 import type {
     PrepareDocumentRegistrationOperation,
@@ -19,7 +18,7 @@ export class PrepareDocumentRegistrationHandler
 
     public async execute(
         operation: PrepareDocumentRegistrationOperation,
-    ): Promise<SuccessfulOperationResult<PrepareDocumentRegistrationOutcome, DocumentUploadRequestedEvent>> {
+    ): Promise<SuccessfulOperationResult<PrepareDocumentRegistrationOutcome>> {
         const document = Document.pending(operation.payload.documentId, operation.payload.contentHash);
         const creation = await this.persistence.createOrGetExisting(document);
 
@@ -43,11 +42,6 @@ export class PrepareDocumentRegistrationHandler
             },
         } satisfies PrepareDocumentRegistrationOutcome;
 
-        const event = new DocumentUploadRequestedEvent({ documentId: creation.document.id });
-
-        return OperationResults.success({
-            data: outcome,
-            events: [event],
-        });
+        return OperationResults.success({ data: outcome });
     }
 }
