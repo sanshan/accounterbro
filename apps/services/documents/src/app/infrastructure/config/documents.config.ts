@@ -13,6 +13,12 @@ export function createDocumentsConfig() {
             password: env.DOCUMENTS_DB_PASSWORD,
             name: env.DOCUMENTS_DB_NAME,
         },
+        storage: {
+            driver: env.DOCUMENTS_STORAGE_DRIVER,
+            localFolder: {
+                rootDirectory: env.DOCUMENTS_STORAGE_LOCAL_FOLDER_ROOT,
+            },
+        },
     };
 }
 
