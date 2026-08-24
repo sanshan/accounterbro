@@ -38,7 +38,7 @@ export class GetDocumentUseCase
             },
         } satisfies GetDocumentRead;
 
-        const result = await this.reader.execute({
+        const result = await this.reader.execute<GetDocumentRead>({
             read,
             context: {
                 correlationId: context.correlationId,
