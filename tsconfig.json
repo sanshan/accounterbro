@@ -16,6 +16,9 @@
             "path": "./apps/web-e2e"
         },
         {
+            "path": "./apps/services/documents"
+        },
+        {
             "path": "./packages/runtime-config"
         },
         {

@@ -1,0 +1,70 @@
+{
+    "name": "@accounterbro/documents-service",
+    "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/services/documents/src",
+    "projectType": "application",
+    "tags": [],
+    "targets": {
+        "build": {
+            "executor": "@nx/js:tsc",
+            "options": {
+                "outputPath": "apps/services/documents/dist",
+                "main": "apps/services/documents/src/main.ts",
+                "tsConfig": "apps/services/documents/tsconfig.app.json",
+                "rootDir": "apps/services/documents/src"
+            }
+        },
+        "serve": {
+            "continuous": true,
+            "executor": "@nx/js:node",
+            "defaultConfiguration": "development",
+            "options": {
+                "buildTarget": "@accounterbro/documents-service:build"
+            },
+            "configurations": {
+                "development": {
+                    "buildTarget": "@accounterbro/documents-service:build"
+                },
+                "production": {
+                    "buildTarget": "@accounterbro/documents-service:build"
+                }
+            }
+        },
+        "start": {
+            "continuous": true,
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "node apps/services/documents/dist/main.js"
+            }
+        },
+        "test": {
+            "options": {
+                "passWithNoTests": true
+            }
+        },
+        "migration:generate": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "pnpm -w --filter @accounterbro/documents-service run migration:generate -- ./src/app/infrastructure/persistence/typeorm/migrations/{args.name}"
+            }
+        },
+        "migration:run": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "pnpm -w --filter @accounterbro/documents-service run migration:run"
+            }
+        },
+        "migration:revert": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "pnpm -w --filter @accounterbro/documents-service run migration:revert"
+            }
+        },
+        "migration:show": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "pnpm -w --filter @accounterbro/documents-service run migration:show"
+            }
+        }
+    }
+}
