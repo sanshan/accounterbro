@@ -10,7 +10,11 @@
         "migration:show": "ts-node -P ./tsconfig.app.json ./node_modules/typeorm/cli.js migration:show -d ./src/app/infrastructure/persistence/typeorm/data-source.ts"
     },
     "dependencies": {
+        "@accounterbro/documents": "workspace:*",
         "@accounterbro/runtime-config": "workspace:*",
+        "@accounterbro/service-runtime": "workspace:*",
+        "@event-driven-platform/clock": "^0.0.5",
+        "@event-driven-platform/execution": "^0.0.4",
         "@nestjs/common": "^11.0.0",
         "@nestjs/config": "^4.0.4",
         "@nestjs/core": "^11.0.0",
