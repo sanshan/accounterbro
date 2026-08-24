@@ -133,6 +133,10 @@ Normative keywords:
 - **RUNTIME-004** — `ExecutionLeaseOwnerId` MUST identify one concrete running process/replica and MUST NOT be a stable logical service name shared across replicas. The hosting service creates it once for the process lifetime and supplies it to shared runtime composition.
 - **RUNTIME-005** — The canonical Runner lease duration is `30_000` ms. Services MUST NOT add per-service lease-duration configuration or enable optional Runner policies without a concrete reviewed requirement.
 - **RUNTIME-006** — Tests for shared runtime composition MUST verify only AccounterBro-owned wiring/default choices. They MUST NOT duplicate EDP Runner, factory, transition, retry, timeout, guard, or rate-limit behavior tests.
+- **RUNTIME-007** — Reusable Reader composition MUST be exposed from `@accounterbro/service-runtime/reader` and MUST construct the published EDP `DefaultReader` directly. AccounterBro MUST NOT implement, subclass, or wrap Reader behavior.
+- **RUNTIME-008** — The baseline Reader composition MUST supply only the service-wide `ReadHandlerResolver`. EDP default timeout behavior remains canonical unless a concrete reviewed requirement justifies an override.
+- **RUNTIME-009** — Reader cache policy MUST remain Query-owned. Shared service runtime MUST NOT add service-wide cache-key, cache-level, traversal, promotion, backfill, or cache-adapter policy.
+- **RUNTIME-010** — `ReadExecutionCoordinator` and custom read-execution owner-id factories MUST remain opt-in and MUST NOT be part of baseline Reader composition until a concrete Query requires distributed coordination.
 
 ## Names
 
