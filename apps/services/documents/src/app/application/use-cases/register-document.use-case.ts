@@ -46,7 +46,7 @@ export class RegisterDocumentUseCase implements UseCase<RegisterDocumentInput, R
             id: documentId,
         } satisfies DocumentReference;
 
-        const operation = {
+        const operation: PrepareDocumentRegistrationOperation = {
             name: documentOperationNames.prepareRegistration,
             schemaVersion: 1,
             intent: this.intentFactory.derive({
@@ -61,7 +61,7 @@ export class RegisterDocumentUseCase implements UseCase<RegisterDocumentInput, R
                 documentId,
                 contentHash: createHash('sha256').update(input.file).digest('hex'),
             },
-        } satisfies PrepareDocumentRegistrationOperation;
+        };
 
         const result = await this.runner.execute({
             operation,
