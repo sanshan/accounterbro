@@ -65,7 +65,9 @@ function createIntentFactory(): {
 
     return {
         intentFactory: {
-            create: jest.fn(),
+            create: () => {
+                throw new Error('create is not used by RegisterDocumentUseCase');
+            },
             derive,
         },
         derive,
@@ -75,17 +77,22 @@ function createIntentFactory(): {
 describe('RegisterDocumentUseCase', () => {
     it('DOC-REG-001 maps a created PENDING result to initial registration success', async () => {
         const file = Uint8Array.from([0, 1, 2, 3, 255]);
-        const execute = jest.fn(async (command: PrepareRegistrationCommand) => ({
-            status: 'success' as const,
-            data: {
-                kind: 'created' as const,
-                document: {
-                    id: command.operation.payload.documentId,
-                    status: DocumentRegistrationStatus.Pending,
+        let capturedCommand: PrepareRegistrationCommand | undefined;
+        const execute = jest.fn(async (command: PrepareRegistrationCommand) => {
+            capturedCommand = command;
+
+            return {
+                status: 'success' as const,
+                data: {
+                    kind: 'created' as const,
+                    document: {
+                        id: command.operation.payload.documentId,
+                        status: DocumentRegistrationStatus.Pending,
+                    },
                 },
-            },
-            events: [],
-        }));
+                events: [],
+            };
+        });
         const { intentFactory, derive } = createIntentFactory();
         const useCase = new RegisterDocumentUseCase(asRunner(execute), actor, tenant, intentFactory);
 
@@ -98,9 +105,11 @@ describe('RegisterDocumentUseCase', () => {
         });
         expect(execute).toHaveBeenCalledTimes(1);
 
-        const command = execute.mock.calls[0][0];
+        if (capturedCommand === undefined) {
+            throw new Error('RegisterDocumentUseCase did not execute the prepare registration command');
+        }
 
-        expect(command.operation).toMatchObject({
+        expect(capturedCommand.operation).toMatchObject({
             name: documentOperationNames.prepareRegistration,
             schemaVersion: 1,
             intent: childIntent,
@@ -124,7 +133,7 @@ describe('RegisterDocumentUseCase', () => {
             parent: { id: context.intent.id },
             slot: 'prepare-registration',
         });
-        expect(command.context).toEqual({ correlationId: context.correlationId });
+        expect(capturedCommand.context).toEqual({ correlationId: context.correlationId });
     });
 
     it('DOC-REG-001 propagates initial registration failure instead of returning success', async () => {
