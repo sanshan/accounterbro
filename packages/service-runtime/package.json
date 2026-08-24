@@ -32,6 +32,11 @@
             "types": "./dist/runner.d.ts",
             "import": "./dist/runner.js",
             "default": "./dist/runner.js"
+        },
+        "./reader": {
+            "types": "./dist/reader.d.ts",
+            "import": "./dist/reader.js",
+            "default": "./dist/reader.js"
         }
     },
     "dependencies": {
