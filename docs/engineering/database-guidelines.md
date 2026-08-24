@@ -232,6 +232,20 @@ The persisted EDP Event envelope is authoritative. The Outbox table stores the f
 
 Publication is CDC-owned. The Outbox persistence model is append-only and MUST NOT add application delivery lifecycle fields or behavior such as status, published timestamps, retry counters, locks/leases, or a polling publisher. Tests for this adapter MUST target only AccounterBro-owned projection and transaction-participation guarantees; they MUST NOT repeat EDP `OutboxStore`, `OutboxRecord`, or Event-envelope factory semantics.
 
+## EDP UseCase execution persistence
+
+Business services that execute UseCases durably use `@accounterbro/service-runtime/use-case-execution/typeorm` for the published EDP `UseCaseExecutionStore` contract. Shared runtime owns the reusable `use_case_execution` entity, migration, and store factory; each service composes those artifacts into its own service-owned database, so UseCase execution state remains local to the owning service.
+
+Construct the UseCase execution store with the real service-owned `DataSource`. Its `claim()`, `complete()`, and `release()` methods use short database transactions to make their own state transitions atomic. This boundary is deliberately separate from Runner's ambient execution transaction: a UseCase may execute multiple independently committed child Operations/Reads, and the store MUST NOT imply one SQL transaction spanning those children.
+
+One durable row represents one logical UseCase invocation. It preserves the authoritative Intent association and full Intent snapshot, parent Intent id when present, correlation id, current status, current fenced lease generation, final result, and transition timestamps required for durable replay. The schema has no attempts table or failure history.
+
+`release()` clears active lease ownership and makes the same invocation immediately claimable again while preserving its Intent association. Lease expiry is reclaim eligibility, not automatic loss of completion/release rights: if nobody has reclaimed yet, the current owner remains authoritative; a successful new claim advances `lease_version` and fences the previous owner.
+
+Completed results are stored as `jsonb` and replayed on duplicate execution, so durable UseCases MUST return JSON-serializable results. Do not add a serializer framework, attempts/failure history, lease renewal, heartbeat, progress detection, child-step persistence, or Outbox behavior without a concrete reviewed requirement.
+
+Services consume `USE_CASE_EXECUTION_TYPEORM_ENTITIES` and `USE_CASE_EXECUTION_TYPEORM_MIGRATIONS` instead of deep-importing the shared entity/migration or recreating the table/store locally. Tests for this adapter MUST target only AccounterBro-owned PostgreSQL concurrency, fencing, schema-state, release/reclaim, and durable replay guarantees; they MUST NOT duplicate EDP `UseCaseExecutionStore` or `UseCaseExecutor` tests.
+
 ## Schema evolution
 
 Schema evolution is migration-driven.
