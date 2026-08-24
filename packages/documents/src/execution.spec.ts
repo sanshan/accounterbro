@@ -5,10 +5,12 @@ import { FinishDocumentRegistrationHandler } from './lib/operations/finish-docum
 import { PrepareDocumentRegistrationHandler } from './lib/operations/prepare-document-registration/prepare-document-registration.handler.js';
 import { documentOperationNames } from './lib/operations/names.js';
 import { DocumentPersistence } from './lib/ports/document-persistence.js';
+import { GetDocumentReadHandler } from './lib/reads/get-document/get-document.handler.js';
 import {
     DOCUMENTS_OPERATION_HANDLER_BINDINGS,
     documentsOperationHandlerBindingsProvider,
     documentsOperationHandlerProviders,
+    documentsReadHandlerProviders,
 } from './execution.js';
 
 const persistence: DocumentPersistence = {
@@ -18,8 +20,9 @@ const persistence: DocumentPersistence = {
 };
 
 describe('@accounterbro/documents/execution', () => {
-    it('exposes package-owned provider descriptors for Documents Operation handlers', () => {
+    it('exposes package-owned provider descriptors for Documents handlers', () => {
         const [prepareProvider, finishProvider] = documentsOperationHandlerProviders;
+        const [getDocumentProvider] = documentsReadHandlerProviders;
 
         expect(prepareProvider.provide).toBe(PrepareDocumentRegistrationHandler);
         expect(prepareProvider.inject).toEqual([DocumentPersistence]);
@@ -32,6 +35,10 @@ describe('@accounterbro/documents/execution', () => {
         expect(finishProvider.useFactory(persistence)).toBeInstanceOf(
             FinishDocumentRegistrationHandler,
         );
+
+        expect(getDocumentProvider.provide).toBe(GetDocumentReadHandler);
+        expect(getDocumentProvider.inject).toEqual([DocumentPersistence]);
+        expect(getDocumentProvider.useFactory(persistence)).toBeInstanceOf(GetDocumentReadHandler);
     });
 
     it('exposes the package-owned Operation-name-to-handler binding group', () => {
@@ -58,8 +65,9 @@ describe('@accounterbro/documents/execution', () => {
         ]);
     });
 
-    it('keeps concrete Operation handler implementations out of the business entrypoint', () => {
+    it('keeps concrete handler implementations out of the business entrypoint', () => {
         expect(documents).not.toHaveProperty('PrepareDocumentRegistrationHandler');
         expect(documents).not.toHaveProperty('FinishDocumentRegistrationHandler');
+        expect(documents).not.toHaveProperty('GetDocumentReadHandler');
     });
 });

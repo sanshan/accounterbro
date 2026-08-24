@@ -71,6 +71,12 @@ Normative keywords:
 - **READ-003** — Read names MUST be declared in `packages/[package-name]/src/lib/reads/names.ts`.
 - **READ-004** — Read names MUST be exposed through `[camelCaseDomainName]ReadNames`.
 - **READ-005** — A read name MUST use the domain name from Core and an imperative kebab-case action: `[domain-name].[imperative-action]`.
+- **READ-006** — A business package MUST own its EDP `ReadHandler` implementations and the knowledge required to construct them.
+- **READ-007** — Business-package Read handler classes MUST remain framework-agnostic. They MUST NOT use Nest decorators or import NestJS merely for service composition.
+- **READ-008** — Service-facing Read handler provisioning MUST be exposed through the package's Nest-agnostic `/execution` entrypoint rather than requiring the service to deep-import concrete handlers.
+- **READ-009** — Read handler provider descriptors MUST be Nest-compatible ordinary objects with `provide`, `inject`, and `useFactory`; the business package MUST NOT import or reproduce Nest provider types.
+- **READ-010** — Read handler provider descriptors MUST inject package-owned runtime ports/contracts and construct concrete handlers inside the package. A hosting service MUST NOT recreate handler constructors or duplicate their dependency knowledge.
+- **READ-011** — Concrete Read handler classes MUST NOT be exported from the package's main business entrypoint solely for service composition when the package `/execution` entrypoint already owns provisioning.
 
 ## Events
 

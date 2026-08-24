@@ -27,7 +27,6 @@ export type {
 } from './lib/operations/prepare-document-registration/prepare-document-registration.operation.js';
 
 export { documentReadNames } from './lib/reads/names.js';
-export { GetDocumentReadHandler } from './lib/reads/get-document/get-document.handler.js';
 export type {
     GetDocumentParameters,
     GetDocumentRead,

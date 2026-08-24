@@ -46,11 +46,11 @@ MUST NOT deep-import or recreate a business package's private entities/migration
 
 ## Business handler provisioning
 
-When a service hosts business-package EDP Operation handlers, MUST follow the Operation handler provisioning rules in `docs/engineering/package-guidelines.md`.
+When a service hosts business-package EDP Operation or Read handlers, MUST follow the corresponding handler provisioning rules in `docs/engineering/package-guidelines.md`.
 
 The business package owns concrete handler classes and their construction knowledge and exposes Nest-compatible, Nest-agnostic provider descriptors through `@accounterbro/<package>/execution`. The service registers those exported descriptors; it MUST NOT deep-import concrete handlers, recreate handler factories, or duplicate their constructor dependencies.
 
-Service-side registration files are grouped by business package inside the execution infrastructure boundary:
+Operation-side registration files are grouped by business package inside the execution infrastructure boundary:
 
 ```text
 infrastructure/execution/providers/
@@ -61,6 +61,8 @@ infrastructure/execution/providers/
 └── <package>/
     └── <package>-operation-handlers.providers.ts
 ```
+
+Read-handler registration follows the same package-first grouping rule inside the service's Read infrastructure boundary. A service registers the package-exported Read provider group from `/execution`; it MUST NOT introduce a second constructor-wiring mechanism or import concrete Read handler implementations directly.
 
 A service-side provider file is composition only. It MAY use `satisfies Provider[]` or an equivalent Nest-side check to validate the package descriptors structurally without introducing Nest types into the business package.
 
