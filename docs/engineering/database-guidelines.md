@@ -222,6 +222,16 @@ The persistence model keeps the full Operation snapshot for deterministic Intent
 
 Tests for this adapter MUST target AccounterBro-owned database concurrency, fencing, and transaction-participation guarantees. They MUST NOT restate EDP `ExecutionLogStore` request/result contracts or generic EDP transition semantics.
 
+## EDP Outbox persistence
+
+Transactional business services use `@accounterbro/service-runtime/outbox/typeorm` for durable EDP `OutboxStore` persistence. Shared runtime owns the reusable append-only `outbox` entity, migration, and store factory; every service composes those artifacts into its own service-owned database, so Outbox data remains local to the service that owns the business transaction.
+
+Construct the Outbox store with the same transaction-aware `DataSource` supplied to business-package persistence factories and execution-log terminal writes. `append()` uses that supplied repository boundary directly and therefore joins the active `ExecutionTransaction` without introducing another transaction context, `QueryRunner`, or database lifecycle.
+
+The persisted EDP Event envelope is authoritative. The Outbox table stores the full envelope as `jsonb` plus the decided CDC/investigation projections: event name/schema version/occurred time, Intent/correlation/operation, tenant, aggregate, actor, record creation time, and the Outbox record id as the primary key. Projection columns MUST be derived from the envelope and MUST NOT redefine event semantics. Services consume `OUTBOX_TYPEORM_ENTITIES` and `OUTBOX_TYPEORM_MIGRATIONS` instead of deep-importing the shared implementation or recreating the schema locally.
+
+Publication is CDC-owned. The Outbox persistence model is append-only and MUST NOT add application delivery lifecycle fields or behavior such as status, published timestamps, retry counters, locks/leases, or a polling publisher. Tests for this adapter MUST target only AccounterBro-owned projection and transaction-participation guarantees; they MUST NOT repeat EDP `OutboxStore`, `OutboxRecord`, or Event-envelope factory semantics.
+
 ## Schema evolution
 
 Schema evolution is migration-driven.

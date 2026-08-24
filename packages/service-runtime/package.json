@@ -22,6 +22,11 @@
             "types": "./dist/execution-log/typeorm.d.ts",
             "import": "./dist/execution-log/typeorm.js",
             "default": "./dist/execution-log/typeorm.js"
+        },
+        "./outbox/typeorm": {
+            "types": "./dist/outbox/typeorm.d.ts",
+            "import": "./dist/outbox/typeorm.js",
+            "default": "./dist/outbox/typeorm.js"
         }
     },
     "dependencies": {
@@ -32,6 +37,8 @@
         "@event-driven-platform/operation": "^0.1.3",
         "@event-driven-platform/operation-handler": "^0.0.4",
         "@event-driven-platform/operation-handler-resolver": "^0.0.4",
+        "@event-driven-platform/outbox": "^0.0.5",
+        "@event-driven-platform/outbox-store": "^0.0.5",
         "typeorm": "catalog:"
     },
     "devDependencies": {
