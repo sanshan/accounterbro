@@ -84,4 +84,14 @@ The shared runtime owns the canonical EDP defaults and fixed `30_000` ms Runner 
 
 Concrete Nest provider/module wiring remains service-owned composition, but it MUST delegate Runner construction to the shared runtime factory.
 
+## Reader runtime composition
+
+Services that execute EDP Queries MUST use `createServiceReader(...)` from `@accounterbro/service-runtime/reader` rather than constructing `DefaultReader` locally or introducing a service-specific Reader wrapper.
+
+The baseline service composition supplies only the service-wide `ReadHandlerResolver`. EDP default timeout behavior remains canonical. Cache keys, levels, readers/writers, traversal and backfill remain Query-owned execution configuration rather than service-wide Reader policy.
+
+`ReadExecutionCoordinator` and a custom read-execution owner-id factory are not part of the baseline. Add distributed coordination only when a concrete Query requires it and the corresponding runtime integration has been reviewed.
+
+Concrete Nest provider/module wiring remains service-owned composition, but it MUST delegate Reader construction to the shared runtime factory.
+
 Service tests MUST cover service-owned composition only. They MUST NOT duplicate EDP resolver/Runner/Reader/UseCase semantics already owned and tested by EDP.
