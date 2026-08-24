@@ -96,4 +96,14 @@ The baseline service composition supplies only the service-wide `ReadHandlerReso
 
 Concrete Nest provider/module wiring remains service-owned composition, but it MUST delegate Reader construction to the shared runtime factory.
 
+## UseCaseExecutor runtime composition
+
+Services that execute durable EDP UseCases MUST use `createServiceUseCaseExecutor(...)` from `@accounterbro/service-runtime/use-case-executor` rather than constructing the standard EDP executor dependency graph locally.
+
+The hosting service supplies the same process `SystemClock` and fresh process-level `ExecutionLeaseOwnerId` already used by Runner composition plus the shared `UseCaseExecutionStore`. Shared runtime wires EDP `DefaultExecutionIdFactory` and delegates construction to `createUseCaseExecutor()`.
+
+EDP owns UseCaseExecutor lease duration, claim/replay/release, transition/error, and execution semantics. Services MUST NOT add a local executor implementation/wrapper, lease-duration configuration, alternate lease policy, retry policy, UseCase registry/resolver, or executor-specific process identity merely for composition.
+
+Concrete UseCases remain caller-supplied through EDP execution requests. Concrete Nest provider/module wiring remains service-owned composition, but it MUST delegate executor construction to the shared runtime factory.
+
 Service tests MUST cover service-owned composition only. They MUST NOT duplicate EDP resolver/Runner/Reader/UseCase semantics already owned and tested by EDP.

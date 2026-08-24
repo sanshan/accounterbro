@@ -42,6 +42,11 @@
             "types": "./dist/use-case-execution/typeorm.d.ts",
             "import": "./dist/use-case-execution/typeorm.js",
             "default": "./dist/use-case-execution/typeorm.js"
+        },
+        "./use-case-executor": {
+            "types": "./dist/use-case-executor.d.ts",
+            "import": "./dist/use-case-executor.js",
+            "default": "./dist/use-case-executor.js"
         }
     },
     "dependencies": {
@@ -64,6 +69,7 @@
         "@event-driven-platform/reader": "^0.0.3",
         "@event-driven-platform/runner": "^0.0.5",
         "@event-driven-platform/use-case-execution-store": "^0.0.2",
+        "@event-driven-platform/use-case-executor": "^0.0.2",
         "typeorm": "catalog:"
     },
     "devDependencies": {
