@@ -1,5 +1,9 @@
 import type { DocumentId } from '@accounterbro/core';
-import { DocumentRegistrationStatus, documentReadNames } from '@accounterbro/documents';
+import {
+    DocumentRegistrationStatus,
+    documentReadNames,
+    type GetDocumentResult,
+} from '@accounterbro/documents';
 import type { Actor } from '@event-driven-platform/actor';
 import type { Reader } from '@event-driven-platform/reader';
 import type { UseCaseContext } from '@event-driven-platform/use-case';
@@ -20,8 +24,12 @@ const context = {
     correlationId: 'correlation-1',
 } satisfies UseCaseContext;
 
-function createReader(execute: Reader['execute']): Reader {
-    return { execute };
+type GetDocumentExecute = (query: unknown) => Promise<GetDocumentResult | null>;
+
+function createReader(execute: GetDocumentExecute): Reader {
+    return {
+        execute: execute as Reader['execute'],
+    };
 }
 
 describe('GetDocumentUseCase', () => {
@@ -56,7 +64,7 @@ describe('GetDocumentUseCase', () => {
 
     it('DOC-GET-002 maps a successful null Read result to not-found', async () => {
         const documentId = 'missing-document' as DocumentId;
-        const execute: Reader['execute'] = async () => null;
+        const execute = jest.fn(async () => null);
         const useCase = new GetDocumentUseCase(createReader(execute), actor);
 
         await expect(useCase.execute({ documentId }, context)).resolves.toEqual({
@@ -66,9 +74,9 @@ describe('GetDocumentUseCase', () => {
 
     it('propagates Reader failures instead of treating them as not-found', async () => {
         const failure = new Error('reader failed');
-        const execute: Reader['execute'] = async () => {
+        const execute = jest.fn(async () => {
             throw failure;
-        };
+        });
         const useCase = new GetDocumentUseCase(createReader(execute), actor);
 
         await expect(
