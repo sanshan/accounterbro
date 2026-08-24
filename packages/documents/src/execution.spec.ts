@@ -6,10 +6,13 @@ import { PrepareDocumentRegistrationHandler } from './lib/operations/prepare-doc
 import { documentOperationNames } from './lib/operations/names.js';
 import { DocumentPersistence } from './lib/ports/document-persistence.js';
 import { GetDocumentReadHandler } from './lib/reads/get-document/get-document.handler.js';
+import { documentReadNames } from './lib/reads/names.js';
 import {
     DOCUMENTS_OPERATION_HANDLER_BINDINGS,
+    DOCUMENTS_READ_HANDLER_BINDINGS,
     documentsOperationHandlerBindingsProvider,
     documentsOperationHandlerProviders,
+    documentsReadHandlerBindingsProvider,
     documentsReadHandlerProviders,
 } from './execution.js';
 
@@ -61,6 +64,20 @@ describe('@accounterbro/documents/execution', () => {
             {
                 operationName: documentOperationNames.finishRegistration,
                 handler: finish,
+            },
+        ]);
+    });
+
+    it('exposes the package-owned Read-name-to-handler binding group', () => {
+        const [getDocumentProvider] = documentsReadHandlerProviders;
+        const getDocument = getDocumentProvider.useFactory(persistence);
+
+        expect(documentsReadHandlerBindingsProvider.provide).toBe(DOCUMENTS_READ_HANDLER_BINDINGS);
+        expect(documentsReadHandlerBindingsProvider.inject).toEqual([GetDocumentReadHandler]);
+        expect(documentsReadHandlerBindingsProvider.useFactory(getDocument)).toEqual([
+            {
+                readName: documentReadNames.getDocument,
+                handler: getDocument,
             },
         ]);
     });
