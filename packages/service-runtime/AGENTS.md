@@ -111,3 +111,14 @@ The canonical shared Reader composition is exported from `@accounterbro/service-
 - cache plans remain Query-owned and are interpreted by EDP Reader; shared service runtime MUST NOT introduce service-wide cache-key, cache-level, traversal, promotion, or backfill policy;
 - `ReadExecutionCoordinator` and a custom read-execution owner-id factory are not part of baseline composition and MUST remain opt-in until a concrete Query requires distributed coordination;
 - tests MUST verify only the AccounterBro composition choice and MUST NOT repeat EDP Reader dispatch, timeout, cache, inflight, coordination, or error behavior tests.
+
+## UseCaseExecutor composition
+
+The canonical shared UseCaseExecutor composition is exported from `@accounterbro/service-runtime/use-case-executor`.
+
+- `createServiceUseCaseExecutor(...)` MUST delegate construction directly to the published EDP `createUseCaseExecutor()` API; this package MUST NOT implement, subclass, or behavior-wrap UseCaseExecutor;
+- shared composition owns only the AccounterBro baseline dependency graph: EDP `DefaultExecutionIdFactory`, the caller-supplied shared `Clock`, the shared `UseCaseExecutionStore`, and the process-level `ExecutionLeaseOwnerId`;
+- production services MUST reuse the same process `SystemClock` and process-level lease owner already supplied to Runner composition rather than creating UseCaseExecutor-specific runtime identities;
+- EDP owns UseCaseExecutor lease duration and transition/error semantics. MUST NOT expose AccounterBro lease-duration configuration, alternate lease policy, retry behavior, or executor options;
+- concrete UseCases remain caller-supplied EDP execution requests. MUST NOT add a UseCase registry/resolver solely for executor composition;
+- tests MUST verify only the AccounterBro dependency/runtime wiring passed to `createUseCaseExecutor()` and MUST NOT execute UseCases to repeat EDP claim, replay, release, transition, or fixed-lease behavior tests.
