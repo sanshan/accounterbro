@@ -1,10 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import {
-    DOCUMENTS_OPERATION_HANDLER_BINDINGS,
-    documentsOperationHandlerBindingsProvider,
-    documentsOperationHandlerProviders,
-} from '@accounterbro/documents/execution';
+import { DOCUMENTS_OPERATION_HANDLER_BINDINGS } from '@accounterbro/documents/execution';
 import {
     MapOperationHandlerResolver,
     OperationHandlerResolver,
@@ -29,6 +25,7 @@ import {
     OUTBOX_STORE,
     USE_CASE_EXECUTION_STORE,
 } from '../runtime/runtime.tokens';
+import { documentsOperationProviders } from './providers/documents/documents-operation-handlers.providers';
 
 type ExecutionLogStore = ReturnType<typeof createExecutionLogStore>;
 type OutboxStore = ReturnType<typeof createOutboxStore>;
@@ -37,8 +34,7 @@ type UseCaseExecutionStore = ReturnType<typeof createUseCaseExecutionStore>;
 @Module({
     imports: [DocumentsTypeormModule],
     providers: [
-        ...documentsOperationHandlerProviders,
-        documentsOperationHandlerBindingsProvider,
+        ...documentsOperationProviders,
         {
             provide: OperationHandlerResolver,
             inject: [DOCUMENTS_OPERATION_HANDLER_BINDINGS],
