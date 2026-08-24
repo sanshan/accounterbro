@@ -16,9 +16,7 @@ class TestEntity {
 }
 
 function createRepository(id: string): Repository<TestEntity> {
-    let repository: Repository<TestEntity>;
-
-    repository = {
+    const repository = {
         findOneBy: vi.fn(async function (this: Repository<TestEntity>) {
             return { id: this === repository ? id : 'unbound' };
         }),
