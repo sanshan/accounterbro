@@ -9,6 +9,11 @@
             "factory": "./dist/generators/service/service",
             "schema": "./dist/generators/service/schema.json",
             "description": "canonical internal service generator"
+        },
+        "service-e2e": {
+            "factory": "./dist/generators/service-e2e/service-e2e",
+            "schema": "./dist/generators/service-e2e/schema.json",
+            "description": "canonical internal service E2E generator"
         }
     }
 }
