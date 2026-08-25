@@ -22,14 +22,15 @@ The canonical trusted headers are defined only by `HTTP_REQUEST_IDENTITY_HEADERS
 
 `HttpRequestIdentityMiddleware` MUST:
 
-- validate Actor identity through the published EDP Actor factory/contract rather than duplicate Actor validation rules;
-- use `@accounterbro/core` for the AccounterBro tenant type/reference;
-- reject missing, repeated/ambiguous, blank, or invalid identity before controller invocation;
-- write only validated typed values to the request;
+- require exactly one non-blank canonical actor type, actor id, and tenant id header;
+- treat semantic validity of the trusted actor type as part of the upstream contract rather than duplicating the EDP Actor factory/schema inside this transport adapter;
+- use EDP/Core types for the resulting Actor and TenantReference values without introducing a runtime EDP factory dependency;
+- reject missing, repeated/ambiguous, blank, or padded identity before controller invocation;
+- write the resulting typed values to the request;
 - remain independent from application/domain behavior, persistence, and concrete UseCases.
 
-The middleware is a trusted-upstream adapter, not authentication or authorization. It MUST NOT parse credentials, verify tokens, call persistence, infer permissions, or claim caller authenticity. Production deployment must ensure the upstream auth/gateway boundary strips untrusted caller-supplied AccounterBro identity headers and injects trusted values.
+The middleware is a trusted-upstream adapter, not authentication or authorization. It MUST NOT parse credentials, verify tokens, call persistence, infer permissions, or claim caller authenticity. Production deployment must ensure the upstream auth/gateway boundary strips untrusted caller-supplied AccounterBro identity headers, validates the upstream identity contract, and injects trusted values.
 
 `@Actor()` and `@Tenant()` remain extraction-only decorators. Do not move validation or authentication into them.
 
-Tests in this package own request-identity parsing/validation behavior. Service controller tests MUST NOT duplicate those cases; service E2E may send the canonical trusted headers to exercise the same production middleware path.
+Tests in this package own request-identity transport behavior and should use plain request/header data. Service controller tests MUST NOT duplicate those cases; service E2E may send the canonical trusted headers to exercise the same production middleware path.
