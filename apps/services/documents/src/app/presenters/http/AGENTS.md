@@ -75,21 +75,39 @@ Invocation-specific metadata MUST remain explicit. Do not introduce request-scop
 Use the shared HTTP presenter runtime entrypoint:
 
 ```ts
-import { Actor, Tenant } from '@accounterbro/runtime-presenters/http';
+import {
+    Actor,
+    HttpRequestIdentityMiddleware,
+    Tenant,
+} from '@accounterbro/runtime-presenters/http';
 ```
 
-Use separate parameter decorators:
+The presenter module MUST apply `HttpRequestIdentityMiddleware` to routes whose controllers use `@Actor()` / `@Tenant()`. The middleware establishes typed request identity before controller invocation; controllers MUST NOT parse identity headers themselves.
+
+The canonical trusted-upstream headers are exported through `HTTP_REQUEST_IDENTITY_HEADERS` and currently resolve to:
+
+```text
+x-accounterbro-actor-type
+x-accounterbro-actor-id
+x-accounterbro-tenant-id
+```
+
+This is a trusted-upstream contract, not authentication. A production gateway/auth boundary is responsible for authenticating the caller, stripping caller-supplied AccounterBro identity headers, and injecting trusted values before forwarding to the internal service. Direct exposure of these internal routes to untrusted callers violates the contract.
+
+The middleware validates the Actor through the published EDP Actor factory/contract, uses Core `tenantName` for the tenant type, and rejects missing, repeated/ambiguous, blank, or invalid identity with `401` before controller invocation. It does not authenticate credentials, implement authorization, or derive tenancy policy.
+
+Use separate parameter decorators in controllers:
 
 ```ts
 @Actor() actor: Actor
 @Tenant() tenant: TenantReference
 ```
 
-The shared decorators read already-established typed values from the HTTP request. They do not authenticate the caller or derive tenancy policy.
+The shared decorators only read the typed values already established by the middleware.
 
 Pass only the identity values required by the concrete UseCase context. A UseCase that needs `actor` but not `tenant` MUST NOT receive tenant merely because it is available on the HTTP request.
 
-UseCases MUST remain unaware of HTTP request objects and presenter decorators.
+UseCases MUST remain unaware of HTTP request objects, trusted identity headers, middleware, and presenter decorators.
 
 ## DTO ownership
 
@@ -144,15 +162,16 @@ MUST NOT duplicate:
 - Operation/Read handler behavior;
 - persistence, transaction, recovery, idempotency/deduplication, or ObjectStorage behavior.
 
-UseCase specs remain the authority for business behavior. Presenter tests prove the HTTP adapter contract.
+UseCase specs remain the authority for business behavior. Presenter tests prove the HTTP adapter contract. Request-identity middleware behavior is owned by `@accounterbro/runtime-presenters/http`; presenter/controller tests MUST NOT duplicate its parsing/validation cases.
 
 ## Current omissions
 
 This guidance intentionally does not define:
 
-- error response contracts, exception mapping, or HTTP filters;
-- middleware design;
-- authentication implementation;
+- error response contracts beyond the established request-identity `401` boundary;
+- HTTP exception filters;
+- gateway/authentication implementation behind the trusted-upstream contract;
+- authorization policy;
 - messaging presenters.
 
 Add those rules only after a concrete requirement establishes a proven implementation pattern.
