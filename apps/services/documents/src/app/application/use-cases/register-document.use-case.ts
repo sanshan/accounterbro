@@ -4,7 +4,6 @@ import {
     documentName,
     type DocumentId,
     type DocumentReference,
-    type TenantReference,
 } from '@accounterbro/core';
 import {
     documentOperationNames,
@@ -14,10 +13,12 @@ import {
     type PrepareDocumentRegistrationOperation,
 } from '@accounterbro/documents';
 import type { ObjectStorage } from '@accounterbro/object-storage';
-import type { Actor } from '@event-driven-platform/actor';
 import { IntentFactory } from '@event-driven-platform/intent';
 import type { Runner } from '@event-driven-platform/runner';
-import type { UseCase, UseCaseContext } from '@event-driven-platform/use-case';
+import type { UseCase } from '@event-driven-platform/use-case';
+import { Injectable } from '@nestjs/common';
+
+import type { RegisterDocumentUseCaseContext } from './register-document.use-case.context';
 
 const prepareRegistrationIntentSlot = 'prepare-registration';
 const finishRegistrationIntentSlot = 'finish-registration';
@@ -38,17 +39,18 @@ function storageFailureReason(error: unknown): string {
         : 'Object storage failed.';
 }
 
-export class RegisterDocumentUseCase implements UseCase<RegisterDocumentInput, RegisterDocumentResult> {
+@Injectable()
+export class RegisterDocumentUseCase
+    implements UseCase<RegisterDocumentInput, RegisterDocumentResult, RegisterDocumentUseCaseContext>
+{
     public constructor(
         private readonly runner: Runner,
         private readonly objectStorage: ObjectStorage,
-        private readonly actor: Actor,
-        private readonly tenant: TenantReference,
     ) {}
 
     public async execute(
         input: RegisterDocumentInput,
-        context: UseCaseContext,
+        context: RegisterDocumentUseCaseContext,
     ): Promise<RegisterDocumentResult> {
         const documentId = randomUUID() as DocumentId;
         const candidateReference = {
@@ -63,8 +65,8 @@ export class RegisterDocumentUseCase implements UseCase<RegisterDocumentInput, R
                 parent: { id: context.intent.id },
                 slot: prepareRegistrationIntentSlot,
             }),
-            actor: this.actor,
-            tenant: this.tenant,
+            actor: context.actor,
+            tenant: context.tenant,
             subject: candidateReference,
             aggregate: candidateReference,
             payload: {
@@ -98,7 +100,7 @@ export class RegisterDocumentUseCase implements UseCase<RegisterDocumentInput, R
 
         try {
             const stored = await this.objectStorage.put({
-                key: `documents/${this.tenant.id}/${preparedDocument.id}/original`,
+                key: `documents/${context.tenant.id}/${preparedDocument.id}/original`,
                 content: input.file,
             });
 
@@ -120,8 +122,8 @@ export class RegisterDocumentUseCase implements UseCase<RegisterDocumentInput, R
                 parent: { id: context.intent.id },
                 slot: finishRegistrationIntentSlot,
             }),
-            actor: this.actor,
-            tenant: this.tenant,
+            actor: context.actor,
+            tenant: context.tenant,
             subject: documentReference,
             aggregate: documentReference,
             payload: finishPayload,
