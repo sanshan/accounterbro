@@ -1,5 +1,5 @@
 import { tenantName, type TenantId, type TenantReference } from '@accounterbro/core';
-import { DefaultActorFactory, type Actor, type ActorType } from '@event-driven-platform/actor';
+import type { Actor, ActorType } from '@event-driven-platform/actor';
 import { Injectable, type NestMiddleware, UnauthorizedException } from '@nestjs/common';
 
 import { HTTP_REQUEST_IDENTITY_HEADERS } from './http-request-identity.headers.js';
@@ -16,7 +16,6 @@ interface RequestIdentity {
     readonly tenant: TenantReference;
 }
 
-const actorFactory = new DefaultActorFactory();
 const unauthorizedIdentityMessage = 'Missing or invalid trusted request identity.';
 
 function countRawHeaderOccurrences(rawHeaders: readonly string[], name: string): number {
@@ -49,34 +48,26 @@ function readRequiredIdentityHeader(request: MutableHttpIdentityRequest, name: s
 }
 
 function readRequestIdentity(request: MutableHttpIdentityRequest): RequestIdentity {
-    try {
-        const actor = actorFactory.create({
-            type: readRequiredIdentityHeader(
-                request,
-                HTTP_REQUEST_IDENTITY_HEADERS.actorType,
-            ) as ActorType,
-            id: readRequiredIdentityHeader(request, HTTP_REQUEST_IDENTITY_HEADERS.actorId),
-        });
-        const tenantId = readRequiredIdentityHeader(
+    const actor = Object.freeze({
+        type: readRequiredIdentityHeader(
+            request,
+            HTTP_REQUEST_IDENTITY_HEADERS.actorType,
+        ) as ActorType,
+        id: readRequiredIdentityHeader(request, HTTP_REQUEST_IDENTITY_HEADERS.actorId),
+        origin: Object.freeze({}),
+    }) satisfies Actor;
+    const tenant = Object.freeze({
+        type: tenantName,
+        id: readRequiredIdentityHeader(
             request,
             HTTP_REQUEST_IDENTITY_HEADERS.tenantId,
-        );
-        const tenant = Object.freeze({
-            type: tenantName,
-            id: tenantId as TenantId,
-        }) satisfies TenantReference;
+        ) as TenantId,
+    }) satisfies TenantReference;
 
-        return {
-            actor,
-            tenant,
-        };
-    } catch (error) {
-        if (error instanceof UnauthorizedException) {
-            throw error;
-        }
-
-        throw new UnauthorizedException(unauthorizedIdentityMessage);
-    }
+    return {
+        actor,
+        tenant,
+    };
 }
 
 @Injectable()
