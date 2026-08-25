@@ -1,6 +1,6 @@
 import { tenantName, type TenantId, type TenantReference } from '@accounterbro/core';
 import type { Actor, ActorType } from '@event-driven-platform/actor';
-import { Injectable, type NestMiddleware, UnauthorizedException } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 
 import { HTTP_REQUEST_IDENTITY_HEADERS } from './http-request-identity.headers.js';
 
@@ -9,11 +9,6 @@ interface MutableHttpIdentityRequest {
     readonly rawHeaders?: readonly string[];
     actor?: Actor;
     tenant?: TenantReference;
-}
-
-interface RequestIdentity {
-    readonly actor: Actor;
-    readonly tenant: TenantReference;
 }
 
 const unauthorizedIdentityMessage = 'Missing or invalid trusted request identity.';
@@ -47,8 +42,12 @@ function readRequiredIdentityHeader(request: MutableHttpIdentityRequest, name: s
     return value;
 }
 
-function readRequestIdentity(request: MutableHttpIdentityRequest): RequestIdentity {
-    const actor = Object.freeze({
+export function httpRequestIdentityMiddleware(
+    request: MutableHttpIdentityRequest,
+    _response: unknown,
+    next: () => void,
+): void {
+    request.actor = Object.freeze({
         type: readRequiredIdentityHeader(
             request,
             HTTP_REQUEST_IDENTITY_HEADERS.actorType,
@@ -56,7 +55,7 @@ function readRequestIdentity(request: MutableHttpIdentityRequest): RequestIdenti
         id: readRequiredIdentityHeader(request, HTTP_REQUEST_IDENTITY_HEADERS.actorId),
         origin: Object.freeze({}),
     }) satisfies Actor;
-    const tenant = Object.freeze({
+    request.tenant = Object.freeze({
         type: tenantName,
         id: readRequiredIdentityHeader(
             request,
@@ -64,24 +63,5 @@ function readRequestIdentity(request: MutableHttpIdentityRequest): RequestIdenti
         ) as TenantId,
     }) satisfies TenantReference;
 
-    return {
-        actor,
-        tenant,
-    };
-}
-
-@Injectable()
-export class HttpRequestIdentityMiddleware implements NestMiddleware {
-    public use(
-        request: MutableHttpIdentityRequest,
-        _response: unknown,
-        next: () => void,
-    ): void {
-        const identity = readRequestIdentity(request);
-
-        request.actor = identity.actor;
-        request.tenant = identity.tenant;
-
-        next();
-    }
+    next();
 }
