@@ -1,11 +1,19 @@
-import { tenantName } from '@accounterbro/core';
+import { tenantName, type TenantReference } from '@accounterbro/core';
+import type { Actor } from '@event-driven-platform/actor';
 import { UnauthorizedException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 
 import { HTTP_REQUEST_IDENTITY_HEADERS } from './http-request-identity.headers.js';
 import { HttpRequestIdentityMiddleware } from './http-request-identity.middleware.js';
 
-function createRequest() {
+interface TestRequest {
+    readonly headers: Record<string, string | string[] | undefined>;
+    rawHeaders?: string[];
+    actor?: Actor;
+    tenant?: TenantReference;
+}
+
+function createRequest(): TestRequest {
     const headers: Record<string, string | string[] | undefined> = {
         [HTTP_REQUEST_IDENTITY_HEADERS.actorType]: 'user',
         [HTTP_REQUEST_IDENTITY_HEADERS.actorId]: 'user-1',
@@ -19,8 +27,6 @@ function createRequest() {
     return {
         headers,
         rawHeaders,
-        actor: undefined,
-        tenant: undefined,
     };
 }
 
@@ -48,10 +54,7 @@ describe('HttpRequestIdentityMiddleware', () => {
         (headerName) => {
             const request = createRequest();
             delete request.headers[headerName];
-            request.rawHeaders = request.rawHeaders.filter(
-                (_value, index, rawHeaders) =>
-                    index % 2 !== 0 || rawHeaders[index] !== headerName,
-            );
+            delete request.rawHeaders;
             const next = vi.fn();
 
             expect(() => new HttpRequestIdentityMiddleware().use(request, {}, next)).toThrow(
@@ -64,6 +67,7 @@ describe('HttpRequestIdentityMiddleware', () => {
     it('rejects an actor type outside the published EDP actor contract', () => {
         const request = createRequest();
         request.headers[HTTP_REQUEST_IDENTITY_HEADERS.actorType] = 'robot';
+        delete request.rawHeaders;
         const next = vi.fn();
 
         expect(() => new HttpRequestIdentityMiddleware().use(request, {}, next)).toThrow(
@@ -75,6 +79,7 @@ describe('HttpRequestIdentityMiddleware', () => {
     it('rejects blank or padded identity values', () => {
         const request = createRequest();
         request.headers[HTTP_REQUEST_IDENTITY_HEADERS.tenantId] = ' tenant-1 ';
+        delete request.rawHeaders;
         const next = vi.fn();
 
         expect(() => new HttpRequestIdentityMiddleware().use(request, {}, next)).toThrow(
@@ -85,7 +90,7 @@ describe('HttpRequestIdentityMiddleware', () => {
 
     it('rejects repeated trusted identity headers', () => {
         const request = createRequest();
-        request.rawHeaders.push(
+        request.rawHeaders?.push(
             HTTP_REQUEST_IDENTITY_HEADERS.actorId,
             'user-2',
         );
