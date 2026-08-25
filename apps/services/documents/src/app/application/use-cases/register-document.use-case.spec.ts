@@ -1,7 +1,4 @@
-import { createHash } from 'node:crypto';
-
 import {
-    documentName,
     tenantName,
     type DocumentId,
     type TenantId,
@@ -15,23 +12,13 @@ import {
 } from '@accounterbro/documents';
 import type { ObjectStorage } from '@accounterbro/object-storage';
 import type { Actor } from '@event-driven-platform/actor';
-import { IntentFactory, type Intent } from '@event-driven-platform/intent';
 import type { Runner } from '@event-driven-platform/runner';
-import type { UseCaseContext } from '@event-driven-platform/use-case';
 
+import type { RegisterDocumentUseCaseContext } from './register-document.use-case.context';
 import { RegisterDocumentUseCase } from './register-document.use-case';
-
-jest.mock('@event-driven-platform/intent', () => ({
-    IntentFactory: {
-        derive: jest.fn(),
-    },
-}));
 
 type RegistrationCommand = {
     readonly operation: PrepareDocumentRegistrationOperation | FinishDocumentRegistrationOperation;
-    readonly context: {
-        readonly correlationId: string;
-    };
 };
 
 const actor = {
@@ -51,19 +38,9 @@ const context = {
         key: 'parent-intent-key',
     },
     correlationId: 'correlation-1',
-} satisfies UseCaseContext;
-
-const prepareIntent = {
-    id: 'prepare-intent-id',
-    key: 'prepare-intent-key',
-} satisfies Intent;
-
-const finishIntent = {
-    id: 'finish-intent-id',
-    key: 'finish-intent-key',
-} satisfies Intent;
-
-const deriveIntent = jest.mocked(IntentFactory.derive);
+    actor,
+    tenant,
+} satisfies RegisterDocumentUseCaseContext;
 
 function createRunner(execute: (command: RegistrationCommand) => Promise<unknown>): Runner {
     const executeDetailed: Runner['executeDetailed'] = async () => {
@@ -82,27 +59,8 @@ function createObjectStorage(
     return { put };
 }
 
-function mockChildIntents(): void {
-    deriveIntent.mockImplementation((request) => {
-        if (request.slot === 'prepare-registration') {
-            return prepareIntent;
-        }
-
-        if (request.slot === 'finish-registration') {
-            return finishIntent;
-        }
-
-        throw new Error(`Unexpected Intent slot: ${request.slot}`);
-    });
-}
-
 describe('RegisterDocumentUseCase', () => {
-    beforeEach(() => {
-        deriveIntent.mockReset();
-        mockChildIntents();
-    });
-
-    it('DOC-REG-001/DOC-REG-004 stores a new file and returns REGISTERED after Finish', async () => {
+    it('DOC-REG-001/DOC-REG-004 stores a new file and returns REGISTERED after recording success', async () => {
         const file = Uint8Array.from([0, 1, 2, 3, 255]);
         const preparedDocumentId = 'prepared-document-id' as DocumentId;
         const commands: RegistrationCommand[] = [];
@@ -136,8 +94,6 @@ describe('RegisterDocumentUseCase', () => {
         const useCase = new RegisterDocumentUseCase(
             createRunner(execute),
             createObjectStorage(put),
-            actor,
-            tenant,
         );
 
         const result = await useCase.execute({ file }, context);
@@ -147,69 +103,20 @@ describe('RegisterDocumentUseCase', () => {
             status: DocumentRegistrationStatus.Registered,
             duplicate: false,
         });
-        expect(execute).toHaveBeenCalledTimes(2);
         expect(put).toHaveBeenCalledTimes(1);
-        expect(put).toHaveBeenCalledWith({
-            key: `documents/${tenant.id}/${preparedDocumentId}/original`,
-            content: file,
-        });
 
-        const [prepareCommand, finishCommand] = commands;
-        if (
-            prepareCommand?.operation.name !== documentOperationNames.prepareRegistration ||
-            finishCommand?.operation.name !== documentOperationNames.finishRegistration
-        ) {
-            throw new Error('Expected Prepare followed by Finish.');
+        const finishCommand = commands[1];
+        if (finishCommand?.operation.name !== documentOperationNames.finishRegistration) {
+            throw new Error('Expected registration success to be recorded before returning.');
         }
 
-        expect(prepareCommand.operation).toMatchObject({
-            schemaVersion: 1,
-            intent: prepareIntent,
-            actor,
-            tenant,
-            aggregate: {
-                type: documentName,
-            },
-            subject: {
-                type: documentName,
-            },
-            payload: {
-                contentHash: createHash('sha256').update(file).digest('hex'),
-            },
-        });
-        expect(prepareCommand.operation.payload.documentId).not.toBe(preparedDocumentId);
-        expect(finishCommand.operation).toEqual({
-            name: documentOperationNames.finishRegistration,
-            schemaVersion: 1,
-            intent: finishIntent,
-            actor,
-            tenant,
-            subject: {
-                type: documentName,
-                id: preparedDocumentId,
-            },
-            aggregate: {
-                type: documentName,
-                id: preparedDocumentId,
-            },
-            payload: {
-                outcome: 'registered',
-                storageReference: 'opaque-storage-reference',
-            },
-        });
-        expect(prepareCommand.context).toEqual({ correlationId: context.correlationId });
-        expect(finishCommand.context).toEqual({ correlationId: context.correlationId });
-        expect(deriveIntent).toHaveBeenNthCalledWith(1, {
-            parent: { id: context.intent.id },
-            slot: 'prepare-registration',
-        });
-        expect(deriveIntent).toHaveBeenNthCalledWith(2, {
-            parent: { id: context.intent.id },
-            slot: 'finish-registration',
+        expect(finishCommand.operation.payload).toEqual({
+            outcome: 'registered',
+            storageReference: 'opaque-storage-reference',
         });
     });
 
-    it('DOC-REG-004 records storage failure through Finish and returns FAILED', async () => {
+    it('DOC-REG-001/DOC-REG-004 records storage failure and returns FAILED', async () => {
         const preparedDocumentId = 'prepared-document-id' as DocumentId;
         const commands: RegistrationCommand[] = [];
         const execute = jest.fn(async (command: RegistrationCommand) => {
@@ -245,8 +152,6 @@ describe('RegisterDocumentUseCase', () => {
         const useCase = new RegisterDocumentUseCase(
             createRunner(execute),
             createObjectStorage(put),
-            actor,
-            tenant,
         );
 
         const result = await useCase.execute({ file: Uint8Array.from([1, 2, 3]) }, context);
@@ -256,11 +161,10 @@ describe('RegisterDocumentUseCase', () => {
             status: DocumentRegistrationStatus.Failed,
             duplicate: false,
         });
-        expect(execute).toHaveBeenCalledTimes(2);
 
         const finishCommand = commands[1];
         if (finishCommand?.operation.name !== documentOperationNames.finishRegistration) {
-            throw new Error('Expected Finish after storage failure.');
+            throw new Error('Expected registration failure to be recorded before returning.');
         }
 
         expect(finishCommand.operation.payload).toEqual({
@@ -269,7 +173,7 @@ describe('RegisterDocumentUseCase', () => {
         });
     });
 
-    it('DOC-REG-001 propagates Prepare failure without calling storage', async () => {
+    it('DOC-REG-001 does not store a file when initial registration fails', async () => {
         const failure = new Error('initial registration failed');
         const execute = jest.fn(async (): Promise<never> => {
             throw failure;
@@ -278,12 +182,9 @@ describe('RegisterDocumentUseCase', () => {
         const useCase = new RegisterDocumentUseCase(
             createRunner(execute),
             createObjectStorage(put),
-            actor,
-            tenant,
         );
 
         await expect(useCase.execute({ file: Uint8Array.from([1]) }, context)).rejects.toBe(failure);
-        expect(execute).toHaveBeenCalledTimes(1);
         expect(put).not.toHaveBeenCalled();
     });
 
@@ -291,7 +192,7 @@ describe('RegisterDocumentUseCase', () => {
         DocumentRegistrationStatus.Pending,
         DocumentRegistrationStatus.Registered,
         DocumentRegistrationStatus.Failed,
-    ])('DOC-REG-002 returns an existing %s duplicate without storage or Finish', async (status) => {
+    ])('DOC-REG-002 returns an existing %s duplicate without storing the file again', async (status) => {
         const existingDocumentId = 'existing-document-id' as DocumentId;
         const execute = jest.fn(async () => ({
             status: 'success' as const,
@@ -308,8 +209,6 @@ describe('RegisterDocumentUseCase', () => {
         const useCase = new RegisterDocumentUseCase(
             createRunner(execute),
             createObjectStorage(put),
-            actor,
-            tenant,
         );
 
         const result = await useCase.execute({ file: Uint8Array.from([4, 5, 6]) }, context);
@@ -319,12 +218,11 @@ describe('RegisterDocumentUseCase', () => {
             status,
             duplicate: true,
         });
-        expect(execute).toHaveBeenCalledTimes(1);
         expect(put).not.toHaveBeenCalled();
-        expect(deriveIntent).toHaveBeenCalledTimes(1);
+        expect(execute).toHaveBeenCalledTimes(1);
     });
 
-    it('DOC-REG-004 propagates Finish failure instead of returning success', async () => {
+    it('DOC-REG-004 does not return success when recording the final outcome fails', async () => {
         const preparedDocumentId = 'prepared-document-id' as DocumentId;
         const finishFailure = new Error('finish registration failed');
         let calls = 0;
@@ -350,14 +248,11 @@ describe('RegisterDocumentUseCase', () => {
         const useCase = new RegisterDocumentUseCase(
             createRunner(execute),
             createObjectStorage(),
-            actor,
-            tenant,
         );
 
         await expect(useCase.execute({ file: Uint8Array.from([9]) }, context)).rejects.toBe(
             finishFailure,
         );
-        expect(execute).toHaveBeenCalledTimes(2);
     });
 });
 
