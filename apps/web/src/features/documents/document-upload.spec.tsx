@@ -42,7 +42,11 @@ describe('DocumentUpload', () => {
         await user.click(uploadButton);
 
         expect(fetchMock).toHaveBeenCalledOnce();
-        const [url, options] = fetchMock.mock.calls[0];
+        const firstCall = fetchMock.mock.calls[0];
+        if (!firstCall) {
+            throw new Error('Expected fetch to be called');
+        }
+        const [url, options] = firstCall;
         expect(url).toBe('/documents');
         expect(options).toMatchObject({ method: 'POST' });
         expect(options.body).toBeInstanceOf(FormData);
