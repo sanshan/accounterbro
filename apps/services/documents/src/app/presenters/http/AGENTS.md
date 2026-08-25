@@ -92,9 +92,9 @@ x-accounterbro-actor-id
 x-accounterbro-tenant-id
 ```
 
-This is a trusted-upstream contract, not authentication. A production gateway/auth boundary is responsible for authenticating the caller, stripping caller-supplied AccounterBro identity headers, and injecting trusted values before forwarding to the internal service. Direct exposure of these internal routes to untrusted callers violates the contract.
+This is a trusted-upstream contract, not authentication. A production gateway/auth boundary is responsible for authenticating the caller, stripping caller-supplied AccounterBro identity headers, validating the upstream identity contract, and injecting trusted values before forwarding to the internal service. Direct exposure of these internal routes to untrusted callers violates the contract.
 
-The middleware validates the Actor through the published EDP Actor factory/contract, uses Core `tenantName` for the tenant type, and rejects missing, repeated/ambiguous, blank, or invalid identity with `401` before controller invocation. It does not authenticate credentials, implement authorization, or derive tenancy policy.
+The middleware requires one non-blank value for each canonical identity header and passes those trusted scalar values into typed `Actor` / `TenantReference` request fields. It intentionally does not invoke an EDP Actor runtime factory or duplicate EDP Actor semantic validation at this transport boundary. Missing, repeated/ambiguous, blank, or padded identity is rejected with `401` before controller invocation.
 
 Use separate parameter decorators in controllers:
 
