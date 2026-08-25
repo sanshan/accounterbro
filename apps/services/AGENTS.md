@@ -59,6 +59,8 @@ apps/services/<name>-e2e -> @accounterbro/<name>-service-e2e
 
 The service MUST already satisfy the HTTP presenter runtime contract above before adding its E2E harness. The service-E2E generator owns the reusable Jest/SWC support project, the dependency on the target service, the migration + HTTP-server orchestration, and the `e2e` configuration added to the service's existing `serve` target.
 
+Service E2E Jest projects MUST be excluded from the root `@nx/jest/plugin` generic `test` inference and executed through their explicit `e2e` target so the generated server dependency runs before HTTP tests.
+
 The base service generator remains transport-agnostic and MUST NOT receive an E2E-specific serve configuration preemptively. Add that configuration only when the service E2E project is created.
 
 Use `apps/api-e2e` as the proven network E2E reference. Service E2E tests MAY test service-owned HTTP behavior, but MUST NOT duplicate UseCase, EDP runtime, persistence, or other lower-boundary semantics already covered by their owning tests.
@@ -75,7 +77,7 @@ Services that execute EDP Operations transactionally MUST use the shared `@accou
 
 The same services MUST use the shared `@accounterbro/service-runtime/execution-log/typeorm` adapter and compose its exported entities/migrations into that service's own database. Bind the store to the transaction-aware `DataSource`; do not create a Documents-specific execution-log adapter, central execution-log database, or service-local copy of claim/reclaim/fencing behavior.
 
-The same services MUST use `@accounterbro/service-runtime/outbox/typeorm` for transactional Outbox persistence and compose its exported entities/migrations into the service-owned database. Bind the Outbox store to the transaction-aware `DataSource`. Publication is CDC-owned; services MUST NOT add a polling publisher, delivery status, published timestamps, retries, locks/leases, or a service-local Outbox adapter/schema.
+The same services MUST use `@accounterbro/service-runtime/outbox/typeorm` for transactional Outbox persistence and compose its exported entity/migration into the service-owned database. Bind the Outbox store to the transaction-aware `DataSource`. Publication is CDC-owned; services MUST NOT add a polling publisher, delivery status, published timestamps, retries, locks/leases, or a service-local Outbox adapter/schema.
 
 Services that execute durable EDP UseCases MUST use `@accounterbro/service-runtime/use-case-execution/typeorm` and compose its exported entity/migration into the service-owned database. Construct this store from the real service-owned `DataSource`; it owns short atomic claim/complete/release transitions and does not participate in one transaction spanning child Operations/Reads. Services MUST NOT invent local UseCase execution tables, attempts/failure history, lease renewal/heartbeat, progress state, or serializers without a concrete reviewed requirement.
 
