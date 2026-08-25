@@ -59,6 +59,8 @@ apps/services/<name>-e2e -> @accounterbro/<name>-service-e2e
 
 The service MUST already satisfy the HTTP presenter runtime contract above before adding its E2E harness. The service-E2E generator owns the reusable Jest/SWC support project, the dependency on the target service, the migration + HTTP-server orchestration, and the `e2e` configuration added to the service's existing `serve` target.
 
+Service E2E Jest projects MUST be excluded from the root `@nx/jest/plugin` generic `test` inference and executed through their explicit `e2e` target so the generated server dependency runs before HTTP tests.
+
 The base service generator remains transport-agnostic and MUST NOT receive an E2E-specific serve configuration preemptively. Add that configuration only when the service E2E project is created.
 
 Use `apps/api-e2e` as the proven network E2E reference. Service E2E tests MAY test service-owned HTTP behavior, but MUST NOT duplicate UseCase, EDP runtime, persistence, or other lower-boundary semantics already covered by their owning tests.

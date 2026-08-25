@@ -27,7 +27,7 @@
             "options": {
                 "targetName": "test"
             },
-            "exclude": ["apps/api-e2e/**/*"]
+            "exclude": ["apps/api-e2e/**/*", "apps/services/*-e2e/**/*"]
         },
         {
             "plugin": "@nx/vite/plugin",

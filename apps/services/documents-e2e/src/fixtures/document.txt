@@ -1,0 +1,2 @@
+AccounterBro Documents E2E fixture.
+This file is intentionally stable so duplicate registration can be verified with identical binary content.

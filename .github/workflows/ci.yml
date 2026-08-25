@@ -41,8 +41,16 @@ jobs:
       API_DB_PORT: 5432
       API_DB_USERNAME: postgres
       API_DB_PASSWORD: postgres
-      API_DB_NAME: accounterbro
+      API_DB_NAME: accounterbro_api_e2e
       API_PORT: 3100
+      DOCUMENTS_DB_HOST: 127.0.0.1
+      DOCUMENTS_DB_PORT: 5432
+      DOCUMENTS_DB_USERNAME: postgres
+      DOCUMENTS_DB_PASSWORD: postgres
+      DOCUMENTS_DB_NAME: accounterbro_documents_e2e
+      DOCUMENTS_PORT: 3101
+      DOCUMENTS_STORAGE_DRIVER: local-folder
+      DOCUMENTS_STORAGE_LOCAL_FOLDER_ROOT: /tmp/accounterbro-documents-e2e
       WEB_PORT: 4300
 
     steps:
@@ -64,6 +72,25 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Create E2E databases
+        env:
+          PGPASSWORD: ${{ env.API_DB_PASSWORD }}
+        run: |
+          psql \
+            --host="$API_DB_HOST" \
+            --port="$API_DB_PORT" \
+            --username="$API_DB_USERNAME" \
+            --dbname=postgres \
+            --set=ON_ERROR_STOP=1 \
+            --command="CREATE DATABASE $API_DB_NAME;"
+          psql \
+            --host="$DOCUMENTS_DB_HOST" \
+            --port="$DOCUMENTS_DB_PORT" \
+            --username="$DOCUMENTS_DB_USERNAME" \
+            --dbname=postgres \
+            --set=ON_ERROR_STOP=1 \
+            --command="CREATE DATABASE $DOCUMENTS_DB_NAME;"
+
       - name: Run lint
         run: pnpm nx run-many -t lint
 
@@ -71,7 +98,9 @@ jobs:
         run: pnpm nx run-many -t typecheck
 
       - name: Run database migrations
-        run: pnpm nx run @accounterbro/api:migration:run
+        run: |
+          pnpm nx run @accounterbro/api:migration:run
+          pnpm nx run @accounterbro/documents-service:migration:run
 
       - name: Run unit and integration tests
         run: pnpm nx run-many -t test
@@ -81,6 +110,9 @@ jobs:
 
       - name: Run API E2E
         run: pnpm nx run @accounterbro/api-e2e:e2e
+
+      - name: Run Documents E2E
+        run: pnpm nx run @accounterbro/documents-service-e2e:e2e
 
       - name: Verify API artifact startup
         shell: bash
