@@ -1,5 +1,5 @@
 import { ObjectStorage } from '@accounterbro/object-storage';
-import { HttpRequestIdentityMiddleware } from '@accounterbro/runtime-presenters/http';
+import { httpRequestIdentityMiddleware } from '@accounterbro/runtime-presenters/http';
 import type { Reader } from '@event-driven-platform/reader';
 import type { Runner } from '@event-driven-platform/runner';
 import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
@@ -29,6 +29,6 @@ import { DocumentsController } from './http/documents/documents.controller';
 })
 export class PresentersModule implements NestModule {
     public configure(consumer: MiddlewareConsumer): void {
-        consumer.apply(HttpRequestIdentityMiddleware).forRoutes(DocumentsController);
+        consumer.apply(httpRequestIdentityMiddleware).forRoutes(DocumentsController);
     }
 }
