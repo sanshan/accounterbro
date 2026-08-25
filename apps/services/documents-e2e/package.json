@@ -1,0 +1,10 @@
+{
+    "name": "@accounterbro/documents-service-e2e",
+    "version": "1.0.0",
+    "private": true,
+    "devDependencies": {
+        "@accounterbro/runtime-config": "workspace:*",
+        "axios": "^1.19.0",
+        "zod": "catalog:"
+    }
+}

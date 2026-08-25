@@ -27,6 +27,12 @@
                 },
                 "production": {
                     "buildTarget": "@accounterbro/documents-service:build"
+                },
+                "e2e": {
+                    "buildTarget": "@accounterbro/documents-service:build",
+                    "watch": false,
+                    "inspect": false,
+                    "debounce": 0
                 }
             }
         },

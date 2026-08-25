@@ -1,0 +1,32 @@
+{
+    "name": "@accounterbro/documents-service-e2e",
+    "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/services/documents-e2e/src",
+    "projectType": "application",
+    "tags": [],
+    "implicitDependencies": ["@accounterbro/documents-service"],
+    "targets": {
+        "documents-server": {
+            "continuous": true,
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "pnpm nx run @accounterbro/documents-service:migration:run && pnpm nx run @accounterbro/documents-service:serve:e2e"
+            }
+        },
+        "e2e": {
+            "executor": "@nx/jest:jest",
+            "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
+            "options": {
+                "jestConfig": "apps/services/documents-e2e/jest.config.cts",
+                "passWithNoTests": true,
+                "runInBand": true
+            },
+            "dependsOn": [
+                {
+                    "projects": ["@accounterbro/documents-service-e2e"],
+                    "target": "documents-server"
+                }
+            ]
+        }
+    }
+}
