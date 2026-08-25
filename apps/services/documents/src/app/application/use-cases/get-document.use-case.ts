@@ -4,9 +4,11 @@ import {
     type GetDocumentRead,
     type GetDocumentResult,
 } from '@accounterbro/documents';
-import type { Actor } from '@event-driven-platform/actor';
 import type { Reader } from '@event-driven-platform/reader';
-import type { UseCase, UseCaseContext } from '@event-driven-platform/use-case';
+import type { UseCase } from '@event-driven-platform/use-case';
+import { Injectable } from '@nestjs/common';
+
+import type { GetDocumentUseCaseContext } from './get-document.use-case.context';
 
 export interface GetDocumentUseCaseInput {
     readonly documentId: DocumentId;
@@ -18,21 +20,19 @@ export interface GetDocumentNotFoundResult {
 
 export type GetDocumentUseCaseResult = GetDocumentResult | GetDocumentNotFoundResult;
 
+@Injectable()
 export class GetDocumentUseCase
-    implements UseCase<GetDocumentUseCaseInput, GetDocumentUseCaseResult>
+    implements UseCase<GetDocumentUseCaseInput, GetDocumentUseCaseResult, GetDocumentUseCaseContext>
 {
-    public constructor(
-        private readonly reader: Reader,
-        private readonly actor: Actor,
-    ) {}
+    public constructor(private readonly reader: Reader) {}
 
     public async execute(
         input: GetDocumentUseCaseInput,
-        context: UseCaseContext,
+        context: GetDocumentUseCaseContext,
     ): Promise<GetDocumentUseCaseResult> {
         const read = {
             name: documentReadNames.getDocument,
-            actor: this.actor,
+            actor: context.actor,
             parameters: {
                 documentId: input.documentId,
             },

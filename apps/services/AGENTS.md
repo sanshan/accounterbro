@@ -106,6 +106,18 @@ EDP owns UseCaseExecutor lease duration, claim/replay/release, transition/error,
 
 Concrete UseCases remain caller-supplied through EDP execution requests. Concrete Nest provider/module wiring remains service-owned composition, but it MUST delegate executor construction to the shared runtime factory.
 
+## Concrete UseCase dependency and context boundary
+
+Concrete service UseCases MUST be Nest `@Injectable()` providers using the default singleton scope unless a concrete reviewed requirement proves another scope is necessary.
+
+Constructor dependencies are reserved for stable reusable dependencies of the UseCase, such as Runner, Reader, storage capabilities, repositories, or other long-lived collaborators. Invocation-specific metadata MUST NOT be stored in the singleton instance or supplied through request-scoped DI merely for convenience.
+
+Each UseCase MUST define its own concrete context type extending EDP `UseCaseContext` with exactly the additional invocation metadata that UseCase requires. Keep that type beside the UseCase in `<use-case-name>.use-case.context.ts`. Actor, tenant, and similar per-invocation values belong in this concrete execution context when required.
+
+Use EDP's typed concrete-context support end-to-end through `UseCaseExecutor`; do not reconstruct or hide invocation metadata through AsyncLocalStorage, ambient current-user/current-tenant providers, casts, or wrapper executors.
+
+UseCase behavioral tests are specification-level tests. They MUST verify observable behavior required by the owning specification and MUST NOT assert Nest DI scope, constructor shape, context-file placement, whether metadata came from constructor vs context, or EDP implementation mechanics unless the specification itself makes such behavior observable.
+
 ## UseCase implementation preflight
 
 Before designing or modifying a concrete UseCase, MUST inspect the current implementation and semantics of the execution boundaries that UseCase will actually use:
