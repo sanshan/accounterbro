@@ -1,9 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const originalApiPort = process.env.API_PORT;
+const originalDocumentsPort = process.env.DOCUMENTS_PORT;
 const originalWebPort = process.env.WEB_PORT;
 
-function restoreEnv(name: 'API_PORT' | 'WEB_PORT', value: string | undefined) {
+function restoreEnv(
+    name: 'API_PORT' | 'DOCUMENTS_PORT' | 'WEB_PORT',
+    value: string | undefined,
+) {
     if (value === undefined) {
         delete process.env[name];
         return;
@@ -20,11 +24,13 @@ describe('runtimeConfig', () => {
     beforeEach(() => {
         vi.resetModules();
         delete process.env.API_PORT;
+        delete process.env.DOCUMENTS_PORT;
         delete process.env.WEB_PORT;
     });
 
     afterEach(() => {
         restoreEnv('API_PORT', originalApiPort);
+        restoreEnv('DOCUMENTS_PORT', originalDocumentsPort);
         restoreEnv('WEB_PORT', originalWebPort);
     });
 
@@ -33,17 +39,20 @@ describe('runtimeConfig', () => {
 
         expect(runtimeConfig).toEqual({
             api: { port: 3000 },
+            documents: { port: 3001 },
             web: { port: 4200 },
         });
     });
 
     it('coerces valid environment overrides to numeric ports', async () => {
         process.env.API_PORT = '3100';
+        process.env.DOCUMENTS_PORT = '3101';
         process.env.WEB_PORT = '4300';
 
         const { runtimeConfig } = await loadRuntimeConfig();
 
         expect(runtimeConfig.api.port).toBe(3100);
+        expect(runtimeConfig.documents.port).toBe(3101);
         expect(runtimeConfig.web.port).toBe(4300);
     });
 
@@ -61,6 +70,12 @@ describe('runtimeConfig', () => {
             await expect(loadRuntimeConfig()).rejects.toThrow();
         },
     );
+
+    it('rejects an invalid DOCUMENTS_PORT value', async () => {
+        process.env.DOCUMENTS_PORT = '65536';
+
+        await expect(loadRuntimeConfig()).rejects.toThrow();
+    });
 
     it('rejects an invalid WEB_PORT value', async () => {
         process.env.WEB_PORT = '65536';
