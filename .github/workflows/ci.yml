@@ -24,13 +24,13 @@ jobs:
       postgres:
         image: postgres:17
         env:
-          POSTGRES_DB: accounterbro_api_e2e
+          POSTGRES_DB: accounterbro
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d accounterbro_api_e2e"
+          --health-cmd "pg_isready -U postgres -d accounterbro"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
@@ -72,17 +72,24 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Create Documents E2E database
+      - name: Create E2E databases
         env:
-          PGPASSWORD: ${{ env.DOCUMENTS_DB_PASSWORD }}
-        run: >-
-          psql
-          --host="$DOCUMENTS_DB_HOST"
-          --port="$DOCUMENTS_DB_PORT"
-          --username="$DOCUMENTS_DB_USERNAME"
-          --dbname=postgres
-          --set=ON_ERROR_STOP=1
-          --command="CREATE DATABASE $DOCUMENTS_DB_NAME;"
+          PGPASSWORD: ${{ env.API_DB_PASSWORD }}
+        run: |
+          psql \
+            --host="$API_DB_HOST" \
+            --port="$API_DB_PORT" \
+            --username="$API_DB_USERNAME" \
+            --dbname=postgres \
+            --set=ON_ERROR_STOP=1 \
+            --command="CREATE DATABASE $API_DB_NAME;"
+          psql \
+            --host="$DOCUMENTS_DB_HOST" \
+            --port="$DOCUMENTS_DB_PORT" \
+            --username="$DOCUMENTS_DB_USERNAME" \
+            --dbname=postgres \
+            --set=ON_ERROR_STOP=1 \
+            --command="CREATE DATABASE $DOCUMENTS_DB_NAME;"
 
       - name: Run lint
         run: pnpm nx run-many -t lint
