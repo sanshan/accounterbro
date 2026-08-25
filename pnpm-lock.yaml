@@ -437,6 +437,18 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
 
+  packages/runtime-presenters:
+    dependencies:
+      '@accounterbro/core':
+        specifier: workspace:*
+        version: link:../core
+      '@event-driven-platform/actor':
+        specifier: ^0.1.4
+        version: 0.1.4
+      '@nestjs/common':
+        specifier: ^11.0.0
+        version: 11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2)
+
   packages/service-runtime:
     dependencies:
       '@event-driven-platform/clock':
