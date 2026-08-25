@@ -6,7 +6,10 @@ import { RegisterDocumentUseCase } from '../../../application/use-cases/register
 @Controller()
 export class DocumentsController {
     public constructor(
-        _registerDocumentUseCase: RegisterDocumentUseCase,
-        _getDocumentUseCase: GetDocumentUseCase,
-    ) {}
+        registerDocumentUseCase: RegisterDocumentUseCase,
+        getDocumentUseCase: GetDocumentUseCase,
+    ) {
+        void registerDocumentUseCase;
+        void getDocumentUseCase;
+    }
 }
