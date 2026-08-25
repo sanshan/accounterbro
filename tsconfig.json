@@ -35,6 +35,9 @@
         },
         {
             "path": "./packages/object-storage"
+        },
+        {
+            "path": "./packages/runtime-presenters"
         }
     ]
 }
