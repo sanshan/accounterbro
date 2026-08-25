@@ -17,6 +17,15 @@ import type { Runner } from '@event-driven-platform/runner';
 import type { RegisterDocumentUseCaseContext } from './register-document.use-case.context';
 import { RegisterDocumentUseCase } from './register-document.use-case';
 
+jest.mock('@event-driven-platform/intent', () => ({
+    IntentFactory: {
+        derive: jest.fn(() => ({
+            id: 'child-intent-id',
+            key: 'child-intent-key',
+        })),
+    },
+}));
+
 type RegistrationCommand = {
     readonly operation: PrepareDocumentRegistrationOperation | FinishDocumentRegistrationOperation;
 };
