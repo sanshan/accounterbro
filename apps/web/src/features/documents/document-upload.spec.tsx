@@ -13,6 +13,16 @@ function renderUpload() {
     );
 }
 
+function getNativeFileInput(): HTMLInputElement {
+    const input = document.querySelector('input[type="file"]');
+
+    if (!(input instanceof HTMLInputElement)) {
+        throw new Error('Expected a native file input');
+    }
+
+    return input;
+}
+
 afterEach(() => {
     vi.unstubAllGlobals();
 });
@@ -36,7 +46,7 @@ describe('DocumentUpload', () => {
         expect(uploadButton).toBeDisabled();
 
         const file = new File(['invoice'], 'invoice.pdf', { type: 'application/pdf' });
-        await user.upload(screen.getByLabelText('File'), file);
+        await user.upload(getNativeFileInput(), file);
         expect(uploadButton).toBeEnabled();
 
         await user.click(uploadButton);
@@ -67,7 +77,7 @@ describe('DocumentUpload', () => {
         renderUpload();
 
         const file = new File(['invoice'], 'invoice.pdf', { type: 'application/pdf' });
-        await user.upload(screen.getByLabelText('File'), file);
+        await user.upload(getNativeFileInput(), file);
 
         const uploadButton = screen.getByRole('button', { name: 'Upload' });
         await user.click(uploadButton);
