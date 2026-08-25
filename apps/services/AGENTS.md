@@ -26,6 +26,23 @@ Use `apps/api` as the proven configuration reference. Reuse the documented servi
 
 MUST NOT introduce a generic shared Nest configuration abstraction, service-local `.env` loading, duplicate raw-variable validation, or direct `process.env` access outside the documented service configuration boundary without a concrete requirement.
 
+## HTTP presenter runtime
+
+Adding a `presenters/http` boundary makes the hosting service an HTTP server process. The service MUST then have a complete runnable HTTP bootstrap rather than remain an application-context-only Nest process.
+
+A service with `presenters/http` MUST:
+
+- create the Nest application with `NestFactory.create(...)`, not only `createApplicationContext(...)`;
+- expose its listen port through the canonical typed service configuration boundary;
+- use `@accounterbro/runtime-config` for the raw port when the same port is consumed by workspace/E2E tooling, so that the raw environment variable has one validation owner;
+- obtain the namespaced service config through its existing `registerAs` `KEY` / `ConfigType` contract in `main.ts`;
+- call `app.listen(config.port)` during bootstrap;
+- preserve shutdown hooks and other process lifecycle behavior already owned by the service.
+
+Use `apps/api/src/main.ts` and `apps/api/src/app/infrastructure/config/api.config.ts` as the proven HTTP bootstrap/configuration reference. Do not hard-code ports in bootstrap code or validate the same raw port again in the service-local env schema when `@accounterbro/runtime-config` already owns it.
+
+The base internal-service generator remains transport-agnostic. Do not add an HTTP listener to every generated service merely because some services expose HTTP presenters.
+
 ## Database and migrations
 
 When a service owns PostgreSQL persistence, MUST follow `docs/engineering/database-guidelines.md`.
