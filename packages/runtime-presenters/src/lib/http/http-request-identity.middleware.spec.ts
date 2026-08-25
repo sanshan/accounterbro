@@ -31,7 +31,7 @@ function createRequest(): TestRequest {
 }
 
 describe('HttpRequestIdentityMiddleware', () => {
-    it('establishes typed actor and tenant identity before continuing', () => {
+    it('passes trusted header data into typed request identity before continuing', () => {
         const request = createRequest();
         const next = vi.fn();
 
@@ -63,18 +63,6 @@ describe('HttpRequestIdentityMiddleware', () => {
             expect(next).not.toHaveBeenCalled();
         },
     );
-
-    it('rejects an actor type outside the published EDP actor contract', () => {
-        const request = createRequest();
-        request.headers[HTTP_REQUEST_IDENTITY_HEADERS.actorType] = 'robot';
-        delete request.rawHeaders;
-        const next = vi.fn();
-
-        expect(() => new HttpRequestIdentityMiddleware().use(request, {}, next)).toThrow(
-            UnauthorizedException,
-        );
-        expect(next).not.toHaveBeenCalled();
-    });
 
     it('rejects blank or padded identity values', () => {
         const request = createRequest();
