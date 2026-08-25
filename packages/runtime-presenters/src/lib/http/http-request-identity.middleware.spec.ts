@@ -4,7 +4,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 
 import { HTTP_REQUEST_IDENTITY_HEADERS } from './http-request-identity.headers.js';
-import { HttpRequestIdentityMiddleware } from './http-request-identity.middleware.js';
+import { httpRequestIdentityMiddleware } from './http-request-identity.middleware.js';
 
 interface TestRequest {
     readonly headers: Record<string, string | string[] | undefined>;
@@ -30,12 +30,12 @@ function createRequest(): TestRequest {
     };
 }
 
-describe('HttpRequestIdentityMiddleware', () => {
+describe('httpRequestIdentityMiddleware', () => {
     it('passes trusted header data into typed request identity before continuing', () => {
         const request = createRequest();
         const next = vi.fn();
 
-        new HttpRequestIdentityMiddleware().use(request, {}, next);
+        httpRequestIdentityMiddleware(request, {}, next);
 
         expect(request.actor).toEqual({
             type: 'user',
@@ -57,7 +57,7 @@ describe('HttpRequestIdentityMiddleware', () => {
             delete request.rawHeaders;
             const next = vi.fn();
 
-            expect(() => new HttpRequestIdentityMiddleware().use(request, {}, next)).toThrow(
+            expect(() => httpRequestIdentityMiddleware(request, {}, next)).toThrow(
                 UnauthorizedException,
             );
             expect(next).not.toHaveBeenCalled();
@@ -70,7 +70,7 @@ describe('HttpRequestIdentityMiddleware', () => {
         delete request.rawHeaders;
         const next = vi.fn();
 
-        expect(() => new HttpRequestIdentityMiddleware().use(request, {}, next)).toThrow(
+        expect(() => httpRequestIdentityMiddleware(request, {}, next)).toThrow(
             UnauthorizedException,
         );
         expect(next).not.toHaveBeenCalled();
@@ -84,7 +84,7 @@ describe('HttpRequestIdentityMiddleware', () => {
         );
         const next = vi.fn();
 
-        expect(() => new HttpRequestIdentityMiddleware().use(request, {}, next)).toThrow(
+        expect(() => httpRequestIdentityMiddleware(request, {}, next)).toThrow(
             UnauthorizedException,
         );
         expect(next).not.toHaveBeenCalled();
