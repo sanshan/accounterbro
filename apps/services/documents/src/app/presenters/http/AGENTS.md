@@ -77,12 +77,12 @@ Use the shared HTTP presenter runtime entrypoint:
 ```ts
 import {
     Actor,
-    HttpRequestIdentityMiddleware,
+    httpRequestIdentityMiddleware,
     Tenant,
 } from '@accounterbro/runtime-presenters/http';
 ```
 
-The presenter module MUST apply `HttpRequestIdentityMiddleware` to routes whose controllers use `@Actor()` / `@Tenant()`. The middleware establishes typed request identity before controller invocation; controllers MUST NOT parse identity headers themselves.
+The presenter module MUST apply `httpRequestIdentityMiddleware` to routes whose controllers use `@Actor()` / `@Tenant()`. The middleware establishes typed request identity before controller invocation; controllers MUST NOT parse identity headers themselves.
 
 The canonical trusted-upstream headers are exported through `HTTP_REQUEST_IDENTITY_HEADERS` and currently resolve to:
 
