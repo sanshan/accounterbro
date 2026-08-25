@@ -1,3 +1,12 @@
+jest.mock('@event-driven-platform/intent', () => ({
+    IntentFactory: {
+        create: jest.fn(({ action }: { action: string }) => ({
+            id: `intent-${action}`,
+            key: `intent-${action}`,
+        })),
+    },
+}));
+
 import {
     tenantName,
     type DocumentId,
