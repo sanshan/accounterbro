@@ -1,6 +1,10 @@
 # Package Agent Rules
 
-These rules apply under `packages/` in addition to the root workspace rules and `docs/engineering/package-guidelines.md`.
+These rules apply under `packages/` in addition to the root workspace rules.
+
+`docs/engineering/package-guidelines.md` is the canonical reusable guide for **business feature packages**. Apply it when changing a business package or the Core identity/reference contracts that business packages depend on. Do not apply business-package rules wholesale to technical capability packages merely because they also live under `packages/`.
+
+Technical packages follow their nearest package-local `AGENTS.md` when one exists, plus only the engineering guides relevant to the concrete responsibility being changed.
 
 ## Proven business-feature reference
 
@@ -15,4 +19,4 @@ The proven package boundary is:
 
 Use `apps/services/documents` as the paired reference for hosting such a package in a service: service UseCases orchestrate through EDP `Runner`/`Reader`, and service infrastructure composes package-owned `/execution` and `/typeorm` contracts instead of deep-importing package internals.
 
-This reference does not turn technical capability packages such as `service-runtime`, `object-storage`, or `core` into business feature packages. Keep their existing responsibility-specific patterns.
+This reference does not turn technical capability packages such as `service-runtime`, `runtime-presenters`, `object-storage`, `runtime-config`, or `core` into business feature packages. Keep their responsibility-specific boundaries and local instructions where present.
