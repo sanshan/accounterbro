@@ -4,6 +4,7 @@ services:
     runtime: node
     plan: free
     region: frankfurt
+    autoDeployTrigger: off
     buildCommand: >-
       pnpm install --frozen-lockfile &&
       pnpm nx run @accounterbro/documents-service:build &&
