@@ -12,9 +12,9 @@ services:
       pnpm nx run @accounterbro/web:build
     startCommand: |
       set -e
-      pnpm nx run @accounterbro/documents-service:migration:run
-      pnpm nx run @accounterbro/documents-service:start &
-      exec pnpm nx run @accounterbro/web:serve
+      pnpm --filter @accounterbro/documents-service run migration:run
+      node apps/services/documents/dist/main.js &
+      exec pnpm exec vite preview apps/web --host 0.0.0.0 --port "$PORT" --strictPort
     healthCheckPath: /
     envVars:
       - key: PORT
