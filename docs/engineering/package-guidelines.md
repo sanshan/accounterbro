@@ -1,6 +1,8 @@
 # Package Engineering Guidelines
 
-Rules for implementing and reviewing AccounterBro business packages.
+Rules for implementing and reviewing AccounterBro business packages and the Core identity/reference contracts they require.
+
+This guide does not own implementation rules for technical capability packages such as `@accounterbro/service-runtime`, `@accounterbro/runtime-presenters`, `@accounterbro/object-storage`, or `@accounterbro/runtime-config`. Follow `packages/AGENTS.md` and the nearest package-local instructions for those packages.
 
 Normative keywords:
 
@@ -118,33 +120,8 @@ Normative keywords:
 - **DB-017** — Package TypeORM factories MUST continue to accept the normal TypeORM `DataSource` contract and MUST remain unaware of `AsyncLocalStorage`, `QueryRunner`, or execution-transaction propagation.
 - **DB-018** — Transaction participation for package persistence is a hosting-runtime concern. A service that needs EDP execution transactions MUST supply the shared transaction-aware `DataSource` from `@accounterbro/service-runtime/typeorm` to the unchanged package factory instead of adding transaction plumbing to the business package.
 - **DB-019** — A business package MUST NOT introduce its own ambient transaction context or repository-switching proxy to participate in EDP execution; the canonical implementation belongs to shared service runtime.
-- **DB-020** — Reusable service-runtime TypeORM persistence belongs to the shared runtime package that owns the behavior and schema, not to a business package or individual service. Its public integration MUST use a focused Nest-agnostic subpath and expose entity/migration composition contracts.
-- **DB-021** — EDP `ExecutionLogStore` TypeORM integration MUST use `@accounterbro/service-runtime/execution-log/typeorm`; services MUST NOT implement a local execution-log adapter or copy claim/reclaim/fencing behavior.
-- **DB-022** — Shared runtime stores that must participate in an EDP execution transaction MUST receive the transaction-aware `DataSource` from `@accounterbro/service-runtime/typeorm` and remain unaware of `AsyncLocalStorage` / `QueryRunner` transaction plumbing.
-- **DB-023** — Tests for shared runtime persistence MUST verify AccounterBro-owned adapter guarantees only, such as database concurrency, fencing, schema invariants, or transaction participation. They MUST NOT duplicate EDP contract-shape or Runner behavior tests.
-- **DB-024** — EDP `OutboxStore` TypeORM integration MUST use `@accounterbro/service-runtime/outbox/typeorm`; services MUST NOT implement a local Outbox adapter or application polling publisher.
-- **DB-025** — Shared Outbox persistence MUST remain append-only, store the authoritative EDP Event envelope plus required search/CDC projections, and MUST NOT add application delivery lifecycle state because publication is CDC-owned.
-- **DB-026** — EDP `UseCaseExecutionStore` TypeORM integration MUST use `@accounterbro/service-runtime/use-case-execution/typeorm`; services MUST NOT implement local UseCase execution tables or claim/reclaim/fencing adapters.
-- **DB-027** — Shared UseCase execution persistence MUST use one durable row per logical invocation and MUST NOT add attempts, failure history, lease renewal, heartbeat, progress state, child-step state, or Outbox behavior. `release()` makes the same invocation claimable again, and only a new claim advancing the lease generation fences the previous owner.
-- **DB-028** — `UseCaseExecutionStore` uses the service-owned real `DataSource` for short atomic transitions and MUST NOT imply one SQL transaction spanning child Operations/Reads of a UseCase.
-- **DB-029** — Completed durable UseCase results MUST be JSON-serializable for `jsonb` replay. Do not introduce a serializer abstraction until a concrete non-JSON requirement exists.
 
-## Service runtime composition
-
-- **RUNTIME-001** — Reusable Runner composition MUST be exposed from `@accounterbro/service-runtime/runner` and MUST delegate construction to the published EDP `createRunner()` API. AccounterBro MUST NOT implement, subclass, or fork Runner behavior.
-- **RUNTIME-002** — The shared Runner composition MUST use the published EDP `DefaultExecutionIdFactory`, `DefaultEventIdFactory`, `DefaultOperationEventEnvelopeFactory`, and `DefaultOutboxRecordFactory` directly. Services MUST NOT introduce local replacements or duplicate the standard factory graph.
-- **RUNTIME-003** — One caller-supplied EDP `Clock` instance MUST be reused by Runner and the EDP event/outbox factories. Production services use one `SystemClock`; deterministic tests MAY use `FixedClock`.
-- **RUNTIME-004** — `ExecutionLeaseOwnerId` MUST identify one concrete running process/replica and MUST NOT be a stable logical service name shared across replicas. The hosting service creates it once for the process lifetime and supplies it to shared runtime composition.
-- **RUNTIME-005** — The canonical Runner lease duration is `30_000` ms. Services MUST NOT add per-service lease-duration configuration or enable optional Runner policies without a concrete reviewed requirement.
-- **RUNTIME-006** — Tests for shared runtime composition MUST verify only AccounterBro-owned wiring/default choices. They MUST NOT duplicate EDP Runner, factory, transition, retry, timeout, guard, or rate-limit behavior tests.
-- **RUNTIME-007** — Reusable Reader composition MUST be exposed from `@accounterbro/service-runtime/reader` and MUST construct the published EDP `DefaultReader` directly. AccounterBro MUST NOT implement, subclass, or wrap Reader behavior.
-- **RUNTIME-008** — The baseline Reader composition MUST supply only the service-wide `ReadHandlerResolver`. EDP default timeout behavior remains canonical unless a concrete reviewed requirement justifies an override.
-- **RUNTIME-009** — Reader cache policy MUST remain Query-owned. Shared service runtime MUST NOT add service-wide cache-key, cache-level, traversal, promotion, backfill, or cache-adapter policy.
-- **RUNTIME-010** — `ReadExecutionCoordinator` and custom read-execution owner-id factories MUST remain opt-in and MUST NOT be part of baseline Reader composition until a concrete Query requires distributed coordination.
-- **RUNTIME-011** — Reusable UseCaseExecutor composition MUST be exposed from `@accounterbro/service-runtime/use-case-executor` and MUST delegate construction to the published EDP `createUseCaseExecutor()` API. AccounterBro MUST NOT implement, subclass, or behavior-wrap UseCaseExecutor.
-- **RUNTIME-012** — The shared UseCaseExecutor composition MUST use EDP `DefaultExecutionIdFactory` directly and pass through the caller-supplied shared `Clock`, shared `UseCaseExecutionStore`, and process-level `ExecutionLeaseOwnerId` unchanged.
-- **RUNTIME-013** — Services MUST reuse the same process Clock and lease owner across Runner and UseCaseExecutor composition. AccounterBro MUST NOT expose UseCaseExecutor lease-duration configuration, alternate lease semantics, retry policy, executor options, or a UseCase registry/resolver without a concrete reviewed requirement.
-- **RUNTIME-014** — Tests for shared UseCaseExecutor composition MUST verify only the AccounterBro dependency/runtime wiring passed to EDP. They MUST NOT execute UseCases merely to duplicate EDP claim, replay, release, transition, error, or fixed-lease tests.
+Detailed shared runtime transaction/store algorithms and Runner/Reader/UseCaseExecutor composition invariants are intentionally not owned here. Service consumers follow `docs/engineering/service-guidelines.md` and `docs/engineering/database-guidelines.md`; changes to the shared runtime implementation follow `packages/service-runtime/AGENTS.md`.
 
 ## Names
 
@@ -154,7 +131,7 @@ Normative keywords:
 ## Platform integration tests
 
 - **TEST-001** — Tests MUST verify behavior implemented by AccounterBro at the owning boundary. They MUST NOT duplicate EDP tests or restate EDP-owned semantics merely because AccounterBro consumes an EDP contract.
-- **TEST-002** — When an AccounterBro package adds composition around EDP, tests SHOULD target only the added mapping, adapter, provider, invariant, or failure behavior; use typecheck/build evidence for structural contract compatibility where sufficient.
+- **TEST-002** — When a business package adds composition around EDP, tests SHOULD target only the added mapping, adapter, provider, invariant, or failure behavior; use typecheck/build evidence for structural contract compatibility where sufficient.
 
 ## Review behavior
 

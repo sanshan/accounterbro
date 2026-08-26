@@ -29,7 +29,7 @@
 
 # Workspace Agent Rules
 
-These rules apply to the entire repository. Project-specific architecture belongs in nested `AGENTS.md` files.
+These rules apply to the entire repository. Reusable engineering architecture belongs under `docs/engineering/`; nested `AGENTS.md` files add project- or subtree-local routing and constraints.
 
 ## 1. Instruction Precedence
 
@@ -43,7 +43,7 @@ Rules are cumulative:
 
 MUST NOT modify a project using only root instructions when a nested `AGENTS.md` exists for that project.
 
-When implementing or reviewing code under `packages/`, MUST follow `docs/engineering/package-guidelines.md`.
+Work under `packages/` MUST follow `packages/AGENTS.md`. `docs/engineering/package-guidelines.md` applies to business packages and business-package integration contracts; technical capability packages follow their nearest package instructions and the engineering guide for the responsibility being changed.
 
 ## 2. Repository Purpose
 
@@ -74,7 +74,7 @@ Reference implementations are architectural guidance, not templates that must be
 
 ### UseCase implementation task readiness
 
-Before finalizing an implementation issue for a concrete UseCase, perform the UseCase preflight required by the applicable service `AGENTS.md`.
+Before finalizing an implementation issue for a concrete service UseCase, perform the UseCase preflight required by `docs/engineering/service-guidelines.md` together with every applicable local service `AGENTS.md`.
 
 The issue MUST contain a `## Do not` section populated with concrete behaviors already owned by EDP runtime, called Operations/Reads, handlers, or persistence/DB semantics discovered during that preflight. Generic statements such as "do not duplicate existing mechanisms" are insufficient when the investigation can name the existing owner or mechanism.
 

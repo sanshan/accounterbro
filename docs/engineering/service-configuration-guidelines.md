@@ -122,7 +122,7 @@ New internal services SHOULD follow this proven shape unless a concrete requirem
 
 ## Generator contract
 
-The canonical service generator from issue #43 may generate only this reusable configuration shell:
+The canonical `@accounterbro/generators:service` generator may generate only this reusable configuration shell:
 
 - service-owned env schema file;
 - callable namespaced `registerAs` config factory;

@@ -1,8 +1,10 @@
 # Runtime Presenter Package Rules
 
-These rules apply to `packages/runtime-presenters/` in addition to the root workspace rules, `packages/AGENTS.md`, and `docs/engineering/package-guidelines.md`.
+These rules apply to `packages/runtime-presenters/` in addition to the root workspace rules and `packages/AGENTS.md`.
 
 `@accounterbro/runtime-presenters` is a technical runtime package, not a business feature package. Keep the root entrypoint intentionally minimal; transport-specific behavior belongs in explicit subpath entrypoints such as `@accounterbro/runtime-presenters/http`.
+
+Consumer-facing internal-service HTTP guidance is owned by `docs/engineering/http-presenter-guidelines.md`. This file owns only implementation-local invariants for changing the shared runtime-presenter package itself.
 
 ## HTTP request identity
 
