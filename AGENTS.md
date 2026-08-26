@@ -43,7 +43,7 @@ Rules are cumulative:
 
 MUST NOT modify a project using only root instructions when a nested `AGENTS.md` exists for that project.
 
-When implementing or reviewing code under `packages/`, MUST follow `docs/engineering/package-guidelines.md`.
+Work under `packages/` MUST follow `packages/AGENTS.md`. `docs/engineering/package-guidelines.md` applies to business packages and business-package integration contracts; technical capability packages follow their nearest package instructions and the engineering guide for the responsibility being changed.
 
 ## 2. Repository Purpose
 
