@@ -26,12 +26,10 @@ MUST NOT create a new internal service by invoking `@nx/nest:application`, `@nx/
 
 When creating or changing internal service configuration, MUST follow:
 
-- `docs/engineering/environment-guidelines.md`;
-- `docs/engineering/service-configuration-guidelines.md`.
+- `docs/engineering/environment-guidelines.md` for raw environment ownership/loading/naming;
+- `docs/engineering/service-configuration-guidelines.md` for typed Nest service configuration.
 
-Use `apps/api` as the proven configuration reference. Reuse the documented service-owned env schema, callable namespaced `registerAs` config factory, small `ConfigModule.forFeature` wrapper, and typed `KEY` / `ConfigType` consumption pattern.
-
-MUST NOT introduce a generic shared Nest configuration abstraction, service-local `.env` loading, duplicate raw-variable validation, or direct `process.env` access outside the documented service configuration boundary without a concrete requirement.
+Use `apps/api` as the proven configuration reference. Do not introduce a parallel configuration or env-loading mechanism.
 
 ## HTTP presenters and service E2E
 
@@ -41,17 +39,15 @@ The base internal-service generator remains transport-agnostic. Do not add HTTP 
 
 ## Persistence and business-package integration
 
-When a service owns PostgreSQL persistence, MUST follow `docs/engineering/database-guidelines.md`.
+When a service owns PostgreSQL persistence or composes TypeORM persistence from hosted packages, MUST follow `docs/engineering/database-guidelines.md`.
 
-When a service hosts a business package, follow the package integration contracts described in `docs/engineering/package-guidelines.md` and the service ownership boundary in `docs/engineering/service-guidelines.md`.
-
-The service owns its real Nest/TypeORM `DataSource` lifecycle and process/runtime composition. Business packages and `@accounterbro/service-runtime` own their published integration contracts and implementation knowledge. Services MUST consume those public contracts rather than deep-import or recreate package/runtime internals.
+When a service hosts a business package, follow `docs/engineering/package-guidelines.md` for the package's public integration contracts and `docs/engineering/service-guidelines.md` for the hosting-service boundary.
 
 ## Shared execution runtime
 
-For service-side Runner, Reader, UseCaseExecutor, resolver, transaction, execution-log, Outbox, and durable UseCase execution composition, follow `docs/engineering/service-guidelines.md` and consume the focused public entrypoints from `@accounterbro/service-runtime`.
+For service-side Runner, Reader, UseCaseExecutor, resolver, transaction, execution-log, Outbox, and durable UseCase execution consumption, follow `docs/engineering/service-guidelines.md` and, for TypeORM persistence composition, `docs/engineering/database-guidelines.md`.
 
-`packages/service-runtime/AGENTS.md` owns implementation-local rules for changing the shared runtime package itself. Internal services MUST NOT copy those internals into service-local wrappers or documentation.
+Implementation-local invariants for changing `@accounterbro/service-runtime` itself remain in `packages/service-runtime/AGENTS.md`; do not copy them into a service.
 
 ## Verification
 
