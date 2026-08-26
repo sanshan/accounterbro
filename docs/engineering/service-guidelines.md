@@ -60,7 +60,7 @@ Presenters own transport adaptation and may depend on application UseCases/contr
 
 Transport-specific DTOs, validation/binding concerns, response mapping, and framework-specific presenter adapters remain in the presenter boundary and MUST NOT leak into application/domain code.
 
-Transport-specific detailed guidance belongs in a dedicated engineering guide once a proven reusable transport pattern exists. Until then, inspect the closest implemented presenter and applicable local agent rules rather than inventing a generic abstraction.
+Internal HTTP presenters and HTTP service E2E follow `docs/engineering/http-presenter-guidelines.md`. Do not infer that every presenter or service is HTTP; add other transport guidance only after a concrete implemented pattern establishes it.
 
 ## Nest modules and dependency injection
 

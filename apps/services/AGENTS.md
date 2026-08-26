@@ -33,46 +33,11 @@ Use `apps/api` as the proven configuration reference. Reuse the documented servi
 
 MUST NOT introduce a generic shared Nest configuration abstraction, service-local `.env` loading, duplicate raw-variable validation, or direct `process.env` access outside the documented service configuration boundary without a concrete requirement.
 
-## HTTP presenter runtime
+## HTTP presenters and service E2E
 
-Adding a `presenters/http` boundary makes the hosting service an HTTP server process. The service MUST then have a complete runnable HTTP bootstrap rather than remain an application-context-only Nest process.
+When a service exposes `presenters/http` or adds its HTTP E2E project, MUST follow `docs/engineering/http-presenter-guidelines.md`.
 
-A service with `presenters/http` MUST:
-
-- create the Nest application with `NestFactory.create(...)`, not only `createApplicationContext(...)`;
-- expose its listen port through the canonical typed service configuration boundary;
-- use `@accounterbro/runtime-config` for the raw port when the same port is consumed by workspace/E2E tooling, so the raw environment variable has one validation owner;
-- obtain the namespaced service config through its existing `registerAs` `KEY` / `ConfigType` contract in `main.ts`;
-- call `app.listen(config.port)` during bootstrap;
-- preserve shutdown hooks and other process lifecycle behavior already owned by the service.
-
-Use `apps/api/src/main.ts` and `apps/api/src/app/infrastructure/config/api.config.ts` as the proven HTTP bootstrap/configuration reference. Do not hard-code ports in bootstrap code or validate the same raw port again in the service-local env schema when `@accounterbro/runtime-config` already owns it.
-
-The base internal-service generator remains transport-agnostic. Do not add an HTTP listener to every generated service merely because some services expose HTTP presenters.
-
-Transport-adapter rules below `presenters/http` remain governed by the nearest applicable presenter instructions until a repository-wide HTTP presenter guide owns them.
-
-## Service E2E projects
-
-Create the E2E project for an internal HTTP service with:
-
-```bash
-pnpm nx g @accounterbro/generators:service-e2e <name>
-```
-
-The canonical layout and identity are:
-
-```text
-apps/services/<name>-e2e -> @accounterbro/<name>-service-e2e
-```
-
-The service MUST already satisfy the HTTP presenter runtime contract above before adding its E2E harness. The service-E2E generator owns the reusable Jest/SWC support project, the dependency on the target service, the migration + HTTP-server orchestration, and the `e2e` configuration added to the service's existing `serve` target.
-
-Service E2E Jest projects MUST be excluded from the root `@nx/jest/plugin` generic `test` inference and executed through their explicit `e2e` target so the generated server dependency runs before HTTP tests.
-
-The base service generator remains transport-agnostic and MUST NOT receive an E2E-specific serve configuration preemptively. Add that configuration only when the service E2E project is created.
-
-Use `apps/api-e2e` as the proven network E2E reference. Service E2E tests MAY test service-owned HTTP behavior, but MUST NOT duplicate UseCase, EDP runtime, persistence, or other lower-boundary semantics already covered by their owning tests.
+The base internal-service generator remains transport-agnostic. Do not add HTTP bootstrap or E2E-specific serve configuration to every service merely because another service exposes HTTP.
 
 ## Persistence and business-package integration
 
