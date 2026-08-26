@@ -41,7 +41,7 @@ Do not introduce a second API configuration mechanism, project-local `.env` load
 
 ## Persistence
 
-API owns its PostgreSQL/TypeORM runtime boundary. Persistence changes MUST follow `docs/engineering/database-guidelines.md` and the nearest applicable persistence instructions.
+API owns its PostgreSQL/TypeORM runtime boundary. Persistence changes MUST follow `docs/engineering/database-guidelines.md`; the current `src/app/infrastructure/persistence/typeorm/` implementation is the proven service-owned TypeORM lifecycle/CLI reference described there.
 
 Do not expose TypeORM entities/repositories/DataSource to application/domain or presentation code merely for convenience.
 
