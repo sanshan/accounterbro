@@ -1,0 +1,59 @@
+services:
+  - type: web
+    name: accounterbro-demo
+    runtime: node
+    plan: free
+    region: frankfurt
+    autoDeployTrigger: off
+    buildCommand: >-
+      pnpm install --frozen-lockfile &&
+      pnpm nx run @accounterbro/documents-service:build &&
+      pnpm nx run @accounterbro/web:build
+    startCommand: |
+      set -e
+      pnpm nx run @accounterbro/documents-service:migration:run
+      pnpm nx run @accounterbro/documents-service:start &
+      exec pnpm nx run @accounterbro/web:serve
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: WEB_PORT
+        value: 10000
+      - key: DOCUMENTS_PORT
+        value: 3001
+      - key: DOCUMENTS_STORAGE_DRIVER
+        value: local-folder
+      - key: DOCUMENTS_STORAGE_LOCAL_FOLDER_ROOT
+        value: /tmp/accounterbro-documents
+      - key: __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS
+        fromService:
+          type: web
+          name: accounterbro-demo
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+      - key: DOCUMENTS_DB_HOST
+        fromDatabase:
+          name: accounterbro-demo-db
+          property: host
+      - key: DOCUMENTS_DB_PORT
+        fromDatabase:
+          name: accounterbro-demo-db
+          property: port
+      - key: DOCUMENTS_DB_USERNAME
+        fromDatabase:
+          name: accounterbro-demo-db
+          property: user
+      - key: DOCUMENTS_DB_PASSWORD
+        fromDatabase:
+          name: accounterbro-demo-db
+          property: password
+      - key: DOCUMENTS_DB_NAME
+        fromDatabase:
+          name: accounterbro-demo-db
+          property: database
+
+databases:
+  - name: accounterbro-demo-db
+    plan: free
+    region: frankfurt
+    postgresMajorVersion: "17"

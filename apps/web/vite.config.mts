@@ -11,7 +11,7 @@ export default defineConfig(() => {
         cacheDir: '../../node_modules/.vite/apps/web',
         server: {
             port: web.port,
-            host: 'localhost',
+            host: process.env.RENDER === 'true' ? '0.0.0.0' : 'localhost',
             proxy: {
                 '/api': { target: `http://localhost:${api.port}`, changeOrigin: true },
                 '/documents': {
