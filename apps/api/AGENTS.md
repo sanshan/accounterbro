@@ -26,6 +26,20 @@ The API owns its global `/api` prefix, shutdown-hook enablement, real `DataSourc
 
 MUST NOT recreate an API-local health controller, indicator, UseCase, port, repository, probe model, entity, mapper, or duplicate health migration while the shared runtime capabilities own those responsibilities.
 
+## Module composition
+
+The API keeps `src/app/application/` and `ApplicationModule` as a stable Nest composition boundary even when there are currently no concrete application UseCases.
+
+The module chain is:
+
+```text
+PresentersModule -> ApplicationModule -> InfrastructureModule
+```
+
+`ApplicationModule` imports `InfrastructureModule` and re-exports the infrastructure capabilities required by presenter composition. `PresentersModule` imports `ApplicationModule`; it MUST NOT import `InfrastructureModule` directly merely because the application layer currently has no providers of its own.
+
+Do not remove `ApplicationModule` as an empty-layer cleanup. Its presence preserves the service dependency/composition boundary for future application behavior without changing presenter composition.
+
 ## Configuration
 
 API configuration is the current proven reference for internal service configuration:
@@ -51,7 +65,7 @@ Do not expose TypeORM entities/repositories/DataSource to application/domain cod
 
 ## Health composition
 
-`PresentersModule` is the API-owned composition point for the shared HTTP health adapter. It supplies the shared TypeORM database readiness check using the API's Nest-managed `DataSource`.
+`PresentersModule` is the API-owned composition point for the shared HTTP health adapter. It reaches the API's Nest-managed `DataSource` through the preserved `ApplicationModule -> InfrastructureModule` module chain and supplies the shared TypeORM database readiness check. Presenters MUST NOT import the service infrastructure module directly for this composition.
 
 Liveness remains independent of external infrastructure. Readiness currently contains only the shared database check. Add another readiness check only when the API has a concrete additional dependency that should affect readiness.
 
