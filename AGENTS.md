@@ -155,6 +155,20 @@ MUST NOT:
 
 Every application or library must remain an explicit Nx project.
 
+Every project MUST declare one repository architecture tag:
+
+- `type:core` for framework-free shared primitives;
+- `type:business` for business packages;
+- `type:runtime` for reusable technical capabilities and adapters;
+- `type:app` for deployable applications and services;
+- `type:e2e` for black-box test projects;
+- `type:tooling` for repository generators and other development tooling.
+
+The dependency directions for these tags are enforced in the root ESLint configuration. Service-local
+layer imports are enforced there as well: the composition chain is `App -> Presenters -> Application ->
+Infrastructure`, domain code cannot depend on outer layers or frameworks, and only
+`application.module.ts` may cross from application into infrastructure for composition.
+
 When necessary, inspect project configuration with:
 
 ```bash

@@ -83,6 +83,7 @@ describe('service generator', () => {
 
         expect(projectJson.name).toBe('@accounterbro/example-service');
         expect(projectJson.projectType).toBe('application');
+        expect(projectJson.tags).toEqual(['type:app']);
         expect(projectJson.targets.build.executor).toBe('@nx/js:tsc');
         expect(projectJson.targets.serve.executor).toBe('@nx/js:node');
         expect(projectJson.targets.start.options.command).toBe(

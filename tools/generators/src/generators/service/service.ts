@@ -106,7 +106,7 @@ export async function serviceGenerator(
         $schema: '../../../node_modules/nx/schemas/project-schema.json',
         sourceRoot: `${projectRoot}/src`,
         projectType: 'application',
-        tags: [],
+        tags: ['type:app'],
         targets: {
             build: {
                 executor: '@nx/js:tsc',

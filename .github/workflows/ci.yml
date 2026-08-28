@@ -72,6 +72,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify Nx project references
+        run: pnpm nx sync:check
+
       - name: Create E2E databases
         env:
           PGPASSWORD: ${{ env.API_DB_PASSWORD }}
