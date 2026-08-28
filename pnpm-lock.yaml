@@ -458,6 +458,16 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
 
+  packages/runtime-health:
+    dependencies:
+      typeorm:
+        specifier: 'catalog:'
+        version: 1.1.0(babel-plugin-macros@3.1.0)(pg@8.23.0)(ts-node@10.9.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@types/node@22.20.1)(typescript@5.9.3))
+    devDependencies:
+      pg:
+        specifier: 'catalog:'
+        version: 8.23.0
+
   packages/runtime-presenters:
     dependencies:
       '@accounterbro/core':
