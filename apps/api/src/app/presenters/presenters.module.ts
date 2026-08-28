@@ -3,12 +3,12 @@ import { HttpHealthModule } from '@accounterbro/runtime-presenters/http/health';
 import { Module } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
-import { InfrastructureModule } from '../infrastructure/infrastructure.module';
+import { ApplicationModule } from '../application/application.module';
 
 @Module({
     imports: [
         HttpHealthModule.register({
-            imports: [InfrastructureModule],
+            imports: [ApplicationModule],
             readinessChecks: {
                 inject: [DataSource],
                 useFactory: (dataSource: DataSource) => [
