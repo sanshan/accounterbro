@@ -7,6 +7,7 @@ import { ApplicationModule } from '../application/application.module';
 
 @Module({
     imports: [
+        ApplicationModule,
         HttpHealthModule.register({
             imports: [ApplicationModule],
             readinessChecks: {
