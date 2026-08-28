@@ -121,6 +121,18 @@ describe('service generator', () => {
         });
 
         const main = tree.read('apps/services/example/src/main.ts', 'utf-8');
+        const appModule = tree.read(
+            'apps/services/example/src/app/app.module.ts',
+            'utf-8',
+        );
+        const applicationModule = tree.read(
+            'apps/services/example/src/app/application/application.module.ts',
+            'utf-8',
+        );
+        const presentersModule = tree.read(
+            'apps/services/example/src/app/presenters/presenters.module.ts',
+            'utf-8',
+        );
         const envSchema = tree.read(
             'apps/services/example/src/app/infrastructure/config/example-env.schema.ts',
             'utf-8',
@@ -149,6 +161,21 @@ describe('service generator', () => {
 
         expect(main).toContain('NestFactory.createApplicationContext(AppModule)');
         expect(main).not.toContain('.listen(');
+        expect(appModule).toContain(
+            "import { PresentersModule } from './presenters/presenters.module';",
+        );
+        expect(appModule).toContain('imports: [PresentersModule]');
+        expect(appModule).not.toContain('InfrastructureModule');
+        expect(applicationModule).toContain(
+            "import { InfrastructureModule } from '../infrastructure/infrastructure.module';",
+        );
+        expect(applicationModule).toContain('imports: [InfrastructureModule]');
+        expect(applicationModule).toContain('exports: [InfrastructureModule]');
+        expect(presentersModule).toContain(
+            "import { ApplicationModule } from '../application/application.module';",
+        );
+        expect(presentersModule).toContain('imports: [ApplicationModule]');
+        expect(presentersModule).not.toContain('InfrastructureModule');
         expect(envSchema).toContain('EXAMPLE_DB_HOST');
         expect(envSchema).toContain('EXAMPLE_DB_PORT: PortSchema');
         expect(envSchema).not.toContain('EXAMPLE_PORT');

@@ -291,12 +291,26 @@ void bootstrap();
         `${projectRoot}/src/app/app.module.ts`,
         `import { Module } from '@nestjs/common';
 
-import { InfrastructureModule } from './infrastructure/infrastructure.module';
+import { PresentersModule } from './presenters/presenters.module';
+
+@Module({
+    imports: [PresentersModule],
+})
+export class AppModule {}
+`,
+    );
+
+    tree.write(
+        `${projectRoot}/src/app/application/application.module.ts`,
+        `import { Module } from '@nestjs/common';
+
+import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 
 @Module({
     imports: [InfrastructureModule],
+    exports: [InfrastructureModule],
 })
-export class AppModule {}
+export class ApplicationModule {}
 `,
     );
 
@@ -441,6 +455,19 @@ import { ${pascalName}TypeormModule } from './persistence/typeorm/${options.name
     exports: [${pascalName}ConfigModule, ${pascalName}TypeormModule],
 })
 export class InfrastructureModule {}
+`,
+    );
+
+    tree.write(
+        `${projectRoot}/src/app/presenters/presenters.module.ts`,
+        `import { Module } from '@nestjs/common';
+
+import { ApplicationModule } from '../application/application.module';
+
+@Module({
+    imports: [ApplicationModule],
+})
+export class PresentersModule {}
 `,
     );
 
