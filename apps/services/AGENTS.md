@@ -47,6 +47,14 @@ When a service exposes `presenters/http` or adds its HTTP E2E project, MUST foll
 
 The base internal-service generator remains transport-agnostic. `PresentersModule` is still part of the stable service shell; do not add HTTP bootstrap or E2E-specific serve configuration merely because the module exists.
 
+## Shared service health
+
+When an internal HTTP service requires standard liveness/readiness endpoints, consume `@accounterbro/runtime-presenters/http/health`. Database readiness is provided by `@accounterbro/runtime-health/typeorm` using the service's existing Nest-managed `DataSource`; the service keeps ownership of database lifecycle and migration execution.
+
+Compose health through the stable service shell. `PresentersModule` may configure the shared HTTP adapter using capabilities exported through `ApplicationModule`; it MUST NOT import `InfrastructureModule` directly. Use `apps/services/documents` as the proven internal-service consumer reference.
+
+Request-identity middleware required by business controllers MUST remain scoped to those routes. Do not make standard health endpoints require Actor/Tenant identity merely because the same service has authenticated or identity-aware business presenters.
+
 ## Persistence and business-package integration
 
 When a service owns PostgreSQL persistence or composes TypeORM persistence from hosted packages, MUST follow `docs/engineering/database-guidelines.md`.

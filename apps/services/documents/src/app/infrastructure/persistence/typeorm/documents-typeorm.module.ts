@@ -2,6 +2,7 @@ import {
     DOCUMENTS_TYPEORM_ENTITIES,
     DocumentPersistence,
 } from '@accounterbro/documents/typeorm';
+import { RUNTIME_HEALTH_TYPEORM_ENTITIES } from '@accounterbro/runtime-health/typeorm';
 import {
     EXECUTION_LOG_TYPEORM_ENTITIES,
     createExecutionLogStore,
@@ -47,6 +48,7 @@ import { createDocumentsTypeOrmOptions } from './typeorm-options';
         }),
         TypeOrmModule.forFeature([
             ...DOCUMENTS_TYPEORM_ENTITIES,
+            ...RUNTIME_HEALTH_TYPEORM_ENTITIES,
             ...EXECUTION_LOG_TYPEORM_ENTITIES,
             ...OUTBOX_TYPEORM_ENTITIES,
             ...USE_CASE_EXECUTION_TYPEORM_ENTITIES,

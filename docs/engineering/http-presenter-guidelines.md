@@ -10,7 +10,7 @@ Use the closest proven implementation for the responsibility being changed:
 
 - `apps/services/documents/src/app/presenters/http/documents` is the current business HTTP presenter reference for concrete UseCase invocation, request identity, file upload, DTO mapping, and controller tests.
 - `@accounterbro/runtime-presenters/http/health` is the implementation owner for reusable Nest/Terminus liveness and readiness HTTP adaptation.
-- `apps/api` is the current running-service integration reference for composing the shared health adapter with a service-owned global prefix and readiness dependencies.
+- `apps/api` and `apps/services/documents` are the proven running-service consumers of the shared health adapter: API preserves its global `/api` prefix, while Documents exposes the relative routes directly as `/health/live` and `/health/ready`.
 - `@accounterbro/runtime-presenters/http` is the implementation owner for reusable HTTP request-identity middleware and decorators.
 
 These references are not templates requiring every endpoint to contain every file or dependency.
@@ -57,7 +57,7 @@ Presenters MUST NOT:
 
 Controllers remain thin transport adapters.
 
-System health endpoints are technical runtime behavior rather than durable business UseCases. Consume `@accounterbro/runtime-presenters/http/health` and supply the required transport-independent `ReadinessCheck` instances through service composition. Do not force `UseCaseExecutor` into health endpoints or recreate a service-local health controller/indicator flow solely for structural symmetry.
+System health endpoints are technical runtime behavior rather than durable business UseCases. Consume `@accounterbro/runtime-presenters/http/health` and supply transport-independent `ReadinessCheck` instances from `@accounterbro/runtime-health` through service composition. For PostgreSQL readiness, use `@accounterbro/runtime-health/typeorm` with the hosting service's existing Nest-managed `DataSource`. Do not force `UseCaseExecutor` into health endpoints or recreate a service-local health controller/indicator flow solely for structural symmetry.
 
 ## Placement
 
@@ -105,6 +105,8 @@ Invocation-specific metadata remains explicit. Do not introduce request-scoped U
 Use the shared HTTP presenter runtime from `@accounterbro/runtime-presenters/http` for request identity. That package owns parsing/validation behavior and the canonical header contract; service code MUST NOT reproduce raw identity-header names or parse them independently.
 
 A presenter module whose controllers use `@Actor()` or `@Tenant()` MUST apply `httpRequestIdentityMiddleware` to those routes before controller invocation.
+
+Scope request-identity middleware to the business routes that require it. Reusable health routes from `@accounterbro/runtime-presenters/http/health` do not acquire Actor/Tenant requirements merely because another controller in the same service uses request identity. `apps/services/documents` is the proven reference for this route-scoped composition.
 
 The middleware/decorators represent a trusted-upstream identity contract, not authentication or authorization. Production exposure requires an upstream auth/gateway boundary that authenticates callers, removes untrusted caller-supplied AccounterBro identity headers, validates the upstream contract, and injects trusted values.
 
@@ -188,7 +190,7 @@ The service MUST already satisfy the HTTP runtime contract above before adding i
 
 Service E2E Jest projects use their explicit `e2e` target rather than the root `@nx/jest/plugin` generic `test` inference. The base service generator remains transport-agnostic and MUST NOT receive E2E-specific serve configuration preemptively.
 
-Use `apps/api-e2e` as the proven network E2E reference and `apps/services/documents-e2e` as the current internal-service HTTP E2E reference. E2E may verify service-owned HTTP integration, but MUST NOT duplicate lower-boundary semantics already covered by their owners.
+Use `apps/api-e2e` as the global-prefix health E2E reference and `apps/services/documents-e2e` as the internal-service HTTP E2E reference, including health routes without a global prefix and without business request-identity headers. E2E may verify service-owned HTTP integration, but MUST NOT duplicate lower-boundary semantics already covered by their owners.
 
 ## Current omissions
 

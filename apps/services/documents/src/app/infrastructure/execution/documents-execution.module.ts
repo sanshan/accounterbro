@@ -16,10 +16,10 @@ import { SystemClock } from '@event-driven-platform/clock';
 import type { ExecutionLeaseOwnerId } from '@event-driven-platform/execution';
 import { Module } from '@nestjs/common';
 
+import { DOCUMENTS_USE_CASE_EXECUTOR } from '../../application/application.tokens';
 import { DocumentsTypeormModule } from '../persistence/typeorm/documents-typeorm.module';
 import {
     DOCUMENTS_RUNNER,
-    DOCUMENTS_USE_CASE_EXECUTOR,
     EXECUTION_LEASE_OWNER_ID,
     EXECUTION_LOG_STORE,
     OUTBOX_STORE,
