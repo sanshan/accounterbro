@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { Repository } from 'typeorm';
 
 import type { ReadinessCheck } from '../readiness-check.js';
-import { DatabaseHealthProbeEntity } from './database-health-probe.entity.js';
+import type { DatabaseHealthProbeEntity } from './database-health-probe.entity.js';
 
 export class TypeOrmDatabaseReadinessCheck implements ReadinessCheck {
     readonly name = 'database';
