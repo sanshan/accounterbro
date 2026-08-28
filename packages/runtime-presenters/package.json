@@ -17,11 +17,25 @@
             "types": "./dist/http.d.ts",
             "import": "./dist/http.js",
             "default": "./dist/http.js"
+        },
+        "./http/health": {
+            "types": "./dist/http/health.d.ts",
+            "import": "./dist/http/health.js",
+            "default": "./dist/http/health.js"
         }
     },
     "dependencies": {
         "@accounterbro/core": "workspace:*",
+        "@accounterbro/runtime-health": "workspace:*",
         "@event-driven-platform/actor": "^0.1.4",
-        "@nestjs/common": "^11.0.0"
+        "@nestjs/common": "^11.0.0",
+        "@nestjs/terminus": "^11.1.0"
+    },
+    "devDependencies": {
+        "@nestjs/core": "^11.0.0",
+        "@nestjs/platform-express": "^11.0.0",
+        "@nestjs/testing": "^11.0.0",
+        "@types/supertest": "^7.2.1",
+        "supertest": "^7.2.2"
     }
 }

@@ -36,3 +36,23 @@ The middleware is a trusted-upstream adapter, not authentication or authorizatio
 `@Actor()` and `@Tenant()` remain extraction-only decorators. Do not move validation or authentication into them.
 
 Tests in this package own request-identity transport behavior and should use plain request/header data. Service controller tests MUST NOT duplicate those cases; service E2E may send the canonical trusted headers to exercise the same production middleware path.
+
+## HTTP health
+
+`@accounterbro/runtime-presenters/http/health` owns the reusable Nest + Terminus adapter for internal-service liveness and readiness HTTP endpoints.
+
+`HttpHealthModule.register(...)` is the canonical composition boundary. A consuming Nest service supplies an explicit factory for its `ReadinessCheck[]`; the shared package MUST NOT discover checks, maintain a registry, or depend on concrete service capabilities.
+
+The adapter MUST:
+
+- expose `health/live` and `health/ready` relative to the consuming application's global prefix;
+- keep liveness independent from readiness checks;
+- execute the explicitly supplied readiness checks and use each check's `name` as the Terminus indicator key;
+- convert readiness failures to a down indicator without exposing the underlying error message;
+- own the shared Terminus graceful-shutdown delay of 1,000 ms.
+
+The consuming application remains responsible for its global prefix and for enabling Nest shutdown hooks. The health adapter MUST NOT set either one.
+
+This subpath may depend on the transport-independent `@accounterbro/runtime-health` contract and Nest/Terminus only. It MUST NOT import `@accounterbro/runtime-health/typeorm`, TypeORM, service modules, business packages, EDP execution packages, or concrete readiness checks.
+
+Tests here own the HTTP adapter behavior: route composition, liveness isolation, readiness success/failure mapping, stable indicator names, sensitive-error suppression, and graceful-shutdown response. Service tests should retain only integration evidence that the service supplies its own checks correctly.
