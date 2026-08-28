@@ -2,8 +2,9 @@ import { waitForPortOpen } from '@nx/node/utils';
 
 import { getApiE2eRuntimeConfig } from './runtime-config';
 
-/* eslint-disable */
-var __TEARDOWN_MESSAGE__: string;
+declare global {
+    var __TEARDOWN_MESSAGE__: string;
+}
 
 module.exports = async function () {
     const { host, port } = getApiE2eRuntimeConfig();

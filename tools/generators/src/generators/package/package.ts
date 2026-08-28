@@ -42,7 +42,7 @@ export async function packageGenerator(tree: Tree, options: PackageGeneratorSche
         $schema: projectJson.$schema,
         sourceRoot: `${projectRoot}/src`,
         projectType: 'library',
-        tags: [],
+        tags: ['type:business'],
     }));
 
     for (const generatedFile of tree.children(`${projectRoot}/src/lib`)) {

@@ -71,7 +71,7 @@ describe('package generator', () => {
             $schema: '../../node_modules/nx/schemas/project-schema.json',
             sourceRoot: 'packages/example/src',
             projectType: 'library',
-            tags: [],
+            tags: ['type:business'],
         });
         expect(packageJson).toMatchObject({
             name: '@accounterbro/example',

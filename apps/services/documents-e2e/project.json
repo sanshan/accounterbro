@@ -3,7 +3,7 @@
     "$schema": "../../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "apps/services/documents-e2e/src",
     "projectType": "application",
-    "tags": [],
+    "tags": ["type:e2e"],
     "implicitDependencies": ["@accounterbro/documents-service"],
     "targets": {
         "documents-server": {
