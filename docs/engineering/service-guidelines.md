@@ -8,7 +8,7 @@ They apply to `apps/api` and services under `apps/services/` where the correspon
 
 Use the closest proven implementation rather than copying a complete service mechanically.
 
-- `apps/api` is the reference for a service-owned vertical slice. Its database readiness flow demonstrates `presenter -> application -> port -> infrastructure` with domain types only where they own useful meaning.
+- `apps/api` is the reference for a small HTTP host that owns its Nest bootstrap, typed configuration, and TypeORM `DataSource` lifecycle while composing shared runtime capabilities such as `@accounterbro/runtime-health/typeorm` and `@accounterbro/runtime-presenters/http/health`.
 - `apps/services/documents` is the reference for a business-service host. Its concrete UseCases orchestrate package-owned Operations/Reads through shared EDP runtime composition, while service infrastructure composes public package/runtime integration contracts.
 
 Reference implementations demonstrate responsibility and dependency direction. They are not templates requiring every service to have the same directories, modules, ports, DTOs, mappers, or runtime capabilities.
