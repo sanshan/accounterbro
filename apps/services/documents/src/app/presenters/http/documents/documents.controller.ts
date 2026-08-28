@@ -18,6 +18,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
+import { DOCUMENTS_USE_CASE_EXECUTOR } from '../../../application/application.tokens';
 import {
     GetDocumentUseCase,
     type GetDocumentUseCaseInput,
@@ -28,7 +29,6 @@ import {
     type RegisterDocumentInput,
 } from '../../../application/use-cases/register-document.use-case';
 import type { RegisterDocumentUseCaseContext } from '../../../application/use-cases/register-document.use-case.context';
-import { DOCUMENTS_USE_CASE_EXECUTOR } from '../../../infrastructure/runtime/runtime.tokens';
 import type { GetDocumentResponseDto } from './dto/get-document.response.dto';
 import type { RegisterDocumentResponseDto } from './dto/register-document.response.dto';
 import { mapGetDocumentResponse } from './mappers/get-document.response.mapper';
