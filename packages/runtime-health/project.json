@@ -1,0 +1,7 @@
+{
+    "name": "@accounterbro/runtime-health",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "packages/runtime-health/src",
+    "projectType": "library",
+    "tags": []
+}

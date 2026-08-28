@@ -38,6 +38,9 @@
         },
         {
             "path": "./packages/runtime-presenters"
+        },
+        {
+            "path": "./packages/runtime-health"
         }
     ]
 }
