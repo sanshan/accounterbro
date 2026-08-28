@@ -25,6 +25,12 @@
     "references": [
         {
             "path": "../../packages/runtime-config/tsconfig.lib.json"
+        },
+        {
+            "path": "../../packages/runtime-health/tsconfig.lib.json"
+        },
+        {
+            "path": "../../packages/runtime-presenters/tsconfig.lib.json"
         }
     ]
 }

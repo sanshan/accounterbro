@@ -1,18 +1,21 @@
+import { createTypeOrmDatabaseReadinessCheck } from '@accounterbro/runtime-health/typeorm';
+import { HttpHealthModule } from '@accounterbro/runtime-presenters/http/health';
 import { Module } from '@nestjs/common';
-import { TerminusModule } from '@nestjs/terminus';
+import { DataSource } from 'typeorm';
 
 import { ApplicationModule } from '../application/application.module';
-import { DatabaseHealthIndicator } from './http/health/indicators/database-health.indicator';
-import { HealthController } from './http/health/health.controller';
 
 @Module({
     imports: [
-        ApplicationModule,
-        TerminusModule.forRoot({
-            gracefulShutdownTimeoutMs: 1_000,
+        HttpHealthModule.register({
+            imports: [ApplicationModule],
+            readinessChecks: {
+                inject: [DataSource],
+                useFactory: (dataSource: DataSource) => [
+                    createTypeOrmDatabaseReadinessCheck(dataSource),
+                ],
+            },
         }),
     ],
-    controllers: [HealthController],
-    providers: [DatabaseHealthIndicator],
 })
 export class PresentersModule {}

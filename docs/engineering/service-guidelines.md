@@ -2,31 +2,36 @@
 
 These rules define the reusable architecture and application boundaries for internal Nest services in AccounterBro.
 
-They apply to `apps/api` and services under `apps/services/` where the corresponding responsibility exists. A service does not need to contain every documented layer or integration merely for structural symmetry.
+They apply to `apps/api` and services under `apps/services/` where the corresponding responsibility exists. The stable service shell is not optional even when a layer currently has no concrete behavior.
 
 ## Canonical implemented references
 
-Use the closest proven implementation rather than copying a complete service mechanically.
+Use the closest proven implementation rather than copying service-specific behavior mechanically.
 
-- `apps/api` is the reference for a service-owned vertical slice. Its database readiness flow demonstrates `presenter -> application -> port -> infrastructure` with domain types only where they own useful meaning.
+- `apps/api` is the reference for a small HTTP host that owns its Nest bootstrap, typed configuration, and TypeORM `DataSource` lifecycle while composing shared runtime capabilities such as `@accounterbro/runtime-health/typeorm` and `@accounterbro/runtime-presenters/http/health`.
 - `apps/services/documents` is the reference for a business-service host. Its concrete UseCases orchestrate package-owned Operations/Reads through shared EDP runtime composition, while service infrastructure composes public package/runtime integration contracts.
 
-Reference implementations demonstrate responsibility and dependency direction. They are not templates requiring every service to have the same directories, modules, ports, DTOs, mappers, or runtime capabilities.
+Reference implementations demonstrate responsibility and dependency direction. They are not templates requiring every service to have the same ports, DTOs, mappers, runtime capabilities, or domain behavior.
 
-## Service boundaries and dependency direction
+## Stable service shell
 
-The reusable service boundaries are:
+Every internal service preserves these three service boundaries as directories and Nest modules:
 
 ```text
-presenters ───────→ application ───────→ domain
-                        ↑
-                        │
-infrastructure ─────────┘
-        │
-        └──────────────────────────────→ domain
+presenters -> application -> infrastructure
 ```
 
-A service may omit a boundary that has no current responsibility. Do not create empty or speculative layers merely to match this diagram.
+The canonical module chain is:
+
+```text
+PresentersModule -> ApplicationModule -> InfrastructureModule
+```
+
+`ApplicationModule` imports `InfrastructureModule`. `PresentersModule` imports `ApplicationModule`. Do not bypass this chain by importing `InfrastructureModule` directly into presenters.
+
+These boundaries remain present even when a layer temporarily has no providers, UseCases, controllers, or other concrete behavior. Do not delete, collapse, or bypass `ApplicationModule`, `InfrastructureModule`, or `PresentersModule` as empty-layer cleanup.
+
+`domain` is not part of this mandatory Nest module shell. Add service-local domain code only when the service genuinely owns domain concepts or behavior.
 
 ### Domain
 
@@ -38,9 +43,11 @@ Do not introduce a service-local domain model when the behavior is already owned
 
 ### Application
 
-Application code owns service-level use-case orchestration and application-facing abstractions.
+Application code owns service-level use-case orchestration and application-facing abstractions. Its Nest module is also the stable composition boundary between presenters and infrastructure, even when there are currently no concrete UseCases.
 
-Application code MAY depend on domain code and application-facing ports. It MUST remain unaware of TypeORM entities/repositories/DataSource, HTTP DTOs/controllers, Nest transport objects, and concrete infrastructure implementations.
+Application code MAY depend on domain code and application-facing ports. Concrete application behavior MUST remain unaware of TypeORM entities/repositories/DataSource, HTTP DTOs/controllers, Nest transport objects, and concrete infrastructure implementations.
+
+`ApplicationModule` MAY import and re-export infrastructure modules/capabilities required by upper-layer Nest composition. This module-level composition does not authorize concrete application UseCases to depend directly on infrastructure implementation types.
 
 Create an application port only when application behavior requires a real external capability that is not already represented by an existing package/runtime contract.
 
@@ -56,17 +63,17 @@ Database lifecycle, TypeORM composition, and migration rules are defined in `doc
 
 ### Presenters
 
-Presenters own transport adaptation and may depend on application UseCases/contracts. They MUST NOT bypass application behavior to call persistence or other infrastructure directly when a UseCase owns the orchestration.
+Presenters own transport adaptation and depend on the service through `ApplicationModule`. Presenters MUST NOT import `InfrastructureModule` directly or bypass the application boundary to call persistence or other infrastructure implementations.
 
 Transport-specific DTOs, validation/binding concerns, response mapping, and framework-specific presenter adapters remain in the presenter boundary and MUST NOT leak into application/domain code.
 
-Internal HTTP presenters and HTTP service E2E follow `docs/engineering/http-presenter-guidelines.md`. Do not infer that every presenter or service is HTTP; add other transport guidance only after a concrete implemented pattern establishes it.
+Internal HTTP presenters and HTTP service E2E follow `docs/engineering/http-presenter-guidelines.md`. Do not infer that every presenter or service is HTTP; a `PresentersModule` may remain empty until a transport is introduced.
 
 ## Nest modules and dependency injection
 
 Nest modules are service composition boundaries, not substitutes for application/domain design.
 
-Application code should depend on the smallest stable abstraction or runtime contract that owns the required capability. Infrastructure modules bind those abstractions/contracts to concrete adapters and shared runtime composition.
+Keep the stable module chain `PresentersModule -> ApplicationModule -> InfrastructureModule`. Infrastructure modules bind application-facing abstractions/contracts to concrete adapters and shared runtime composition; `ApplicationModule` exposes the service composition boundary to presenters.
 
 Do not introduce parallel DI tokens, wrappers, generic repositories, base services, or framework abstractions when an existing package/runtime contract or Nest mechanism already serves the required boundary.
 
@@ -74,7 +81,7 @@ Do not introduce parallel DI tokens, wrappers, generic repositories, base servic
 
 Concrete service UseCases are application-level orchestration and use the published EDP UseCase contracts.
 
-A concrete service UseCase MUST be a Nest `@Injectable()` provider using the default singleton scope unless a concrete reviewed requirement proves another scope is necessary.
+A concrete service UseCase MUST be a Nest `@Injectable()` provider using the default singleton scope unless a concrete reviewed requirement proves another scope necessary.
 
 Constructor dependencies are reserved for stable reusable collaborators such as Runner, Reader, storage capabilities, repositories/ports, or other long-lived dependencies. Invocation-specific metadata MUST NOT be stored on the singleton instance or introduced through request-scoped DI merely for convenience.
 
@@ -143,8 +150,9 @@ Before adding a service-level abstraction or integration pattern:
 
 1. inspect the closest current service implementation;
 2. identify the existing owner of the required behavior;
-3. reuse its public contract/pattern when it applies;
-4. add only the layer/files required by the concrete behavior;
-5. keep the change within the owning service/package/runtime boundary.
+3. preserve the stable `presenters -> application -> infrastructure` module shell;
+4. reuse existing public contracts/patterns where they apply;
+5. add only behavior-specific files required by the concrete change;
+6. keep the change within the owning service/package/runtime boundary.
 
-Do not make every internal service structurally identical when their responsibilities differ. Consistency means reusing proven boundaries and ownership, not copying unused architecture.
+Consistency means preserving the stable service shell and reusing proven boundaries and ownership without copying unrelated behavior.
