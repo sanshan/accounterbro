@@ -1,3 +1,7 @@
+import {
+    RUNTIME_HEALTH_TYPEORM_ENTITIES,
+    RUNTIME_HEALTH_TYPEORM_MIGRATIONS,
+} from '@accounterbro/runtime-health/typeorm';
 import { DataSource } from 'typeorm';
 
 import { createApiConfig } from '../../config/api.config';
@@ -7,7 +11,13 @@ const config = createApiConfig();
 
 export const AppDataSource = new DataSource({
     ...createApiTypeOrmOptions(config.database),
-    entities: [`${__dirname}/entities/*{.ts,.js}`],
-    migrations: [`${__dirname}/migrations/*{.ts,.js}`],
+    entities: [
+        ...RUNTIME_HEALTH_TYPEORM_ENTITIES,
+        `${__dirname}/entities/*{.ts,.js}`,
+    ],
+    migrations: [
+        ...RUNTIME_HEALTH_TYPEORM_MIGRATIONS,
+        `${__dirname}/migrations/*{.ts,.js}`,
+    ],
     migrationsRun: false,
 });
