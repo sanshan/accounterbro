@@ -6,25 +6,25 @@ Reusable service layer, dependency-direction, UseCase, DI, runtime-consumption, 
 
 ## API role and canonical reference
 
-`apps/api` currently owns the system health/readiness vertical slice. Use that implementation as the proven reference when changing the same API-owned responsibility:
+`apps/api` is the current reference for a small internal HTTP host that owns its Nest bootstrap, typed configuration, and PostgreSQL/TypeORM lifecycle while composing reusable runtime capabilities.
+
+API health is no longer an API-owned vertical slice. The canonical flow is:
 
 ```text
 HTTP / Terminus
       ↓
-HealthController / DatabaseHealthIndicator
+@accounterbro/runtime-presenters/http/health
       ↓
-CheckDatabaseHealthUseCase
+ReadinessCheck
       ↓
-DatabaseHealthCheckPort
+@accounterbro/runtime-health/typeorm
       ↓
-TypeORM persistence adapter
-      ↓
-entity / mapper / PostgreSQL
+API Nest-managed DataSource
 ```
 
-This reference demonstrates a service-owned vertical slice. It is not a requirement that every API capability or internal service mechanically contain every layer or file type.
+The API owns its global `/api` prefix, shutdown-hook enablement, real `DataSource` lifecycle/configuration, and Nest composition. The shared runtime packages own health HTTP adaptation and the database readiness probe/schema artifacts.
 
-The current application/domain placement for health is under the `system/health-check` area. Preserve that ownership unless a concrete requirement changes it; do not reorganize API code merely to make it resemble a business-service host such as Documents.
+MUST NOT recreate an API-local health controller, indicator, UseCase, port, repository, probe model, entity, mapper, or duplicate health migration while the shared runtime capabilities own those responsibilities.
 
 ## Configuration
 
@@ -43,35 +43,25 @@ Do not introduce a second API configuration mechanism, project-local `.env` load
 
 API owns its PostgreSQL/TypeORM runtime boundary. Persistence changes MUST follow `docs/engineering/database-guidelines.md`; the current `src/app/infrastructure/persistence/typeorm/` implementation is the proven service-owned TypeORM lifecycle/CLI reference described there.
 
-Do not expose TypeORM entities/repositories/DataSource to application/domain or presentation code merely for convenience.
+Shared health TypeORM entities and migrations are composed from `@accounterbro/runtime-health/typeorm`. The API MUST NOT deep-import or duplicate those artifacts. The shared database readiness check receives the already-initialized Nest-managed `DataSource`; it MUST NOT create, initialize, configure, or destroy another production `DataSource`.
 
-## Health reference specifics
+The historical migration identity `CreateDatabaseHealthProbes1787040000000` is owned by the shared health package and must remain the same logical migration for existing API databases.
 
-The database health implementation is production functionality and canonical reference code for API health behavior.
+Do not expose TypeORM entities/repositories/DataSource to application/domain code merely for convenience.
 
-The persistence probe demonstrates:
+## Health composition
 
-```text
-create probe
-    ↓
-write
-    ↓
-read + validate
-    ↓
-cleanup
-```
+`PresentersModule` is the API-owned composition point for the shared HTTP health adapter. It supplies the shared TypeORM database readiness check using the API's Nest-managed `DataSource`.
 
-Cleanup is attempted after a successful write even when read/validation fails. Preserve this behavior unless a concrete requirement changes it.
+Liveness remains independent of external infrastructure. Readiness currently contains only the shared database check. Add another readiness check only when the API has a concrete additional dependency that should affect readiness.
 
-Liveness remains independent of external infrastructure; readiness composes the database check through presentation/Terminus.
-
-Future subsystem health checks should become sibling application behavior when required rather than adding external-system orchestration directly to the health controller.
+The API MUST NOT route health through `UseCaseExecutor`, Runner, Reader, or another durable EDP execution path solely for structural symmetry.
 
 ## API E2E
 
-`apps/api-e2e` owns real HTTP integration through the running API application. The existing health E2E is the canonical smoke reference.
+`apps/api-e2e` owns real HTTP integration through the running API application. The health E2E is the canonical evidence that API composition preserves `/api/health/live` and `/api/health/ready` and that database readiness works through the real service `DataSource`.
 
-Use API E2E to verify important running-service integration boundaries. It does not replace focused application, persistence, or presentation tests owned by lower boundaries.
+Shared health behavior itself belongs to `runtime-health` and `runtime-presenters` tests. API tests MUST NOT duplicate those lower-boundary semantics.
 
 ## Verification
 
@@ -84,6 +74,6 @@ pnpm nx run @accounterbro/api:test
 pnpm nx run @accounterbro/api:build
 ```
 
-When persistence behavior changes, include the relevant PostgreSQL-backed integration/migration verification. When HTTP behavior or end-to-end wiring changes, include the relevant API E2E target.
+When persistence composition changes, include the relevant PostgreSQL-backed integration/migration verification. When HTTP behavior or end-to-end wiring changes, include the relevant API E2E target.
 
 Do not declare API work complete while relevant API checks are known to fail.
