@@ -15,11 +15,20 @@ The root entrypoint stays framework-agnostic. It MUST NOT depend on NestJS, Term
 - `check()` rejects when it is not ready;
 - transport-specific status codes, response DTOs, logging, and error presentation do not belong in this contract.
 
-## Subpaths
+## TypeORM subpath
 
-Framework-specific capabilities belong behind explicit public subpaths instead of leaking into the root entrypoint.
+`@accounterbro/runtime-health/typeorm` is the canonical TypeORM database-readiness capability.
 
-TypeORM-specific database readiness belongs under `@accounterbro/runtime-health/typeorm`. The hosting service remains responsible for its real `DataSource` lifecycle, configuration, and migration execution.
+It owns:
+
+- the write/read/marker-validation/cleanup readiness probe;
+- the database health probe entity and schema migration;
+- `RUNTIME_HEALTH_TYPEORM_ENTITIES` and `RUNTIME_HEALTH_TYPEORM_MIGRATIONS` composition exports;
+- the factory that creates a readiness check from an already managed TypeORM `DataSource`.
+
+The hosting service owns the real `DataSource` lifecycle and configuration, composes the exported entity/migration contributions into its runtime and CLI TypeORM boundaries, and remains responsible for executing migrations.
+
+The shared migration deliberately preserves the historical API migration identity `CreateDatabaseHealthProbes1787040000000`. Do not rename or retimestamp it while existing databases may already contain that migration history entry.
 
 Nest/Terminus HTTP presentation belongs to `@accounterbro/runtime-presenters/http/health`, not this package.
 
@@ -27,8 +36,10 @@ Nest/Terminus HTTP presentation belongs to `@accounterbro/runtime-presenters/htt
 
 MUST NOT:
 
+- initialize, destroy, or configure a consuming service's production `DataSource`;
+- parse service configuration or environment variables in production package code;
 - route health checks through `UseCaseExecutor`, Runner, Reader, or other EDP execution mechanisms merely for symmetry;
-- add service-specific configuration or dependencies;
+- add service-specific dependencies;
 - introduce registries, background polling, caching, metrics, or additional health states without a concrete consumer requirement;
 - duplicate transport or persistence behavior owned by another package.
 
