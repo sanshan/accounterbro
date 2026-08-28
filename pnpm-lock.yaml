@@ -270,6 +270,9 @@ importers:
       '@accounterbro/runtime-config':
         specifier: workspace:*
         version: link:../../../packages/runtime-config
+      '@accounterbro/runtime-health':
+        specifier: workspace:*
+        version: link:../../../packages/runtime-health
       '@accounterbro/runtime-presenters':
         specifier: workspace:*
         version: link:../../../packages/runtime-presenters
