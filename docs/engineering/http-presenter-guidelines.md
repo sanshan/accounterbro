@@ -9,7 +9,8 @@ Apply them when a service exposes `presenters/http`. They complement `docs/engin
 Use the closest proven implementation for the responsibility being changed:
 
 - `apps/services/documents/src/app/presenters/http/documents` is the current business HTTP presenter reference for concrete UseCase invocation, request identity, file upload, DTO mapping, and controller tests.
-- `apps/api/src/app/presenters/http/health` is the current system/health HTTP presenter reference for Terminus health endpoints.
+- `@accounterbro/runtime-presenters/http/health` is the implementation owner for reusable Nest/Terminus liveness and readiness HTTP adaptation.
+- `apps/api` is the current running-service integration reference for composing the shared health adapter with a service-owned global prefix and readiness dependencies.
 - `@accounterbro/runtime-presenters/http` is the implementation owner for reusable HTTP request-identity middleware and decorators.
 
 These references are not templates requiring every endpoint to contain every file or dependency.
@@ -56,7 +57,7 @@ Presenters MUST NOT:
 
 Controllers remain thin transport adapters.
 
-System presenters may use another established application-facing boundary when that responsibility is not modeled as a durable UseCase. The API Terminus health controller/indicator flow is the current example. Do not force `UseCaseExecutor` into such endpoints solely for structural symmetry.
+System health endpoints are technical runtime behavior rather than durable business UseCases. Consume `@accounterbro/runtime-presenters/http/health` and supply the required transport-independent `ReadinessCheck` instances through service composition. Do not force `UseCaseExecutor` into health endpoints or recreate a service-local health controller/indicator flow solely for structural symmetry.
 
 ## Placement
 
@@ -167,7 +168,7 @@ Presenter tests MUST NOT duplicate:
 - persistence, transaction, recovery, idempotency/deduplication, or ObjectStorage behavior;
 - request-identity parsing/validation behavior owned by `@accounterbro/runtime-presenters/http`.
 
-System presenter tests, such as API health tests, verify only their own HTTP/framework adapter behavior and likewise avoid retesting lower boundaries.
+Shared health HTTP adapter behavior is owned and tested by `@accounterbro/runtime-presenters/http/health`. A consuming service should retain only the integration evidence that its own composition supplies the expected readiness checks and route prefix; do not recreate duplicate service-local health presenter tests.
 
 ## HTTP service E2E
 
