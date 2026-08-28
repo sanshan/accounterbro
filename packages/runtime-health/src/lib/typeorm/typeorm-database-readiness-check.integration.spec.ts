@@ -7,17 +7,30 @@ import {
 } from '../../typeorm.js';
 
 const migrationsTableName = 'runtime_health_test_migrations';
+const testDatabaseName = `accounterbro_runtime_health_${process.pid}`;
 const DatabaseHealthProbeEntity = RUNTIME_HEALTH_TYPEORM_ENTITIES[0];
 const DatabaseHealthMigration = RUNTIME_HEALTH_TYPEORM_MIGRATIONS[0];
+
+const connection = {
+    host: process.env['DB_HOST'] ?? '127.0.0.1',
+    port: Number(process.env['DB_PORT'] ?? '5432'),
+    username: process.env['DB_USERNAME'] ?? 'postgres',
+    password: process.env['DB_PASSWORD'] ?? 'postgres',
+};
+
+function createAdminDataSource(): DataSource {
+    return new DataSource({
+        type: 'postgres',
+        ...connection,
+        database: 'postgres',
+    });
+}
 
 function createDataSource(): DataSource {
     return new DataSource({
         type: 'postgres',
-        host: process.env['DB_HOST'] ?? '127.0.0.1',
-        port: Number(process.env['DB_PORT'] ?? '5432'),
-        username: process.env['DB_USERNAME'] ?? 'postgres',
-        password: process.env['DB_PASSWORD'] ?? 'postgres',
-        database: process.env['DB_NAME'] ?? 'accounterbro',
+        ...connection,
+        database: testDatabaseName,
         entities: [...RUNTIME_HEALTH_TYPEORM_ENTITIES],
         migrations: [...RUNTIME_HEALTH_TYPEORM_MIGRATIONS],
         migrationsTableName,
@@ -31,7 +44,19 @@ async function resetTestSchema(dataSource: DataSource): Promise<void> {
 }
 
 describe('TypeORM database readiness', () => {
+    let adminDataSource: DataSource;
     let dataSource: DataSource;
+
+    beforeAll(async () => {
+        adminDataSource = await createAdminDataSource().initialize();
+        await adminDataSource.query(`DROP DATABASE IF EXISTS "${testDatabaseName}"`);
+        await adminDataSource.query(`CREATE DATABASE "${testDatabaseName}"`);
+    });
+
+    afterAll(async () => {
+        await adminDataSource.query(`DROP DATABASE IF EXISTS "${testDatabaseName}"`);
+        await adminDataSource.destroy();
+    });
 
     beforeEach(async () => {
         dataSource = await createDataSource().initialize();
