@@ -1,12 +1,10 @@
+import { RUNTIME_HEALTH_TYPEORM_ENTITIES } from '@accounterbro/runtime-health/typeorm';
 import { Module } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { DatabaseHealthCheckPort } from '../../../application/ports/database-health-check.port';
 import { ApiConfigModule } from '../../config/api-config.module';
 import { apiConfig } from '../../config/api.config';
-import { DatabaseHealthProbeEntity } from './entities/database-health-probe.entity';
-import { TypeOrmDatabaseHealthCheckRepository } from './repositories/typeorm-database-health-check.repository';
 import { createApiTypeOrmOptions } from './typeorm-options';
 
 @Module({
@@ -19,14 +17,8 @@ import { createApiTypeOrmOptions } from './typeorm-options';
                 autoLoadEntities: true,
             }),
         }),
-        TypeOrmModule.forFeature([DatabaseHealthProbeEntity]),
+        TypeOrmModule.forFeature([...RUNTIME_HEALTH_TYPEORM_ENTITIES]),
     ],
-    providers: [
-        {
-            provide: DatabaseHealthCheckPort,
-            useClass: TypeOrmDatabaseHealthCheckRepository,
-        },
-    ],
-    exports: [TypeOrmModule, DatabaseHealthCheckPort],
+    exports: [TypeOrmModule],
 })
 export class ApiTypeormModule {}

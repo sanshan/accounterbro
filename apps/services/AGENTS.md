@@ -4,7 +4,17 @@ These rules apply to internal services under `apps/services/` in addition to the
 
 Reusable service architecture, UseCase, runtime-consumption, dependency-direction, and testing rules are owned by `docs/engineering/service-guidelines.md`. Read that guide before designing or modifying service application behavior.
 
-Use `apps/services/documents` as the current proven business-service host reference. Reuse only the boundaries required by the service being changed; do not copy Documents-specific behavior mechanically.
+Use `apps/services/documents` as the current proven business-service host reference. Reuse only the behavior required by the service being changed; do not copy Documents-specific behavior mechanically.
+
+## Stable service shell
+
+Every internal service keeps the stable Nest composition shell defined in `docs/engineering/service-guidelines.md`:
+
+```text
+PresentersModule -> ApplicationModule -> InfrastructureModule
+```
+
+The corresponding `presenters/`, `application/`, and `infrastructure/` boundaries remain present even when one currently has no providers or behavior. Do not remove or bypass one of these modules as empty-layer cleanup.
 
 ## Creation and identity
 
@@ -20,7 +30,7 @@ The canonical layout and identity convention is:
 apps/services/<name> -> @accounterbro/<name>-service
 ```
 
-MUST NOT create a new internal service by invoking `@nx/nest:application`, `@nx/node:application`, or another low-level application generator directly. The repository generator owns normalization to the proven non-bundled service shell.
+The service generator MUST preserve the stable service shell above. MUST NOT create a new internal service by invoking `@nx/nest:application`, `@nx/node:application`, or another low-level application generator directly. The repository generator owns normalization to the proven non-bundled service shell.
 
 ## Configuration
 
@@ -35,7 +45,15 @@ Use `apps/api` as the proven configuration reference. Do not introduce a paralle
 
 When a service exposes `presenters/http` or adds its HTTP E2E project, MUST follow `docs/engineering/http-presenter-guidelines.md`.
 
-The base internal-service generator remains transport-agnostic. Do not add HTTP bootstrap or E2E-specific serve configuration to every service merely because another service exposes HTTP.
+The base internal-service generator remains transport-agnostic. `PresentersModule` is still part of the stable service shell; do not add HTTP bootstrap or E2E-specific serve configuration merely because the module exists.
+
+## Shared service health
+
+When an internal HTTP service requires standard liveness/readiness endpoints, consume `@accounterbro/runtime-presenters/http/health`. Database readiness is provided by `@accounterbro/runtime-health/typeorm` using the service's existing Nest-managed `DataSource`; the service keeps ownership of database lifecycle and migration execution.
+
+Compose health through the stable service shell. `PresentersModule` may configure the shared HTTP adapter using capabilities exported through `ApplicationModule`; it MUST NOT import `InfrastructureModule` directly. Use `apps/services/documents` as the proven internal-service consumer reference.
+
+Request-identity middleware required by business controllers MUST remain scoped to those routes. Do not make standard health endpoints require Actor/Tenant identity merely because the same service has authenticated or identity-aware business presenters.
 
 ## Persistence and business-package integration
 
