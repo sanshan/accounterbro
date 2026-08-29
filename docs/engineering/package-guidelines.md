@@ -2,7 +2,7 @@
 
 Rules for implementing and reviewing AccounterBro business packages and the Core identity/reference contracts they require.
 
-This guide does not own implementation rules for technical capability packages such as `@accounterbro/service-runtime`, `@accounterbro/runtime-presenters`, `@accounterbro/object-storage`, or `@accounterbro/runtime-config`. Follow `packages/AGENTS.md` and the nearest package-local instructions for those packages.
+This guide does not own implementation rules for technical capability packages such as `@accounterbro/runtime-executions`, `@accounterbro/runtime-presenters`, `@accounterbro/object-storage`, or `@accounterbro/runtime-config`. Follow `packages/AGENTS.md` and the nearest package-local instructions for those packages.
 
 Normative keywords:
 
@@ -62,9 +62,9 @@ Normative keywords:
 - **OP-011** — Operation handler provider descriptors MUST inject package-owned runtime ports/contracts and construct concrete handlers inside the package. A hosting service MUST NOT recreate handler constructors or duplicate their dependency knowledge.
 - **OP-012** — Concrete Operation handler classes MUST NOT be exported from the package's main business entrypoint solely for service composition when the package execution entrypoint already owns provisioning.
 - **OP-013** — A business package MUST own its Operation-name-to-handler mapping and expose one package-specific binding group from its `/execution` entrypoint. A hosting service MUST NOT recreate that mapping.
-- **OP-014** — Package Operation-handler binding descriptors MUST remain Nest-compatible and Nest-agnostic ordinary objects. They MAY depend on `OperationHandlerBinding` from `@accounterbro/service-runtime`, but MUST NOT import Nest provider types.
+- **OP-014** — Package Operation-handler binding descriptors MUST remain Nest-compatible and Nest-agnostic ordinary objects. They MAY depend on `OperationHandlerBinding` from `@accounterbro/runtime-executions`, but MUST NOT import Nest provider types.
 - **OP-015** — A package binding group MUST reference the package's exported Operation-name constants rather than repeating raw Operation names.
-- **OP-016** — Shared resolver identity and lookup implementation belong to `@accounterbro/service-runtime`, not `@accounterbro/core` or a business package.
+- **OP-016** — Shared resolver identity and lookup implementation belong to `@accounterbro/runtime-executions`, not `@accounterbro/core` or a business package.
 - **OP-017** — Each Operation name MUST map to exactly one Operation handler in AccounterBro. Duplicate bindings are invalid service composition and MUST be rejected by the shared resolver.
 
 ## Reads
@@ -81,9 +81,9 @@ Normative keywords:
 - **READ-010** — Read handler provider descriptors MUST inject package-owned runtime ports/contracts and construct concrete handlers inside the package. A hosting service MUST NOT recreate handler constructors or duplicate their dependency knowledge.
 - **READ-011** — Concrete Read handler classes MUST NOT be exported from the package's main business entrypoint solely for service composition when the package `/execution` entrypoint already owns provisioning.
 - **READ-012** — A business package MUST own its Read-name-to-handler mapping and expose one package-specific binding group from its `/execution` entrypoint. A hosting service MUST NOT recreate that mapping.
-- **READ-013** — Package Read-handler binding descriptors MUST remain Nest-compatible and Nest-agnostic ordinary objects. They MAY depend on `ReadHandlerBinding` from `@accounterbro/service-runtime`, but MUST NOT import Nest provider types.
+- **READ-013** — Package Read-handler binding descriptors MUST remain Nest-compatible and Nest-agnostic ordinary objects. They MAY depend on `ReadHandlerBinding` from `@accounterbro/runtime-executions`, but MUST NOT import Nest provider types.
 - **READ-014** — A package Read binding group MUST reference the package's exported Read-name constants rather than repeating raw Read names.
-- **READ-015** — Shared Read resolver identity and lookup implementation belong to `@accounterbro/service-runtime`, not `@accounterbro/core` or a business package.
+- **READ-015** — Shared Read resolver identity and lookup implementation belong to `@accounterbro/runtime-executions`, not `@accounterbro/core` or a business package.
 - **READ-016** — Each Read name MUST map to exactly one Read handler in AccounterBro. Duplicate bindings are invalid service composition and MUST be rejected by the shared resolver. When adapting to the EDP resolver contract, a successful resolution MUST contain a singleton handler tuple.
 
 ## Events
@@ -118,10 +118,10 @@ Normative keywords:
 - **DB-015** — Package TypeORM factories MUST keep entity, mapper, repository, and concrete persistence implementation knowledge inside the business package. A hosting service MUST NOT recreate adapter construction or import those implementation details.
 - **DB-016** — Package TypeORM factories MUST remain Nest-agnostic. They MUST NOT import Nest provider types or decorators; the hosting service owns Nest provider descriptors and injects its service-owned `DataSource` into the package factory.
 - **DB-017** — Package TypeORM factories MUST continue to accept the normal TypeORM `DataSource` contract and MUST remain unaware of `AsyncLocalStorage`, `QueryRunner`, or execution-transaction propagation.
-- **DB-018** — Transaction participation for package persistence is a hosting-runtime concern. A service that needs EDP execution transactions MUST supply the shared transaction-aware `DataSource` from `@accounterbro/service-runtime/typeorm` to the unchanged package factory instead of adding transaction plumbing to the business package.
+- **DB-018** — Transaction participation for package persistence is a hosting-runtime concern. A service that needs EDP execution transactions MUST supply the shared transaction-aware `DataSource` from `@accounterbro/runtime-executions/typeorm` to the unchanged package factory instead of adding transaction plumbing to the business package.
 - **DB-019** — A business package MUST NOT introduce its own ambient transaction context or repository-switching proxy to participate in EDP execution; the canonical implementation belongs to shared service runtime.
 
-Detailed shared runtime transaction/store algorithms and Runner/Reader/UseCaseExecutor composition invariants are intentionally not owned here. Service consumers follow `docs/engineering/service-guidelines.md` and `docs/engineering/database-guidelines.md`; changes to the shared runtime implementation follow `packages/service-runtime/AGENTS.md`.
+Detailed shared runtime transaction/store algorithms and Runner/Reader/UseCaseExecutor composition invariants are intentionally not owned here. Service consumers follow `docs/engineering/service-guidelines.md` and `docs/engineering/database-guidelines.md`; changes to the shared runtime implementation follow `packages/runtime-executions/AGENTS.md`.
 
 ## Names
 

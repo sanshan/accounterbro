@@ -112,15 +112,15 @@ When preparing an implementation issue for a concrete UseCase, copy constraining
 
 ## Shared EDP runtime consumption
 
-Internal services consume reusable AccounterBro execution composition from `@accounterbro/service-runtime` instead of reconstructing the standard EDP dependency graph locally.
+Internal services consume reusable AccounterBro execution composition from `@accounterbro/runtime-executions` instead of reconstructing the standard EDP dependency graph locally.
 
 Use the focused public entrypoint that owns the required capability, including the established Runner, Reader, UseCaseExecutor, resolver, TypeORM transaction, and durable runtime-store integrations.
 
-The service owns its Nest/process composition and concrete service inputs. `@accounterbro/service-runtime` owns the reusable AccounterBro composition choices around published EDP contracts, while EDP remains the source of truth for execution semantics.
+The service owns its Nest/process composition and concrete service inputs. `@accounterbro/runtime-executions` owns the reusable AccounterBro composition choices around published EDP contracts, while EDP remains the source of truth for execution semantics.
 
 MUST NOT introduce service-local implementations/wrappers for Runner, Reader, UseCaseExecutor, handler resolvers, transaction propagation, execution-log persistence, Outbox persistence, or UseCase execution persistence when the shared runtime already owns that capability.
 
-For exact runtime composition contracts and implementation invariants, inspect the current public `@accounterbro/service-runtime` entrypoint and `packages/service-runtime/AGENTS.md`. Do not copy those implementation details into service code or duplicate them in service documentation.
+For exact runtime composition contracts and implementation invariants, inspect the current public `@accounterbro/runtime-executions` entrypoint and `packages/runtime-executions/AGENTS.md`. Do not copy those implementation details into service code or duplicate them in service documentation.
 
 ## Business package hosting
 

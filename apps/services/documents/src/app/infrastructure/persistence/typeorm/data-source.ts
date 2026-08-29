@@ -9,15 +9,15 @@ import {
 import {
     EXECUTION_LOG_TYPEORM_ENTITIES,
     EXECUTION_LOG_TYPEORM_MIGRATIONS,
-} from '@accounterbro/service-runtime/execution-log/typeorm';
+} from '@accounterbro/runtime-executions/execution-log/typeorm';
 import {
     OUTBOX_TYPEORM_ENTITIES,
     OUTBOX_TYPEORM_MIGRATIONS,
-} from '@accounterbro/service-runtime/outbox/typeorm';
+} from '@accounterbro/runtime-executions/outbox/typeorm';
 import {
     USE_CASE_EXECUTION_TYPEORM_ENTITIES,
     USE_CASE_EXECUTION_TYPEORM_MIGRATIONS,
-} from '@accounterbro/service-runtime/use-case-execution/typeorm';
+} from '@accounterbro/runtime-executions/use-case-execution/typeorm';
 import { DataSource } from 'typeorm';
 
 import { createDocumentsConfig } from '../../config/documents.config';

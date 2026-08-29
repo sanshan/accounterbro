@@ -65,7 +65,7 @@ When a service hosts a business package, follow `docs/engineering/package-guidel
 
 For service-side Runner, Reader, UseCaseExecutor, resolver, transaction, execution-log, Outbox, and durable UseCase execution consumption, follow `docs/engineering/service-guidelines.md` and, for TypeORM persistence composition, `docs/engineering/database-guidelines.md`.
 
-Implementation-local invariants for changing `@accounterbro/service-runtime` itself remain in `packages/service-runtime/AGENTS.md`; do not copy them into a service.
+Implementation-local invariants for changing `@accounterbro/runtime-executions` itself remain in `packages/runtime-executions/AGENTS.md`; do not copy them into a service.
 
 ## Verification
 

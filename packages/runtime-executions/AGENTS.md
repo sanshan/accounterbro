@@ -1,10 +1,10 @@
-# Service Runtime Agent Rules
+# Runtime Executions Agent Rules
 
-These rules apply to `packages/service-runtime/` in addition to the root workspace rules.
+These rules apply to `packages/runtime-executions/` in addition to the root workspace rules.
 
 ## Purpose
 
-`@accounterbro/service-runtime` owns reusable AccounterBro service-composition infrastructure around published `@event-driven-platform/*` primitives.
+`@accounterbro/runtime-executions` owns reusable AccounterBro service-composition infrastructure around published `@event-driven-platform/*` primitives.
 
 EDP remains the source of truth for execution contracts and semantics. MUST NOT copy, fork, wrap, or reimplement EDP behavior unless AccounterBro has a concrete repository-specific composition responsibility that EDP does not own.
 
@@ -14,7 +14,7 @@ Keep runtime composition framework-agnostic unless a concrete task explicitly re
 
 Tests in this package MUST cover behavior implemented by AccounterBro itself: composition, adapters, mappings, invariants, and failure cases introduced here.
 
-MUST NOT duplicate tests for behavior already owned and tested by EDP merely because `service-runtime` consumes an EDP contract. Prefer typecheck/build evidence for structural contract compatibility and add runtime tests only for AccounterBro-owned behavior.
+MUST NOT duplicate tests for behavior already owned and tested by EDP merely because `runtime-executions` consumes an EDP contract. Prefer typecheck/build evidence for structural contract compatibility and add runtime tests only for AccounterBro-owned behavior.
 
 ## Operation handler resolution
 
@@ -44,7 +44,7 @@ The canonical Read resolver boundary mirrors the Operation resolver where the ED
 
 ## TypeORM execution transactions
 
-The canonical shared TypeORM execution boundary is exported from `@accounterbro/service-runtime/typeorm`.
+The canonical shared TypeORM execution boundary is exported from `@accounterbro/runtime-executions/typeorm`.
 
 - the hosting service owns the real Nest-managed `DataSource` lifecycle and connection configuration;
 - one shared `TypeOrmTransactionContext` carries the current transaction `EntityManager` through `AsyncLocalStorage.run(...)` for the current async execution chain;
@@ -55,9 +55,9 @@ The canonical shared TypeORM execution boundary is exported from `@accounterbro/
 
 ## TypeORM execution log persistence
 
-The canonical shared EDP `ExecutionLogStore` adapter is exported from `@accounterbro/service-runtime/execution-log/typeorm`.
+The canonical shared EDP `ExecutionLogStore` adapter is exported from `@accounterbro/runtime-executions/execution-log/typeorm`.
 
-- `service-runtime` owns the reusable `execution_log` and `execution_attempt` TypeORM entities/migration and exposes their composition contracts from that subpath;
+- `runtime-executions` owns the reusable `execution_log` and `execution_attempt` TypeORM entities/migration and exposes their composition contracts from that subpath;
 - every transactional business service composes those artifacts into its own service-owned database; execution data is not centralized across services;
 - the store receives the transaction-aware `DataSource` from the shared TypeORM execution boundary so `complete()` / `fail()` participate in the same Runner transaction as business persistence and Outbox writes without knowing about `AsyncLocalStorage` or `QueryRunner`;
 - claim/reclaim and terminal transitions MUST preserve atomic same-Intent ownership, deterministic EDP attempt identities, persisted attempt history, and lease-generation fencing;
@@ -66,9 +66,9 @@ The canonical shared EDP `ExecutionLogStore` adapter is exported from `@accounte
 
 ## TypeORM Outbox persistence
 
-The canonical shared EDP `OutboxStore` adapter is exported from `@accounterbro/service-runtime/outbox/typeorm`.
+The canonical shared EDP `OutboxStore` adapter is exported from `@accounterbro/runtime-executions/outbox/typeorm`.
 
-- `service-runtime` owns the reusable append-only `outbox` TypeORM entity/migration and exposes their composition contracts from that subpath;
+- `runtime-executions` owns the reusable append-only `outbox` TypeORM entity/migration and exposes their composition contracts from that subpath;
 - every transactional business service composes those artifacts into its own service-owned database; Outbox data is not centralized across services;
 - the store receives the same transaction-aware `DataSource` used by business persistence and execution-log terminal writes so `append()` participates in the active execution transaction without knowing about `AsyncLocalStorage` or `QueryRunner`;
 - the authoritative persisted event representation is the complete EDP Event envelope; searchable/CDC columns are projections of that envelope and MUST NOT replace or redefine EDP event semantics;
@@ -77,9 +77,9 @@ The canonical shared EDP `OutboxStore` adapter is exported from `@accounterbro/s
 
 ## TypeORM UseCase execution persistence
 
-The canonical shared EDP `UseCaseExecutionStore` adapter is exported from `@accounterbro/service-runtime/use-case-execution/typeorm`.
+The canonical shared EDP `UseCaseExecutionStore` adapter is exported from `@accounterbro/runtime-executions/use-case-execution/typeorm`.
 
-- `service-runtime` owns one reusable `use_case_execution` entity/migration and exposes its composition contracts and factory from that subpath;
+- `runtime-executions` owns one reusable `use_case_execution` entity/migration and exposes its composition contracts and factory from that subpath;
 - every business service that uses durable UseCase execution composes that schema into its own service-owned database; UseCase execution state is not centralized across services;
 - the store uses the real service-owned `DataSource` boundary and its own short atomic database transitions. It MUST NOT imply one SQL transaction spanning child Operations/Reads executed by a UseCase;
 - one row represents one logical UseCase invocation and preserves its authoritative Intent association, correlation id, current fenced lease generation, completion/release state, and durable completed result;
@@ -91,7 +91,7 @@ The canonical shared EDP `UseCaseExecutionStore` adapter is exported from `@acco
 
 ## Runner composition
 
-The canonical shared Runner composition is exported from `@accounterbro/service-runtime/runner`.
+The canonical shared Runner composition is exported from `@accounterbro/runtime-executions/runner`.
 
 - `createServiceRunner(...)` MUST delegate Runner construction to the published EDP `createRunner()` API; this package MUST NOT implement, subclass, or wrap Runner behavior;
 - shared composition owns only the AccounterBro baseline dependency graph: EDP `DefaultExecutionIdFactory`, `DefaultEventIdFactory`, `DefaultOperationEventEnvelopeFactory`, `DefaultOutboxRecordFactory`, the shared resolver and execution-persistence ports, process lease owner, and Runner options;
@@ -103,7 +103,7 @@ The canonical shared Runner composition is exported from `@accounterbro/service-
 
 ## Reader composition
 
-The canonical shared Reader composition is exported from `@accounterbro/service-runtime/reader`.
+The canonical shared Reader composition is exported from `@accounterbro/runtime-executions/reader`.
 
 - `createServiceReader(...)` MUST construct the published EDP `DefaultReader` directly; this package MUST NOT implement, subclass, or wrap Reader behavior;
 - the only baseline dependency supplied by shared composition is the service-wide `ReadHandlerResolver`;
@@ -114,7 +114,7 @@ The canonical shared Reader composition is exported from `@accounterbro/service-
 
 ## UseCaseExecutor composition
 
-The canonical shared UseCaseExecutor composition is exported from `@accounterbro/service-runtime/use-case-executor`.
+The canonical shared UseCaseExecutor composition is exported from `@accounterbro/runtime-executions/use-case-executor`.
 
 - `createServiceUseCaseExecutor(...)` MUST delegate construction directly to the published EDP `createUseCaseExecutor()` API; this package MUST NOT implement, subclass, or behavior-wrap UseCaseExecutor;
 - shared composition owns only the AccounterBro baseline dependency graph: EDP `DefaultExecutionIdFactory`, the caller-supplied shared `Clock`, the shared `UseCaseExecutionStore`, and the process-level `ExecutionLeaseOwnerId`;

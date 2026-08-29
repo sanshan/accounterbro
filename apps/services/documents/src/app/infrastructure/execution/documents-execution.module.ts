@@ -5,13 +5,13 @@ import {
     MapOperationHandlerResolver,
     OperationHandlerResolver,
     type OperationHandlerBinding,
-} from '@accounterbro/service-runtime';
-import type { createExecutionLogStore } from '@accounterbro/service-runtime/execution-log/typeorm';
-import type { createOutboxStore } from '@accounterbro/service-runtime/outbox/typeorm';
-import { createServiceRunner } from '@accounterbro/service-runtime/runner';
-import { TypeOrmExecutionTransaction } from '@accounterbro/service-runtime/typeorm';
-import type { createUseCaseExecutionStore } from '@accounterbro/service-runtime/use-case-execution/typeorm';
-import { createServiceUseCaseExecutor } from '@accounterbro/service-runtime/use-case-executor';
+} from '@accounterbro/runtime-executions';
+import type { createExecutionLogStore } from '@accounterbro/runtime-executions/execution-log/typeorm';
+import type { createOutboxStore } from '@accounterbro/runtime-executions/outbox/typeorm';
+import { createServiceRunner } from '@accounterbro/runtime-executions/runner';
+import { TypeOrmExecutionTransaction } from '@accounterbro/runtime-executions/typeorm';
+import type { createUseCaseExecutionStore } from '@accounterbro/runtime-executions/use-case-execution/typeorm';
+import { createServiceUseCaseExecutor } from '@accounterbro/runtime-executions/use-case-executor';
 import { SystemClock } from '@event-driven-platform/clock';
 import type { ExecutionLeaseOwnerId } from '@event-driven-platform/execution';
 import { Module } from '@nestjs/common';
