@@ -21,8 +21,7 @@ jobs:
         run: python3 .github/task-167.py
       - name: Verify canonical references
         run: |
-          test -z "$(git grep -n '@accounterbro/service-runtime' -- ':!pnpm-lock.yaml' || true)"
-          test -z "$(git grep -n 'service-specific Runner/Reader/UseCaseExecutor tokens' -- apps/services packages docs || true)" || true
+          test -z "$(git grep -n '@accounterbro/service-runtime' -- apps packages docs tools || true)"
           git grep -n 'RuntimeExecutionsModule.register' apps/services/AGENTS.md docs/engineering/service-guidelines.md packages/runtime-executions/AGENTS.md
           git grep -n 'container/multibinding' apps/services/AGENTS.md docs/engineering/service-guidelines.md packages/runtime-executions/AGENTS.md
           git diff --check
