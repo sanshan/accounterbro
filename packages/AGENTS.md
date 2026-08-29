@@ -15,8 +15,9 @@ The proven package boundary is:
 - the root entrypoint exposes only business-facing contracts and runtime values required by consumers;
 - `@accounterbro/<feature>/execution` owns package handler construction descriptors and Operation/Read binding groups while concrete handler wiring stays private;
 - `@accounterbro/<feature>/typeorm` owns feature persistence composition contracts, entities, migrations, persistence tokens, and adapter factories while the hosting service owns the real `DataSource` lifecycle;
+- `@accounterbro/<feature>/runtime` exposes one framework-agnostic runtime manifest that aggregates the package's hosting contributions without duplicating their implementation knowledge;
 - package tests prove aggregate, handler, persistence, and composition contracts at the boundary that owns them rather than duplicating service-level behavioral specifications.
 
-Use `apps/services/documents` as the paired reference for hosting such a package in a service: service UseCases orchestrate through EDP `Runner`/`Reader`, and service infrastructure composes package-owned `/execution` and `/typeorm` contracts instead of deep-importing package internals.
+Use `packages/documents/src/runtime.ts` as the manifest reference and `apps/services/documents` as the paired host reference. Standard Nest hosting registers package manifests through `@accounterbro/runtime-executions/nest`; the service chooses hosted packages and does not recreate package execution/persistence provider wiring.
 
-This reference does not turn technical capability packages such as `service-runtime`, `runtime-presenters`, `object-storage`, `runtime-config`, or `core` into business feature packages. Keep their responsibility-specific boundaries and local instructions where present.
+This reference does not turn technical capability packages such as `runtime-executions`, `runtime-presenters`, `object-storage`, `runtime-config`, or `core` into business feature packages. Keep their responsibility-specific boundaries and local instructions where present.

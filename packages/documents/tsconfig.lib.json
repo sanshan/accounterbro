@@ -14,7 +14,7 @@
     "include": ["src/**/*.ts"],
     "references": [
         {
-            "path": "../service-runtime/tsconfig.lib.json"
+            "path": "../runtime-executions/tsconfig.lib.json"
         },
         {
             "path": "../core/tsconfig.lib.json"

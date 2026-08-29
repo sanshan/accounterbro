@@ -65,7 +65,15 @@ When a service hosts a business package, follow `docs/engineering/package-guidel
 
 For service-side Runner, Reader, UseCaseExecutor, resolver, transaction, execution-log, Outbox, and durable UseCase execution consumption, follow `docs/engineering/service-guidelines.md` and, for TypeORM persistence composition, `docs/engineering/database-guidelines.md`.
 
-Implementation-local invariants for changing `@accounterbro/service-runtime` itself remain in `packages/service-runtime/AGENTS.md`; do not copy them into a service.
+The canonical business-service host registers package manifests through `@accounterbro/runtime-executions/nest`:
+
+```ts
+RuntimeExecutionsModule.register([documents]);
+```
+
+A service chooses the hosted package list and keeps ownership of its real `DataSource` lifecycle/configuration and service-specific external integrations. It MUST NOT recreate the standard execution/read/store provider graph with local tokens, provider wrapper files, or local execution/read modules. Ordinary runtime dependencies use the runtime-valued class/abstract-class identities from `@accounterbro/runtime-executions`; container/multibinding tokens are the explicit internal exception.
+
+Implementation-local invariants for changing `@accounterbro/runtime-executions` itself remain in `packages/runtime-executions/AGENTS.md`; do not copy them into a service.
 
 ## Verification
 

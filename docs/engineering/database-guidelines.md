@@ -2,7 +2,7 @@
 
 These rules define the canonical consumer-facing PostgreSQL and TypeORM integration for internal Nest services in AccounterBro.
 
-This guide owns service database lifecycle, schema ownership, TypeORM composition, migration, and shared-runtime persistence **consumption**. Detailed algorithms and implementation invariants inside `@accounterbro/service-runtime` are owned by `packages/service-runtime/AGENTS.md`.
+This guide owns service database lifecycle, schema ownership, TypeORM composition, migration, and shared-runtime persistence **consumption**. Detailed algorithms and implementation invariants inside `@accounterbro/runtime-executions` are owned by `packages/runtime-executions/AGENTS.md`.
 
 The pattern follows the official NestJS `@nestjs/typeorm` and TypeORM APIs instead of introducing a repository-owned database lifecycle abstraction.
 
@@ -12,7 +12,7 @@ For a Nest runtime, `TypeOrmModule.forRootAsync(...)` owns creation, initializat
 
 MUST NOT add a custom `DatabaseService` or custom async provider whose only purpose is to call `new DataSource(...).initialize()` / `destroy()`. Nest already exposes the initialized `DataSource` and `EntityManager` through dependency injection.
 
-Feature persistence registration uses `TypeOrmModule.forFeature(...)`. When a hosted business package owns TypeORM persistence, the service registers the package contribution exposed from `@accounterbro/<package>/typeorm`; it does not import the package's private entity files.
+Feature persistence registration still uses Nest/TypeORM mechanisms, but standard business-package contributions are registered by `@accounterbro/runtime-executions/nest` from hosted package manifests. The service does not import package-private entity files or create package persistence provider wrappers.
 
 The TypeORM CLI is a separate process and requires a service-local exported `DataSource`. That CLI adapter does not become the runtime lifecycle owner.
 
@@ -59,22 +59,9 @@ Persistence ports used as service DI tokens are exposed from the package `/typeo
 
 The factory accepts the normal TypeORM `DataSource` contract and contains no Nest-specific provider types. This keeps the package unaware of service transaction propagation while allowing the hosting runtime to supply the compatible `DataSource` boundary required by the execution path.
 
-The hosting service owns Nest provider wiring. Provider definitions are grouped by business package inside the service TypeORM boundary:
+The package `/typeorm` entrypoint remains the owner of framework-agnostic entities, migrations, persistence ports, and adapter factories. Its `@accounterbro/<package>/runtime` manifest aggregates the TypeORM contribution for standard hosting.
 
-```text
-infrastructure/persistence/typeorm/
-├── <service>-typeorm.module.ts
-├── typeorm-options.ts
-├── data-source.ts
-├── providers/
-│   ├── documents/
-│   │   └── documents.providers.ts
-│   └── <package>/
-│       └── <package>.providers.ts
-└── migrations/                 # only genuinely service-owned schema artifacts
-```
-
-A service-side package provider is composition only: bind the package-exported runtime port token to the package-exported factory and inject the service-owned `DataSource` boundary. The service MUST NOT reconstruct the package adapter, import private entities, or duplicate package persistence-construction knowledge.
+`@accounterbro/runtime-executions/nest` owns the standard Nest provider wiring: it registers manifested package entities, binds manifested persistence factories, and supplies the transaction-aware `DataSource` where required. The service MUST NOT add package-grouped provider wrapper files for this standard path. The real `DataSource` itself remains service-owned.
 
 Business-package implementation rules for `/typeorm` contracts are owned by `docs/engineering/package-guidelines.md`.
 
@@ -87,7 +74,6 @@ infrastructure/persistence/typeorm/
 ├── <service>-typeorm.module.ts
 ├── typeorm-options.ts
 ├── data-source.ts
-├── providers/                  # package-grouped TypeORM persistence bindings when needed
 └── migrations/                 # only service-owned schema artifacts when needed
 ```
 
@@ -101,7 +87,7 @@ Use `TypeOrmModule.forRootAsync(...)` with typed service config from `docs/engin
 
 The runtime options factory MUST reuse the service-local pure TypeORM connection-options factory and may add Nest-only options such as `autoLoadEntities: true`.
 
-Register package-owned persistence entities through their public composition contracts and register package persistence providers from package-grouped provider files. A service hosting multiple business packages composes each package's required contracts into the same service-owned database runtime.
+For the standard execution path, package-owned persistence entities/providers are composed from hosted runtime manifests by `RuntimeExecutionsModule.register([...packages])`. The service TypeORM module retains `TypeOrmModule.forRootAsync(...)` and any service-owned or unrelated capability registration, but does not recreate the shared execution persistence graph.
 
 Do not manually initialize or destroy the `DataSource`.
 
@@ -127,7 +113,7 @@ It MUST:
 
 - obtain configuration through the same callable service config factory used by Nest registration;
 - reuse `typeorm-options.ts`;
-- compose explicit entities and migrations for all schema hosted by that service, using public contracts from the owning business/runtime packages plus any genuinely service-owned artifacts;
+- compose explicit entities and migrations for all schema hosted by that service; for business packages use `collectRuntimePackageTypeOrmSchema(hostedPackages)` from the same hosted manifest list where practical, plus public contracts for other runtime capabilities and genuinely service-owned artifacts;
 - export a `DataSource` instance for the TypeORM `-d` option;
 - keep `migrationsRun: false`;
 - contain no duplicate raw-environment parsing or duplicate connection-field mapping.
@@ -144,7 +130,7 @@ Do not expose `DataSource` to application/domain code. Business-package TypeORM 
 
 ## Shared EDP runtime persistence consumption
 
-Services that use durable EDP execution with TypeORM MUST consume the focused public integrations provided by `@accounterbro/service-runtime`; they MUST NOT copy their schemas, adapters, transaction propagation, or recovery/fencing behavior into a service.
+Services that use durable EDP execution with TypeORM MUST consume the focused public integrations provided by `@accounterbro/runtime-executions`; they MUST NOT copy their schemas, adapters, transaction propagation, or recovery/fencing behavior into a service.
 
 The service remains the owner of the real Nest-managed `DataSource`. Shared runtime integrations compose around that service-owned lifecycle; they do not replace it.
 
@@ -152,47 +138,47 @@ The service remains the owner of the real Nest-managed `DataSource`. Shared runt
 
 For EDP Operations that require transactional TypeORM participation:
 
-- use `@accounterbro/service-runtime/typeorm` for the shared execution-transaction boundary;
-- supply the runtime-provided transaction-aware `DataSource` to unchanged business-package persistence factories and shared runtime stores that must participate in the Operation transaction;
+- use `@accounterbro/runtime-executions/typeorm` for the shared execution-transaction boundary;
+- let `@accounterbro/runtime-executions/nest` supply the transaction-aware `DataSource` to manifested business-package persistence factories and shared runtime stores that must participate in the Operation transaction;
 - keep business packages unaware of service transaction plumbing;
 - do not create service-local transaction contexts, repository-switching proxies, or `QueryRunner` execution adapters.
 
-The exact transaction-context/proxy/QueryRunner implementation is owned and tested by `packages/service-runtime` and is intentionally not reproduced here.
+The exact transaction-context/proxy/QueryRunner implementation is owned and tested by `packages/runtime-executions` and is intentionally not reproduced here.
 
 ### Execution log and Outbox
 
 Transactional services use:
 
 ```text
-@accounterbro/service-runtime/execution-log/typeorm
-@accounterbro/service-runtime/outbox/typeorm
+@accounterbro/runtime-executions/execution-log/typeorm
+@accounterbro/runtime-executions/outbox/typeorm
 ```
 
-Consume the stores and their exported entity/migration composition contracts through those public entrypoints. Keep execution-log and Outbox state in the owning service database rather than creating a central database or service-local copies of the adapters/schemas.
+The standard Nest adapter composes these stores and their runtime entities around the service-owned database. Keep execution-log and Outbox state in that database rather than creating a central database or service-local copies of the adapters/schemas.
 
-When the runtime path requires participation in the active Operation transaction, bind these stores to the same transaction-aware `DataSource` boundary used by business persistence.
+When the runtime path requires participation in the active Operation transaction, the adapter binds these stores to the same transaction-aware `DataSource` boundary used by business persistence.
 
 Outbox publication is CDC-owned. Services MUST NOT add a service-local polling publisher or delivery-lifecycle state merely to replace the established shared boundary.
 
-Detailed execution-log ownership/fencing and Outbox persistence/projection invariants are implementation-owned by `packages/service-runtime/AGENTS.md`.
+Detailed execution-log ownership/fencing and Outbox persistence/projection invariants are implementation-owned by `packages/runtime-executions/AGENTS.md`.
 
 ### Durable UseCase execution
 
 Services using durable EDP UseCases consume:
 
 ```text
-@accounterbro/service-runtime/use-case-execution/typeorm
+@accounterbro/runtime-executions/use-case-execution/typeorm
 ```
 
-Compose its exported entity/migration contracts into the service database and construct its store from the real service-owned `DataSource` as required by its public factory.
+Under the standard Nest runtime, `@accounterbro/runtime-executions/nest` composes its entity/store around the real service-owned `DataSource`; services do not construct a service-local store provider.
 
 UseCase execution persistence owns short durable state transitions; it does not create one SQL transaction spanning the child Operations/Reads orchestrated by a UseCase. Services MUST NOT create a service-local UseCase execution table/store or add recovery/lease/progress behavior around the shared implementation.
 
-Detailed claim/reclaim/fencing/replay/schema semantics are owned by `packages/service-runtime/AGENTS.md` and its tests.
+Detailed claim/reclaim/fencing/replay/schema semantics are owned by `packages/runtime-executions/AGENTS.md` and its tests.
 
 ### Testing ownership
 
-Service tests verify only service-owned database composition where that composition introduces behavior worth proving. Shared runtime adapter concurrency, transaction-propagation, fencing, projection, and replay behavior belongs to `packages/service-runtime` tests. Do not repeat those implementation tests from a hosting service.
+Service tests verify only service-owned database composition where that composition introduces behavior worth proving. Shared runtime adapter concurrency, transaction-propagation, fencing, projection, and replay behavior belongs to `packages/runtime-executions` tests. Do not repeat those implementation tests from a hosting service.
 
 ## Schema evolution
 
@@ -259,7 +245,7 @@ Deployment MUST have an explicit migration step/job before runtime code depends 
 
 `apps/services/documents` is the proven business-service reference for composing business-package and shared-runtime TypeORM contributions into a service-owned database.
 
-When a business service hosts a TypeORM-backed business package, extend the service-owned shell by composing package-owned contracts from `@accounterbro/<package>/typeorm`; do not use API's service-owned schema layout as a reason to move package artifacts into the service.
+When a business service hosts a TypeORM-backed business package through the standard runtime, register its `@accounterbro/<package>/runtime` manifest and let `@accounterbro/runtime-executions/nest` compose runtime persistence around the service-owned `DataSource`; do not move package artifacts into the service.
 
 ## Generator contract
 
@@ -274,4 +260,4 @@ The service generator may reproduce only the reusable vendor integration shell:
 
 The generator MUST NOT copy API-specific entities, health behavior, migrations, repository adapters, physical database topology, package-owned business/runtime entities/migrations, package persistence adapters/factories, or a custom database lifecycle abstraction.
 
-Adding a package to a generated service is a composition step: consume that package's public TypeORM contracts/factories rather than modifying the generator to copy package persistence artifacts.
+Adding a standard runtime package to a generated service is a composition step performed after generation: register its runtime manifest rather than modifying the generator to copy package persistence artifacts or execution wiring.

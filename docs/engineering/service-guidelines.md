@@ -57,7 +57,7 @@ Infrastructure owns technology/runtime composition and adapters: persistence, co
 
 Infrastructure MAY implement application-facing ports and compose business-package/shared-runtime public contracts. It MUST NOT move orchestration out of a UseCase merely because that orchestration invokes external technology.
 
-When a service hosts a business package, consume the package's public integration entrypoints such as `@accounterbro/<package>/execution` and `@accounterbro/<package>/typeorm`. Do not deep-import package implementation files or reconstruct package-owned handler/persistence construction in the service.
+When a service hosts a business package through the standard execution runtime, consume its `@accounterbro/<package>/runtime` manifest through `@accounterbro/runtime-executions/nest`. Do not deep-import package implementation files, manually consume its individual execution/persistence descriptors, or reconstruct package-owned handler/persistence construction in the service.
 
 Database lifecycle, TypeORM composition, and migration rules are defined in `docs/engineering/database-guidelines.md`. Environment and typed service configuration rules are defined in `docs/engineering/environment-guidelines.md` and `docs/engineering/service-configuration-guidelines.md`.
 
@@ -112,23 +112,31 @@ When preparing an implementation issue for a concrete UseCase, copy constraining
 
 ## Shared EDP runtime consumption
 
-Internal services consume reusable AccounterBro execution composition from `@accounterbro/service-runtime` instead of reconstructing the standard EDP dependency graph locally.
+Internal services consume reusable AccounterBro execution composition from `@accounterbro/runtime-executions` instead of reconstructing the standard EDP dependency graph locally.
 
 Use the focused public entrypoint that owns the required capability, including the established Runner, Reader, UseCaseExecutor, resolver, TypeORM transaction, and durable runtime-store integrations.
 
-The service owns its Nest/process composition and concrete service inputs. `@accounterbro/service-runtime` owns the reusable AccounterBro composition choices around published EDP contracts, while EDP remains the source of truth for execution semantics.
+The service owns the hosted-package selection, real `DataSource` lifecycle/configuration, and service-specific external integrations. The framework-agnostic `@accounterbro/runtime-executions` core owns reusable AccounterBro contracts/factories, while `@accounterbro/runtime-executions/nest` owns the standard Nest/process provider graph around the service-owned `DataSource`. EDP remains the source of truth for execution semantics.
 
 MUST NOT introduce service-local implementations/wrappers for Runner, Reader, UseCaseExecutor, handler resolvers, transaction propagation, execution-log persistence, Outbox persistence, or UseCase execution persistence when the shared runtime already owns that capability.
 
-For exact runtime composition contracts and implementation invariants, inspect the current public `@accounterbro/service-runtime` entrypoint and `packages/service-runtime/AGENTS.md`. Do not copy those implementation details into service code or duplicate them in service documentation.
+For exact runtime composition contracts and implementation invariants, inspect the current public `@accounterbro/runtime-executions` entrypoint and `packages/runtime-executions/AGENTS.md`. Do not copy those implementation details into service code or duplicate them in service documentation.
 
 ## Business package hosting
 
-A business package owns its business model, Operations/Reads/handlers, and package persistence integration contracts. A hosting service owns process/runtime composition around those public contracts.
+A business package owns its business model, Operations/Reads/handlers, persistence integration contracts, and one framework-agnostic runtime manifest aggregating the contributions required for standard hosting.
 
-The service MAY register package-exported provider/binding groups and package TypeORM contributions required by the behavior it hosts. It MUST NOT deep-import concrete package handlers/entities/migrations/adapters or duplicate package-owned construction/mapping knowledge.
+A Nest service selects the packages it hosts and registers their manifests through the shared adapter:
 
-Use `packages/documents` together with `apps/services/documents` as the current paired reference for this boundary. Apply only the parts required by the service being changed.
+```ts
+RuntimeExecutionsModule.register([documents]);
+```
+
+The service MUST NOT add local execution/read wrapper modules, package provider files, or service-specific Runner/Reader/UseCaseExecutor tokens merely to reproduce the shared graph. Ordinary runtime dependencies are injected through the runtime-valued class/abstract-class identities exported by `@accounterbro/runtime-executions`. Symbol tokens are reserved for genuine container/multibinding composition and stay behind the manifest/runtime boundary.
+
+The service remains responsible for its real `DataSource` lifecycle/configuration and service-specific external integrations such as ObjectStorage. It MUST NOT deep-import concrete package handlers/entities/migrations/adapters or duplicate package-owned construction/mapping knowledge.
+
+Use `packages/documents/src/runtime.ts` together with `apps/services/documents/src/app/infrastructure/infrastructure.module.ts` as the current paired reference for this boundary.
 
 ## Testing ownership
 

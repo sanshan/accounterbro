@@ -12,9 +12,9 @@ import {
     type FinishDocumentRegistrationPayload,
     type PrepareDocumentRegistrationOperation,
 } from '@accounterbro/documents';
-import type { ObjectStorage } from '@accounterbro/object-storage';
+import { ObjectStorage } from '@accounterbro/object-storage';
 import { IntentFactory } from '@event-driven-platform/intent';
-import type { Runner } from '@event-driven-platform/runner';
+import { Runner } from '@accounterbro/runtime-executions';
 import type { UseCase } from '@event-driven-platform/use-case';
 import { Injectable } from '@nestjs/common';
 

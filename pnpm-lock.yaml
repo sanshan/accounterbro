@@ -270,15 +270,15 @@ importers:
       '@accounterbro/runtime-config':
         specifier: workspace:*
         version: link:../../../packages/runtime-config
+      '@accounterbro/runtime-executions':
+        specifier: workspace:*
+        version: link:../../../packages/runtime-executions
       '@accounterbro/runtime-health':
         specifier: workspace:*
         version: link:../../../packages/runtime-health
       '@accounterbro/runtime-presenters':
         specifier: workspace:*
         version: link:../../../packages/runtime-presenters
-      '@accounterbro/service-runtime':
-        specifier: workspace:*
-        version: link:../../../packages/service-runtime
       '@event-driven-platform/actor':
         specifier: ^0.1.4
         version: 0.1.4
@@ -406,9 +406,9 @@ importers:
       '@accounterbro/core':
         specifier: workspace:*
         version: link:../core
-      '@accounterbro/service-runtime':
+      '@accounterbro/runtime-executions':
         specifier: workspace:*
-        version: link:../service-runtime
+        version: link:../runtime-executions
       '@event-driven-platform/actor':
         specifier: ^0.1.4
         version: 0.1.4
@@ -455,51 +455,7 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
 
-  packages/runtime-health:
-    dependencies:
-      typeorm:
-        specifier: 'catalog:'
-        version: 1.1.0(babel-plugin-macros@3.1.0)(pg@8.23.0)(ts-node@10.9.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@types/node@22.20.1)(typescript@5.9.3))
-    devDependencies:
-      pg:
-        specifier: 'catalog:'
-        version: 8.23.0
-
-  packages/runtime-presenters:
-    dependencies:
-      '@accounterbro/core':
-        specifier: workspace:*
-        version: link:../core
-      '@accounterbro/runtime-health':
-        specifier: workspace:*
-        version: link:../runtime-health
-      '@event-driven-platform/actor':
-        specifier: ^0.1.4
-        version: 0.1.4
-      '@nestjs/common':
-        specifier: ^11.0.0
-        version: 11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@nestjs/terminus':
-        specifier: ^11.1.0
-        version: 11.1.1(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)(@nestjs/typeorm@11.0.3(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@1.1.0(babel-plugin-macros@3.1.0)(pg@8.23.0)(ts-node@10.9.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@types/node@22.20.1)(typescript@5.9.3))))(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@1.1.0(babel-plugin-macros@3.1.0)(pg@8.23.0)(ts-node@10.9.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@types/node@22.20.1)(typescript@5.9.3)))
-    devDependencies:
-      '@nestjs/core':
-        specifier: ^11.0.0
-        version: 11.2.1(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.2.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@nestjs/platform-express':
-        specifier: ^11.0.0
-        version: 11.2.1(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)
-      '@nestjs/testing':
-        specifier: ^11.0.0
-        version: 11.2.1(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)(@nestjs/platform-express@11.2.1)
-      '@types/supertest':
-        specifier: ^7.2.1
-        version: 7.2.1
-      supertest:
-        specifier: ^7.2.2
-        version: 7.2.2
-
-  packages/service-runtime:
+  packages/runtime-executions:
     dependencies:
       '@event-driven-platform/clock':
         specifier: ^0.0.6
@@ -561,6 +517,31 @@ importers:
       '@event-driven-platform/use-case-executor':
         specifier: ^0.0.4
         version: 0.0.4
+      '@nestjs/common':
+        specifier: ^11.0.0
+        version: 11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/typeorm':
+        specifier: ^11.0.3
+        version: 11.0.3(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@1.1.0(babel-plugin-macros@3.1.0)(pg@8.23.0)(ts-node@10.9.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@types/node@22.20.1)(typescript@5.9.3)))
+      typeorm:
+        specifier: 'catalog:'
+        version: 1.1.0(babel-plugin-macros@3.1.0)(pg@8.23.0)(ts-node@10.9.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@types/node@22.20.1)(typescript@5.9.3))
+    devDependencies:
+      '@nestjs/core':
+        specifier: ^11.0.0
+        version: 11.2.1(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.2.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/testing':
+        specifier: ^11.0.0
+        version: 11.2.1(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)(@nestjs/platform-express@11.2.1)
+      pg:
+        specifier: 'catalog:'
+        version: 8.23.0
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
+
+  packages/runtime-health:
+    dependencies:
       typeorm:
         specifier: 'catalog:'
         version: 1.1.0(babel-plugin-macros@3.1.0)(pg@8.23.0)(ts-node@10.9.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@types/node@22.20.1)(typescript@5.9.3))
@@ -568,6 +549,40 @@ importers:
       pg:
         specifier: 'catalog:'
         version: 8.23.0
+
+  packages/runtime-presenters:
+    dependencies:
+      '@accounterbro/core':
+        specifier: workspace:*
+        version: link:../core
+      '@accounterbro/runtime-health':
+        specifier: workspace:*
+        version: link:../runtime-health
+      '@event-driven-platform/actor':
+        specifier: ^0.1.4
+        version: 0.1.4
+      '@nestjs/common':
+        specifier: ^11.0.0
+        version: 11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/terminus':
+        specifier: ^11.1.0
+        version: 11.1.1(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)(@nestjs/typeorm@11.0.3(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@1.1.0(babel-plugin-macros@3.1.0)(pg@8.23.0)(ts-node@10.9.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@types/node@22.20.1)(typescript@5.9.3))))(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@1.1.0(babel-plugin-macros@3.1.0)(pg@8.23.0)(ts-node@10.9.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@types/node@22.20.1)(typescript@5.9.3)))
+    devDependencies:
+      '@nestjs/core':
+        specifier: ^11.0.0
+        version: 11.2.1(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.2.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/platform-express':
+        specifier: ^11.0.0
+        version: 11.2.1(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)
+      '@nestjs/testing':
+        specifier: ^11.0.0
+        version: 11.2.1(@nestjs/common@11.2.1(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.1)(@nestjs/platform-express@11.2.1)
+      '@types/supertest':
+        specifier: ^7.2.1
+        version: 7.2.1
+      supertest:
+        specifier: ^7.2.2
+        version: 7.2.2
 
   tools/generators:
     dependencies:

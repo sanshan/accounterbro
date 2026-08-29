@@ -22,11 +22,16 @@
             "types": "./dist/typeorm.d.ts",
             "import": "./dist/typeorm.js",
             "default": "./dist/typeorm.js"
+        },
+        "./runtime": {
+            "types": "./dist/runtime.d.ts",
+            "import": "./dist/runtime.js",
+            "default": "./dist/runtime.js"
         }
     },
     "dependencies": {
         "@accounterbro/core": "workspace:*",
-        "@accounterbro/service-runtime": "workspace:*",
+        "@accounterbro/runtime-executions": "workspace:*",
         "@event-driven-platform/actor": "^0.1.4",
         "@event-driven-platform/event": "^0.1.4",
         "@event-driven-platform/intent": "^0.2.1",
