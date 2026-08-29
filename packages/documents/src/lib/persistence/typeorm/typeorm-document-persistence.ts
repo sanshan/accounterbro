@@ -1,4 +1,4 @@
-import type { DocumentId } from '@accounterbro/core';
+import type { DocumentId, TenantId } from '@accounterbro/core';
 import type { Repository } from 'typeorm';
 
 import type { Document } from '../../document/document.aggregate.js';
@@ -9,7 +9,12 @@ import { DocumentMapper } from './document.mapper.js';
 export class TypeOrmDocumentPersistence implements DocumentPersistence {
     public constructor(private readonly repository: Repository<DocumentEntity>) {}
 
-    public async createOrGetExisting(document: Document): Promise<CreateDocumentResult> {
+    public async createOrGetExisting(
+        tenantId: TenantId,
+        document: Document,
+    ): Promise<CreateDocumentResult> {
+        this.assertTenantScope(tenantId, document);
+
         const insertResult = await this.repository
             .createQueryBuilder()
             .insert()
@@ -23,7 +28,10 @@ export class TypeOrmDocumentPersistence implements DocumentPersistence {
             return { kind: 'created', document };
         }
 
-        const existing = await this.repository.findOneBy({ contentHash: document.contentHash });
+        const existing = await this.repository.findOneBy({
+            tenantId,
+            contentHash: document.contentHash,
+        });
         if (!existing) {
             throw new Error('Document uniqueness conflict did not resolve to an existing document.');
         }
@@ -34,12 +42,33 @@ export class TypeOrmDocumentPersistence implements DocumentPersistence {
         };
     }
 
-    public async findById(id: DocumentId): Promise<Document | null> {
-        const entity = await this.repository.findOneBy({ id });
+    public async findById(tenantId: TenantId, id: DocumentId): Promise<Document | null> {
+        const entity = await this.repository.findOneBy({ tenantId, id });
         return entity ? DocumentMapper.toDomain(entity) : null;
     }
 
-    public async update(document: Document): Promise<void> {
-        await this.repository.save(DocumentMapper.toPersistence(document));
+    public async update(tenantId: TenantId, document: Document): Promise<void> {
+        this.assertTenantScope(tenantId, document);
+
+        const entity = DocumentMapper.toPersistence(document);
+        const result = await this.repository.update(
+            { tenantId, id: document.id },
+            {
+                contentHash: entity.contentHash,
+                status: entity.status,
+                storageReference: entity.storageReference,
+                failureReason: entity.failureReason,
+            },
+        );
+
+        if (result.affected !== 1) {
+            throw new Error('Document does not exist in the requested tenant scope.');
+        }
+    }
+
+    private assertTenantScope(tenantId: TenantId, document: Document): void {
+        if (document.tenantId !== tenantId) {
+            throw new Error('Document tenant does not match the requested persistence scope.');
+        }
     }
 }

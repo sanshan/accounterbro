@@ -19,7 +19,10 @@ export class FinishDocumentRegistrationHandler
     public async execute(
         operation: FinishDocumentRegistrationOperation,
     ): Promise<SuccessfulOperationResult<FinishDocumentRegistrationOutcome, DocumentRegisteredEvent>> {
-        const document = await this.persistence.findById(operation.aggregate.id);
+        const document = await this.persistence.findById(
+            operation.tenant.id,
+            operation.aggregate.id,
+        );
 
         if (!document) {
             throw new Error('Document registration cannot finish because the Document does not exist.');
@@ -27,7 +30,7 @@ export class FinishDocumentRegistrationHandler
 
         if (operation.payload.outcome === 'registered') {
             const status = document.register(operation.payload.storageReference);
-            await this.persistence.update(document);
+            await this.persistence.update(operation.tenant.id, document);
 
             const outcome = {
                 id: document.id,
@@ -43,7 +46,7 @@ export class FinishDocumentRegistrationHandler
         }
 
         const status = document.fail(operation.payload.failureReason);
-        await this.persistence.update(document);
+        await this.persistence.update(operation.tenant.id, document);
 
         const outcome = {
             id: document.id,

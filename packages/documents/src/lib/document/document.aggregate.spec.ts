@@ -1,13 +1,14 @@
-import type { DocumentId } from '@accounterbro/core';
+import type { DocumentId, TenantId } from '@accounterbro/core';
 
 import { Document } from './document.aggregate.js';
 import { DocumentRegistrationStatus } from './document-registration-status.js';
 
 const documentId = 'document-1' as DocumentId;
+const tenantId = 'tenant-1' as TenantId;
 
 describe('Document', () => {
     it('registers only from pending state', () => {
-        const document = Document.pending(documentId, 'hash-1');
+        const document = Document.pending(documentId, tenantId, 'hash-1');
 
         document.register('storage://document-1');
 
@@ -20,7 +21,7 @@ describe('Document', () => {
     });
 
     it('fails only from pending state', () => {
-        const document = Document.pending(documentId, 'hash-1');
+        const document = Document.pending(documentId, tenantId, 'hash-1');
 
         document.fail('storage unavailable');
 
@@ -36,6 +37,7 @@ describe('Document', () => {
         expect(() =>
             Document.restore({
                 id: documentId,
+                tenantId,
                 contentHash: 'hash-1',
                 status: DocumentRegistrationStatus.Registered,
             }),
@@ -44,6 +46,7 @@ describe('Document', () => {
         expect(() =>
             Document.restore({
                 id: documentId,
+                tenantId,
                 contentHash: 'hash-1',
                 status: DocumentRegistrationStatus.Failed,
             }),

@@ -86,6 +86,20 @@ Normative keywords:
 - **READ-015** — Shared Read resolver identity and lookup implementation belong to `@accounterbro/runtime-executions`, not `@accounterbro/core` or a business package.
 - **READ-016** — Each Read name MUST map to exactly one Read handler in AccounterBro. Duplicate bindings are invalid service composition and MUST be rejected by the shared resolver. When adapting to the EDP resolver contract, a successful resolution MUST contain a singleton handler tuple.
 
+## Tenant ownership
+
+- **TENANT-001** — Before choosing an Operation/Read contract, determine whether the behavior and resource are tenant-owned. Tenant-owned execution MUST use the applicable published EDP tenant-aware contract with the domain's typed tenant reference.
+- **TENANT-002** — A genuinely tenantless Operation/Read is valid when the behavior and resource have no tenant owner and the applicable published EDP contract represents that model. Code MUST NOT omit or fabricate tenant merely to force tenantless behavior through a tenant-aware contract.
+- **TENANT-003** — A tenant-aware Operation/Read handler MUST pass the execution tenant through every tenant-owned persistence call. It MUST NOT replace explicit propagation with Intent/payload duplication, AsyncLocalStorage, request-scoped current-tenant providers, or another ambient mechanism.
+- **TENANT-004** — Tenant-owned persistence APIs MUST accept tenant identity explicitly. When tenant ownership is part of aggregate state, the aggregate and persistence representation MUST preserve that owner, and persistence MUST reject a write whose aggregate owner contradicts the requested tenant scope.
+- **TENANT-005** — Tenant isolation MUST be enforced by the persistence query predicate, for example `WHERE tenant_id = :tenantId AND id = :resourceId`. Loading by a globally unique id and comparing tenant afterward is not an isolation boundary.
+- **TENANT-006** — Unless an approved specification requires different behavior, a cross-tenant lookup MUST return the same absence outcome as an unknown identity. Persistence/handler behavior MUST NOT reveal that another tenant owns the identity.
+- **TENANT-007** — Tenant-owned updates and deletes MUST include tenant in their mutation predicate. A missing row and a row owned by another tenant MUST have the same non-mutating outcome at that boundary unless an approved specification says otherwise.
+- **TENANT-008** — Database uniqueness, idempotency, and deduplication constraints MUST use the same ownership scope as the business rule. Tenant-local duplicate detection requires a tenant-scoped constraint such as `(tenant_id, content_hash)`; a global constraint MUST NOT collapse different tenants' resources.
+- **TENANT-009** — Database-enforced tenant ownership and scoped constraints are the primary package persistence boundary. RLS MAY be considered separately as defense in depth, but it MUST NOT replace explicit tenant-aware contracts and predicates.
+
+The current canonical reference is Documents: `Document` preserves its owner, `DocumentPersistence` accepts tenant identity, `TypeOrmDocumentPersistence` scopes duplicate/find/update queries, the Prepare/Finish/Get handlers propagate the EDP execution tenant, and `apps/services/documents-e2e/src/documents/documents.spec.ts` proves the complete running-service boundary. Follow those responsibilities without copying Documents-specific fields or operations mechanically.
+
 ## Runtime manifest
 
 - **RUNTIME-001** — A business package that participates in the standard execution runtime MUST expose one Nest-agnostic host manifest from `@accounterbro/<package>/runtime`.

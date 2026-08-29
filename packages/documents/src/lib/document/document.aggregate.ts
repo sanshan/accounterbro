@@ -1,22 +1,24 @@
-import type { DocumentId } from '@accounterbro/core';
+import type { DocumentId, TenantId } from '@accounterbro/core';
 
 import { DocumentRegistrationStatus } from './document-registration-status.js';
 
 export class Document {
     private constructor(
         public readonly id: DocumentId,
+        public readonly tenantId: TenantId,
         public readonly contentHash: string,
         private registrationStatus: DocumentRegistrationStatus,
         private registrationStorageReference?: string,
         private registrationFailureReason?: string,
     ) {}
 
-    public static pending(id: DocumentId, contentHash: string): Document {
-        return new Document(id, contentHash, DocumentRegistrationStatus.Pending);
+    public static pending(id: DocumentId, tenantId: TenantId, contentHash: string): Document {
+        return new Document(id, tenantId, contentHash, DocumentRegistrationStatus.Pending);
     }
 
     public static restore(state: {
         readonly id: DocumentId;
+        readonly tenantId: TenantId;
         readonly contentHash: string;
         readonly status: DocumentRegistrationStatus;
         readonly storageReference?: string;
@@ -44,6 +46,7 @@ export class Document {
 
         return new Document(
             state.id,
+            state.tenantId,
             state.contentHash,
             state.status,
             state.storageReference,

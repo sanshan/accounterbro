@@ -102,6 +102,16 @@ Actor, tenant, and similar invocation values belong in that concrete context onl
 
 UseCase behavioral tests are specification-level tests. They MUST verify observable behavior required by the owning specification. They MUST NOT test Nest scope, constructor shape, context-file placement, or EDP implementation mechanics unless the specification makes such behavior observable.
 
+### Tenant-owned UseCases
+
+A UseCase that reads or changes tenant-owned resources MUST include the typed tenant reference in its concrete UseCase context. The presenter or other invocation adapter supplies that tenant explicitly together with the other invocation metadata required by the UseCase.
+
+When the UseCase constructs a tenant-owned Operation or Read, it MUST pass the context tenant through the applicable published EDP execution contract. Do not copy tenant into an Intent or business payload as a substitute for the execution tenant, and do not hide it in request-scoped providers, AsyncLocalStorage, or another ambient current-tenant mechanism.
+
+A UseCase whose behavior and resources are genuinely tenantless MUST NOT acquire tenant merely because the presenter can provide one. Select the applicable tenant-aware or tenantless EDP execution contract from the ownership model before implementation; do not omit or fabricate tenant on a contract that requires it.
+
+The package handler and persistence responsibilities after Operation/Read construction are defined by the tenant-ownership rules in `docs/engineering/package-guidelines.md`. `RegisterDocumentUseCase` and `GetDocumentUseCase` under `apps/services/documents/src/app/application/use-cases/` are the current concrete context-to-Operation/Read references.
+
 ## UseCase implementation preflight
 
 Before designing or modifying a concrete service UseCase, inspect the current implementation and semantics of every execution boundary the UseCase will actually use:
