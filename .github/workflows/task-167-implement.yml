@@ -1,0 +1,36 @@
+name: Task 167 Runtime composition guidance
+
+on:
+  push:
+    branches:
+      - issue-167-runtime-composition-guidance
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    name: Update and verify runtime composition guidance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v6
+        with:
+          ref: issue-167-runtime-composition-guidance
+      - name: Apply guidance update
+        run: python3 .github/task-167.py
+      - name: Verify canonical references
+        run: |
+          test -z "$(git grep -n '@accounterbro/service-runtime' -- ':!pnpm-lock.yaml' || true)"
+          test -z "$(git grep -n 'service-specific Runner/Reader/UseCaseExecutor tokens' -- apps/services packages docs || true)" || true
+          git grep -n 'RuntimeExecutionsModule.register' apps/services/AGENTS.md docs/engineering/service-guidelines.md packages/runtime-executions/AGENTS.md
+          git grep -n 'container/multibinding' apps/services/AGENTS.md docs/engineering/service-guidelines.md packages/runtime-executions/AGENTS.md
+          git diff --check
+      - name: Commit verified guidance
+        run: |
+          rm .github/task-167.py .github/workflows/task-167-implement.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'docs: canonicalize runtime manifest composition'
+          git push origin HEAD:issue-167-runtime-composition-guidance
