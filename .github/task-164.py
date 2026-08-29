@@ -64,13 +64,23 @@ class FirstEntity {}
 class SecondEntity {}
 
 class FirstMigration implements MigrationInterface {
-    public async up(): Promise<void> {}
-    public async down(): Promise<void> {}
+    public up(): Promise<void> {
+        return Promise.resolve();
+    }
+
+    public down(): Promise<void> {
+        return Promise.resolve();
+    }
 }
 
 class SecondMigration implements MigrationInterface {
-    public async up(): Promise<void> {}
-    public async down(): Promise<void> {}
+    public up(): Promise<void> {
+        return Promise.resolve();
+    }
+
+    public down(): Promise<void> {
+        return Promise.resolve();
+    }
 }
 
 describe('runtime package TypeORM schema', () => {
