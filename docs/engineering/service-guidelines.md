@@ -85,11 +85,18 @@ A concrete service UseCase MUST be a Nest `@Injectable()` provider using the def
 
 Constructor dependencies are reserved for stable reusable collaborators such as Runner, Reader, storage capabilities, repositories/ports, or other long-lived dependencies. Invocation-specific metadata MUST NOT be stored on the singleton instance or introduced through request-scoped DI merely for convenience.
 
-Each UseCase MUST define its own concrete context type extending EDP `UseCaseContext` with exactly the additional invocation metadata it needs. Keep the context beside the UseCase as:
+Each concrete UseCase MUST own a dedicated folder under `application/use-cases/`. Keep its implementation, concrete context and behavioral specification colocated:
 
 ```text
-<use-case-name>.use-case.context.ts
+application/
+  use-cases/
+    <use-case-name>/
+      <use-case-name>.use-case.ts
+      <use-case-name>.use-case.context.ts
+      <use-case-name>.use-case.spec.ts
 ```
+
+Each UseCase MUST define its own concrete context type extending EDP `UseCaseContext` with exactly the additional invocation metadata it needs.
 
 Actor, tenant, and similar invocation values belong in that concrete context only when the UseCase requires them. Preserve typed concrete-context flow end to end through `UseCaseExecutor`; do not hide invocation metadata in AsyncLocalStorage, ambient current-user/current-tenant providers, casts, or local executor wrappers.
 

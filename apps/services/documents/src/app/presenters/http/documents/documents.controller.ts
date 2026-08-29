@@ -20,13 +20,13 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
     GetDocumentUseCase,
     type GetDocumentUseCaseInput,
-} from '../../../application/use-cases/get-document.use-case';
-import type { GetDocumentUseCaseContext } from '../../../application/use-cases/get-document.use-case.context';
+} from '../../../application/use-cases/get-document/get-document.use-case';
+import type { GetDocumentUseCaseContext } from '../../../application/use-cases/get-document/get-document.use-case.context';
 import {
     RegisterDocumentUseCase,
     type RegisterDocumentInput,
-} from '../../../application/use-cases/register-document.use-case';
-import type { RegisterDocumentUseCaseContext } from '../../../application/use-cases/register-document.use-case.context';
+} from '../../../application/use-cases/register-document/register-document.use-case';
+import type { RegisterDocumentUseCaseContext } from '../../../application/use-cases/register-document/register-document.use-case.context';
 import type { GetDocumentResponseDto } from './dto/get-document.response.dto';
 import type { RegisterDocumentResponseDto } from './dto/register-document.response.dto';
 import { mapGetDocumentResponse } from './mappers/get-document.response.mapper';
