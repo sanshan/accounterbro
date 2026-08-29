@@ -47,6 +47,11 @@
             "types": "./dist/use-case-executor.d.ts",
             "import": "./dist/use-case-executor.js",
             "default": "./dist/use-case-executor.js"
+        },
+        "./nest": {
+            "types": "./dist/nest.d.ts",
+            "import": "./dist/nest.js",
+            "default": "./dist/nest.js"
         }
     },
     "dependencies": {
@@ -70,9 +75,14 @@
         "@event-driven-platform/runner": "^0.0.7",
         "@event-driven-platform/use-case-execution-store": "^0.0.4",
         "@event-driven-platform/use-case-executor": "^0.0.4",
-        "typeorm": "catalog:"
+        "typeorm": "catalog:",
+        "@nestjs/common": "^11.0.0",
+        "@nestjs/typeorm": "^11.0.3"
     },
     "devDependencies": {
-        "pg": "catalog:"
+        "pg": "catalog:",
+        "reflect-metadata": "^0.2.2",
+        "@nestjs/core": "^11.0.0",
+        "@nestjs/testing": "^11.0.0"
     }
 }

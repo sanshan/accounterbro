@@ -1,4 +1,4 @@
-import type { DataSource, EntityTarget, MigrationInterface } from 'typeorm';
+import type { DataSource, EntitySchema, MigrationInterface } from 'typeorm';
 
 export interface RuntimeFactoryProvider {
     readonly provide: unknown;
@@ -17,8 +17,10 @@ export interface RuntimeTypeOrmPersistenceContribution {
     readonly create: (dataSource: DataSource) => unknown;
 }
 
+export type RuntimeTypeOrmEntity = EntitySchema<unknown> | (new (...args: never[]) => object);
+
 export interface RuntimeTypeOrmContribution {
-    readonly entities?: readonly EntityTarget<unknown>[];
+    readonly entities?: readonly RuntimeTypeOrmEntity[];
     readonly migrations?: readonly (new () => MigrationInterface)[];
     readonly persistence?: readonly RuntimeTypeOrmPersistenceContribution[];
 }
@@ -35,7 +37,7 @@ export function defineRuntimePackage<const TPackage extends RuntimePackageManife
 }
 
 export interface RuntimePackageTypeOrmSchema {
-    readonly entities: readonly EntityTarget<unknown>[];
+    readonly entities: readonly RuntimeTypeOrmEntity[];
     readonly migrations: readonly (new () => MigrationInterface)[];
 }
 
