@@ -2,9 +2,9 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig(() => ({
     root: __dirname,
-    cacheDir: '../../node_modules/.vite/packages/service-runtime',
+    cacheDir: '../../node_modules/.vite/packages/runtime-executions',
     test: {
-        name: '@accounterbro/service-runtime',
+        name: '@accounterbro/runtime-executions',
         watch: false,
         passWithNoTests: true,
         globals: true,

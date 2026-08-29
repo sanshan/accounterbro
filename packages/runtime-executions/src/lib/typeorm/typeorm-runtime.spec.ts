@@ -31,7 +31,7 @@ function mockRepositoryResult(repository: Repository<TestEntity>, id: string): v
     );
 }
 
-describe('@accounterbro/service-runtime/typeorm', () => {
+describe('@accounterbro/runtime-executions/typeorm', () => {
     it('selects the transaction-bound repository at use time', async () => {
         const dataSource = createDataSource();
         const defaultRepository = dataSource.manager.getRepository(TestEntity);

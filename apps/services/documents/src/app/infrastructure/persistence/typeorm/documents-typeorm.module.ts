@@ -6,20 +6,20 @@ import { RUNTIME_HEALTH_TYPEORM_ENTITIES } from '@accounterbro/runtime-health/ty
 import {
     EXECUTION_LOG_TYPEORM_ENTITIES,
     createExecutionLogStore,
-} from '@accounterbro/service-runtime/execution-log/typeorm';
+} from '@accounterbro/runtime-executions/execution-log/typeorm';
 import {
     OUTBOX_TYPEORM_ENTITIES,
     createOutboxStore,
-} from '@accounterbro/service-runtime/outbox/typeorm';
+} from '@accounterbro/runtime-executions/outbox/typeorm';
 import {
     TypeOrmExecutionTransaction,
     TypeOrmTransactionContext,
     createTransactionAwareDataSource,
-} from '@accounterbro/service-runtime/typeorm';
+} from '@accounterbro/runtime-executions/typeorm';
 import {
     USE_CASE_EXECUTION_TYPEORM_ENTITIES,
     createUseCaseExecutionStore,
-} from '@accounterbro/service-runtime/use-case-execution/typeorm';
+} from '@accounterbro/runtime-executions/use-case-execution/typeorm';
 import { Module } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';

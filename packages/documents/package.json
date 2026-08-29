@@ -26,7 +26,7 @@
     },
     "dependencies": {
         "@accounterbro/core": "workspace:*",
-        "@accounterbro/service-runtime": "workspace:*",
+        "@accounterbro/runtime-executions": "workspace:*",
         "@event-driven-platform/actor": "^0.1.4",
         "@event-driven-platform/event": "^0.1.4",
         "@event-driven-platform/intent": "^0.2.1",

@@ -276,9 +276,9 @@ importers:
       '@accounterbro/runtime-presenters':
         specifier: workspace:*
         version: link:../../../packages/runtime-presenters
-      '@accounterbro/service-runtime':
+      '@accounterbro/runtime-executions':
         specifier: workspace:*
-        version: link:../../../packages/service-runtime
+        version: link:../../../packages/runtime-executions
       '@event-driven-platform/actor':
         specifier: ^0.1.4
         version: 0.1.4
@@ -406,9 +406,9 @@ importers:
       '@accounterbro/core':
         specifier: workspace:*
         version: link:../core
-      '@accounterbro/service-runtime':
+      '@accounterbro/runtime-executions':
         specifier: workspace:*
-        version: link:../service-runtime
+        version: link:../runtime-executions
       '@event-driven-platform/actor':
         specifier: ^0.1.4
         version: 0.1.4
@@ -499,7 +499,7 @@ importers:
         specifier: ^7.2.2
         version: 7.2.2
 
-  packages/service-runtime:
+  packages/runtime-executions:
     dependencies:
       '@event-driven-platform/clock':
         specifier: ^0.0.6

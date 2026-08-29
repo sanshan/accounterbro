@@ -3,8 +3,8 @@ import {
     MapReadHandlerResolver,
     ReadHandlerResolver,
     type ReadHandlerBinding,
-} from '@accounterbro/service-runtime';
-import { createServiceReader } from '@accounterbro/service-runtime/reader';
+} from '@accounterbro/runtime-executions';
+import { createServiceReader } from '@accounterbro/runtime-executions/reader';
 import { Module } from '@nestjs/common';
 
 import { DocumentsTypeormModule } from '../persistence/typeorm/documents-typeorm.module';

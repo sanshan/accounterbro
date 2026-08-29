@@ -1,7 +1,7 @@
 import type {
     OperationHandlerBinding,
     ReadHandlerBinding,
-} from '@accounterbro/service-runtime';
+} from '@accounterbro/runtime-executions';
 
 import { FinishDocumentRegistrationHandler } from './lib/operations/finish-document-registration/finish-document-registration.handler.js';
 import { PrepareDocumentRegistrationHandler } from './lib/operations/prepare-document-registration/prepare-document-registration.handler.js';

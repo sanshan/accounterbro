@@ -2,7 +2,7 @@
 
 These rules define the canonical consumer-facing PostgreSQL and TypeORM integration for internal Nest services in AccounterBro.
 
-This guide owns service database lifecycle, schema ownership, TypeORM composition, migration, and shared-runtime persistence **consumption**. Detailed algorithms and implementation invariants inside `@accounterbro/service-runtime` are owned by `packages/service-runtime/AGENTS.md`.
+This guide owns service database lifecycle, schema ownership, TypeORM composition, migration, and shared-runtime persistence **consumption**. Detailed algorithms and implementation invariants inside `@accounterbro/runtime-executions` are owned by `packages/runtime-executions/AGENTS.md`.
 
 The pattern follows the official NestJS `@nestjs/typeorm` and TypeORM APIs instead of introducing a repository-owned database lifecycle abstraction.
 
@@ -144,7 +144,7 @@ Do not expose `DataSource` to application/domain code. Business-package TypeORM 
 
 ## Shared EDP runtime persistence consumption
 
-Services that use durable EDP execution with TypeORM MUST consume the focused public integrations provided by `@accounterbro/service-runtime`; they MUST NOT copy their schemas, adapters, transaction propagation, or recovery/fencing behavior into a service.
+Services that use durable EDP execution with TypeORM MUST consume the focused public integrations provided by `@accounterbro/runtime-executions`; they MUST NOT copy their schemas, adapters, transaction propagation, or recovery/fencing behavior into a service.
 
 The service remains the owner of the real Nest-managed `DataSource`. Shared runtime integrations compose around that service-owned lifecycle; they do not replace it.
 
@@ -152,20 +152,20 @@ The service remains the owner of the real Nest-managed `DataSource`. Shared runt
 
 For EDP Operations that require transactional TypeORM participation:
 
-- use `@accounterbro/service-runtime/typeorm` for the shared execution-transaction boundary;
+- use `@accounterbro/runtime-executions/typeorm` for the shared execution-transaction boundary;
 - supply the runtime-provided transaction-aware `DataSource` to unchanged business-package persistence factories and shared runtime stores that must participate in the Operation transaction;
 - keep business packages unaware of service transaction plumbing;
 - do not create service-local transaction contexts, repository-switching proxies, or `QueryRunner` execution adapters.
 
-The exact transaction-context/proxy/QueryRunner implementation is owned and tested by `packages/service-runtime` and is intentionally not reproduced here.
+The exact transaction-context/proxy/QueryRunner implementation is owned and tested by `packages/runtime-executions` and is intentionally not reproduced here.
 
 ### Execution log and Outbox
 
 Transactional services use:
 
 ```text
-@accounterbro/service-runtime/execution-log/typeorm
-@accounterbro/service-runtime/outbox/typeorm
+@accounterbro/runtime-executions/execution-log/typeorm
+@accounterbro/runtime-executions/outbox/typeorm
 ```
 
 Consume the stores and their exported entity/migration composition contracts through those public entrypoints. Keep execution-log and Outbox state in the owning service database rather than creating a central database or service-local copies of the adapters/schemas.
@@ -174,25 +174,25 @@ When the runtime path requires participation in the active Operation transaction
 
 Outbox publication is CDC-owned. Services MUST NOT add a service-local polling publisher or delivery-lifecycle state merely to replace the established shared boundary.
 
-Detailed execution-log ownership/fencing and Outbox persistence/projection invariants are implementation-owned by `packages/service-runtime/AGENTS.md`.
+Detailed execution-log ownership/fencing and Outbox persistence/projection invariants are implementation-owned by `packages/runtime-executions/AGENTS.md`.
 
 ### Durable UseCase execution
 
 Services using durable EDP UseCases consume:
 
 ```text
-@accounterbro/service-runtime/use-case-execution/typeorm
+@accounterbro/runtime-executions/use-case-execution/typeorm
 ```
 
 Compose its exported entity/migration contracts into the service database and construct its store from the real service-owned `DataSource` as required by its public factory.
 
 UseCase execution persistence owns short durable state transitions; it does not create one SQL transaction spanning the child Operations/Reads orchestrated by a UseCase. Services MUST NOT create a service-local UseCase execution table/store or add recovery/lease/progress behavior around the shared implementation.
 
-Detailed claim/reclaim/fencing/replay/schema semantics are owned by `packages/service-runtime/AGENTS.md` and its tests.
+Detailed claim/reclaim/fencing/replay/schema semantics are owned by `packages/runtime-executions/AGENTS.md` and its tests.
 
 ### Testing ownership
 
-Service tests verify only service-owned database composition where that composition introduces behavior worth proving. Shared runtime adapter concurrency, transaction-propagation, fencing, projection, and replay behavior belongs to `packages/service-runtime` tests. Do not repeat those implementation tests from a hosting service.
+Service tests verify only service-owned database composition where that composition introduces behavior worth proving. Shared runtime adapter concurrency, transaction-propagation, fencing, projection, and replay behavior belongs to `packages/runtime-executions` tests. Do not repeat those implementation tests from a hosting service.
 
 ## Schema evolution
 
