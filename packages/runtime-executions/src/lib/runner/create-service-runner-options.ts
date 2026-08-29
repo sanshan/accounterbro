@@ -1,10 +1,10 @@
 import type { Clock } from '@event-driven-platform/clock';
 import type { ExecutionLeaseOwnerId } from '@event-driven-platform/execution';
-import type { ExecutionLogStore } from '@event-driven-platform/execution-log-store';
 import type { ExecutionTransaction } from '@event-driven-platform/execution-transaction';
-import type { OutboxStore } from '@event-driven-platform/outbox-store';
 
+import type { ExecutionLogStore } from '../execution-log/execution-log-store.js';
 import type { OperationHandlerResolver } from '../operation-handler-resolver/operation-handler-resolver.js';
+import type { OutboxStore } from '../outbox/outbox-store.js';
 
 export interface CreateServiceRunnerOptions {
     readonly clock: Clock;

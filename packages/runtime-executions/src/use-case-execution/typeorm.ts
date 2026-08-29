@@ -1,5 +1,6 @@
-import type { UseCaseExecutionStore } from '@event-driven-platform/use-case-execution-store';
 import type { DataSource } from 'typeorm';
+
+import type { UseCaseExecutionStore } from '../lib/use-case-execution/use-case-execution-store.js';
 
 import { CreateUseCaseExecution1787572800000 } from '../lib/use-case-execution/typeorm/migrations/1787572800000-CreateUseCaseExecution.js';
 import { TypeOrmUseCaseExecutionStore } from '../lib/use-case-execution/typeorm/typeorm-use-case-execution-store.js';
