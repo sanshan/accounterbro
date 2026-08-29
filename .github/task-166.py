@@ -82,7 +82,7 @@ import { createDocumentsTypeOrmOptions } from './typeorm-options';
                 autoLoadEntities: true,
             }),
         }),
-        TypeOrmModule.forFeature(RUNTIME_HEALTH_TYPEORM_ENTITIES),
+        TypeOrmModule.forFeature([...RUNTIME_HEALTH_TYPEORM_ENTITIES]),
     ],
     exports: [TypeOrmModule],
 })
@@ -94,9 +94,7 @@ import {
     RUNTIME_HEALTH_TYPEORM_ENTITIES,
     RUNTIME_HEALTH_TYPEORM_MIGRATIONS,
 } from '@accounterbro/runtime-health/typeorm';
-import {
-    collectRuntimePackageTypeOrmSchema,
-} from '@accounterbro/runtime-executions';
+import { collectRuntimePackageTypeOrmSchema } from '@accounterbro/runtime-executions';
 import {
     EXECUTION_LOG_TYPEORM_ENTITIES,
     EXECUTION_LOG_TYPEORM_MIGRATIONS,
