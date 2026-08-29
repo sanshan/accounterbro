@@ -73,6 +73,7 @@
         "typeorm": "catalog:"
     },
     "devDependencies": {
-        "pg": "catalog:"
+        "pg": "catalog:",
+        "reflect-metadata": "^0.2.2"
     }
 }
