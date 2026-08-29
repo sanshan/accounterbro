@@ -4,6 +4,22 @@ from pathlib import Path
 root = Path('packages/runtime-executions')
 src = root / 'src'
 
+runtime_package_path = src / 'lib/runtime-package/runtime-package.ts'
+runtime_package = runtime_package_path.read_text()
+runtime_package = runtime_package.replace(
+    "import type { DataSource, EntityTarget, MigrationInterface } from 'typeorm';",
+    "import type { DataSource, EntitySchema, MigrationInterface } from 'typeorm';",
+)
+runtime_package = runtime_package.replace(
+    'readonly entities?: readonly EntityTarget<unknown>[];',
+    'readonly entities?: readonly (Function | EntitySchema<unknown>)[];',
+)
+runtime_package = runtime_package.replace(
+    'readonly entities: readonly EntityTarget<unknown>[];',
+    'readonly entities: readonly (Function | EntitySchema<unknown>)[];',
+)
+runtime_package_path.write_text(runtime_package)
+
 (src / 'lib/nest').mkdir(parents=True, exist_ok=True)
 
 (src / 'lib/nest/runtime-process.ts').write_text("""import { randomUUID } from 'node:crypto';
@@ -35,15 +51,11 @@ import {
 } from '../../use-case-execution/typeorm.js';
 import { createServiceUseCaseExecutor } from '../../use-case-executor.js';
 import { ExecutionLogStore } from '../execution-log/execution-log-store.js';
-import {
-    MapOperationHandlerResolver,
-} from '../operation-handler-resolver/map-operation-handler-resolver.js';
+import { MapOperationHandlerResolver } from '../operation-handler-resolver/map-operation-handler-resolver.js';
 import type { OperationHandlerBinding } from '../operation-handler-resolver/operation-handler-binding.js';
 import { OperationHandlerResolver } from '../operation-handler-resolver/operation-handler-resolver.js';
 import { OutboxStore } from '../outbox/outbox-store.js';
-import {
-    MapReadHandlerResolver,
-} from '../read-handler-resolver/map-read-handler-resolver.js';
+import { MapReadHandlerResolver } from '../read-handler-resolver/map-read-handler-resolver.js';
 import type { ReadHandlerBinding } from '../read-handler-resolver/read-handler-binding.js';
 import { ReadHandlerResolver } from '../read-handler-resolver/read-handler-resolver.js';
 import { Reader } from '../reader/reader.js';
@@ -206,15 +218,17 @@ export class RuntimeExecutionsModule {
 
 (src / 'lib/nest/runtime-executions.module.integration.spec.ts').write_text("""import 'reflect-metadata';
 
-import { defineRuntimePackage, OperationHandlerResolver, ReadHandlerResolver } from '../..//index.js';
-import { Reader } from '../reader/reader.js';
-import { Runner } from '../runner/runner.js';
-import { UseCaseExecutor } from '../use-case-executor/use-case-executor.js';
 import { Module } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
+import { OperationHandlerResolver } from '../operation-handler-resolver/operation-handler-resolver.js';
+import { ReadHandlerResolver } from '../read-handler-resolver/read-handler-resolver.js';
+import { Reader } from '../reader/reader.js';
+import { defineRuntimePackage } from '../runtime-package/runtime-package.js';
+import { Runner } from '../runner/runner.js';
+import { UseCaseExecutor } from '../use-case-executor/use-case-executor.js';
 import { RuntimeExecutionsModule } from './runtime-executions.module.js';
 
 const OPERATION_BINDINGS = Symbol('TEST_OPERATION_BINDINGS');
