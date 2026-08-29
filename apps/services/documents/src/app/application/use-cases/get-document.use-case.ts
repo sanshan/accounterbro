@@ -4,7 +4,7 @@ import {
     type GetDocumentRead,
     type GetDocumentResult,
 } from '@accounterbro/documents';
-import type { Reader } from '@event-driven-platform/reader';
+import { Reader } from '@accounterbro/runtime-executions';
 import type { UseCase } from '@event-driven-platform/use-case';
 import { Injectable } from '@nestjs/common';
 
