@@ -71,14 +71,6 @@ One request may create and continue registering the Document; the other requests
 
 A concurrent duplicate request may observe the existing Document while its status is still `PENDING`.
 
-### DOC-REG-005 — Isolate duplicate detection by tenant
-
-Given two tenants submit identical binary content,
-when both registrations complete,
-then each tenant owns a distinct Document and neither registration reuses the other tenant's Document.
-
-Content-hash uniqueness and concurrent duplicate resolution are tenant-local. Storage references/keys also remain tenant-scoped.
-
 ### DOC-REG-004 — Complete original storage within the registration UseCase
 
 Given a newly created `PENDING` Document,
@@ -89,6 +81,14 @@ then before that UseCase completes it records the storage outcome so the Documen
 - `FAILED` with the failure reason when storage fails.
 
 External original-storage I/O does not run inside a transactional Documents Operation handler. The UseCase orchestrates the storage call between the operation that prepares the Document and the operation that records the final registration outcome.
+
+### DOC-REG-005 — Isolate duplicate detection by tenant
+
+Given two tenants submit identical binary content,
+when both registrations complete,
+then each tenant owns a distinct Document and neither registration reuses the other tenant's Document.
+
+Content-hash uniqueness and concurrent duplicate resolution are tenant-local. Storage references/keys also remain tenant-scoped.
 
 ## Out of scope
 
