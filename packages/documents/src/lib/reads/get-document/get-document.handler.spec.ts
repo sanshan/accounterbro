@@ -1,4 +1,9 @@
-import type { DocumentId } from '@accounterbro/core';
+import {
+    tenantName,
+    type DocumentId,
+    type TenantId,
+    type TenantReference,
+} from '@accounterbro/core';
 
 import { Document } from '../../document/document.aggregate.js';
 import { DocumentRegistrationStatus } from '../../document/document-registration-status.js';
@@ -8,6 +13,10 @@ import { GetDocumentReadHandler } from './get-document.handler.js';
 import type { GetDocumentRead } from './get-document.read.js';
 
 const documentId = 'document-1' as DocumentId;
+const tenant = {
+    type: tenantName,
+    id: 'tenant-1' as TenantId,
+} satisfies TenantReference;
 
 function createPersistence(document: Document | null): DocumentPersistence {
     return {
@@ -21,6 +30,7 @@ function read(id: DocumentId = documentId): GetDocumentRead {
     return {
         name: documentReadNames.getDocument,
         actor: { type: 'user', id: 'user-1', origin: {} },
+        tenant,
         parameters: { documentId: id },
     };
 }
