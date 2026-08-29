@@ -1,5 +1,6 @@
-import type { OutboxStore } from '@event-driven-platform/outbox-store';
 import type { DataSource } from 'typeorm';
+
+import type { OutboxStore } from '../lib/outbox/outbox-store.js';
 
 import { OutboxEntity } from '../lib/outbox/typeorm/outbox.entity.js';
 import { CreateOutbox1787559600000 } from '../lib/outbox/typeorm/migrations/1787559600000-CreateOutbox.js';

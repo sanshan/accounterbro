@@ -4,3 +4,9 @@ export { OperationHandlerResolver } from './lib/operation-handler-resolver/opera
 export type { ReadHandlerBinding } from './lib/read-handler-resolver/read-handler-binding.js';
 export { MapReadHandlerResolver } from './lib/read-handler-resolver/map-read-handler-resolver.js';
 export { ReadHandlerResolver } from './lib/read-handler-resolver/read-handler-resolver.js';
+export { ExecutionLogStore } from './lib/execution-log/execution-log-store.js';
+export { OutboxStore } from './lib/outbox/outbox-store.js';
+export { Reader } from './lib/reader/reader.js';
+export { Runner } from './lib/runner/runner.js';
+export { UseCaseExecutionStore } from './lib/use-case-execution/use-case-execution-store.js';
+export { UseCaseExecutor } from './lib/use-case-executor/use-case-executor.js';

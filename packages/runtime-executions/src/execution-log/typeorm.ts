@@ -1,5 +1,6 @@
-import type { ExecutionLogStore } from '@event-driven-platform/execution-log-store';
 import type { DataSource } from 'typeorm';
+
+import type { ExecutionLogStore } from '../lib/execution-log/execution-log-store.js';
 
 import { ExecutionAttemptEntity } from '../lib/execution-log/typeorm/execution-attempt.entity.js';
 import { ExecutionLogEntity } from '../lib/execution-log/typeorm/execution-log.entity.js';

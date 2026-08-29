@@ -2,9 +2,10 @@ import { DefaultEventIdFactory } from '@event-driven-platform/event';
 import { DefaultExecutionIdFactory } from '@event-driven-platform/execution';
 import { DefaultOperationEventEnvelopeFactory } from '@event-driven-platform/operation-event-envelope-factory';
 import { DefaultOutboxRecordFactory } from '@event-driven-platform/outbox';
-import { createRunner, type Runner } from '@event-driven-platform/runner';
+import { createRunner } from '@event-driven-platform/runner';
 
 import type { CreateServiceRunnerOptions } from './create-service-runner-options.js';
+import type { Runner } from './runner.js';
 
 const RUNNER_LEASE_DURATION_MS = 30_000;
 
