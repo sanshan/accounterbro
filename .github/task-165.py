@@ -11,12 +11,12 @@ runtime_package = runtime_package.replace(
     "import type { DataSource, EntitySchema, MigrationInterface } from 'typeorm';",
 )
 runtime_package = runtime_package.replace(
-    'readonly entities?: readonly EntityTarget<unknown>[];',
-    'readonly entities?: readonly (Function | EntitySchema<unknown>)[];',
+    "export interface RuntimeTypeOrmContribution {\n    readonly entities?: readonly EntityTarget<unknown>[];",
+    "export type RuntimeTypeOrmEntity = EntitySchema<unknown> | (new (...args: never[]) => object);\n\nexport interface RuntimeTypeOrmContribution {\n    readonly entities?: readonly RuntimeTypeOrmEntity[];",
 )
 runtime_package = runtime_package.replace(
     'readonly entities: readonly EntityTarget<unknown>[];',
-    'readonly entities: readonly (Function | EntitySchema<unknown>)[];',
+    'readonly entities: readonly RuntimeTypeOrmEntity[];',
 )
 runtime_package_path.write_text(runtime_package)
 
