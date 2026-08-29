@@ -1,0 +1,77 @@
+name: Task 164 runtime package manifest
+
+on:
+  push:
+    branches:
+      - issue-164-runtime-package-manifest
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    name: Implement and verify runtime package manifest
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: accounterbro
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d accounterbro"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v6
+        with:
+          ref: issue-164-runtime-package-manifest
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Implement runtime package manifest
+        run: python3 .github/task-164.py
+
+      - name: Verify affected packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm nx run @accounterbro/runtime-executions:lint
+          pnpm nx run @accounterbro/runtime-executions:typecheck
+          pnpm nx run @accounterbro/runtime-executions:test
+          pnpm nx run @accounterbro/runtime-executions:build
+          pnpm nx run @accounterbro/documents:lint
+          pnpm nx run @accounterbro/documents:typecheck
+          pnpm nx run @accounterbro/documents:test
+          pnpm nx run @accounterbro/documents:build
+
+      - name: Commit verified implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/task-164-implement.yml .github/task-164.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat(runtime-executions): add runtime package manifest'
+          git push origin HEAD:issue-164-runtime-package-manifest
