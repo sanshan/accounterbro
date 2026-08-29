@@ -46,7 +46,7 @@ jobs:
       - name: Implement Nest runtime composition
         run: |
           python3 .github/task-165.py
-          pnpm install
+          pnpm install --no-frozen-lockfile
       - name: Verify runtime-executions
         run: |
           pnpm nx run @accounterbro/runtime-executions:lint
