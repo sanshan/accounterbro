@@ -1,0 +1,63 @@
+name: Task 165 Nest runtime composition
+
+on:
+  push:
+    branches:
+      - issue-165-nest-runtime-composition
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    name: Implement and verify Nest runtime composition
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: accounterbro
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d accounterbro"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v6
+        with:
+          ref: issue-165-nest-runtime-composition
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Implement Nest runtime composition
+        run: |
+          python3 .github/task-165.py
+          pnpm install
+      - name: Verify runtime-executions
+        run: |
+          pnpm nx run @accounterbro/runtime-executions:lint
+          pnpm nx run @accounterbro/runtime-executions:typecheck
+          pnpm nx run @accounterbro/runtime-executions:test
+          pnpm nx run @accounterbro/runtime-executions:build
+      - name: Commit verified implementation
+        run: |
+          rm .github/task-165.py .github/workflows/task-165-implement.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat(runtime-executions): add Nest composition adapter'
+          git push origin HEAD:issue-165-nest-runtime-composition
