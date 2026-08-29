@@ -86,6 +86,15 @@ Normative keywords:
 - **READ-015** — Shared Read resolver identity and lookup implementation belong to `@accounterbro/runtime-executions`, not `@accounterbro/core` or a business package.
 - **READ-016** — Each Read name MUST map to exactly one Read handler in AccounterBro. Duplicate bindings are invalid service composition and MUST be rejected by the shared resolver. When adapting to the EDP resolver contract, a successful resolution MUST contain a singleton handler tuple.
 
+## Runtime manifest
+
+- **RUNTIME-001** — A business package that participates in the standard execution runtime MUST expose one Nest-agnostic host manifest from `@accounterbro/<package>/runtime`.
+- **RUNTIME-002** — The manifest MUST be created through the `RuntimePackageManifest`/`defineRuntimePackage(...)` contract from `@accounterbro/runtime-executions`; `@accounterbro/documents/runtime` is the canonical working reference.
+- **RUNTIME-003** — The runtime manifest aggregates package-owned execution and TypeORM contributions. It MUST NOT duplicate concrete handler, mapper, repository, entity, migration, or adapter construction knowledge already owned by the package's focused boundaries.
+- **RUNTIME-004** — The runtime manifest MUST remain framework-agnostic and MUST NOT import NestJS provider/module types.
+- **RUNTIME-005** — Operation/Read binding container tokens MAY be carried by the manifest because they represent collection/multibinding semantics. They MUST NOT be used as ordinary application DI identities.
+- **RUNTIME-006** — A standard Nest hosting service MUST register package manifests through `@accounterbro/runtime-executions/nest` rather than manually consuming the package's individual execution provider/binding and persistence-factory descriptors.
+
 ## Events
 
 - **EVENT-001** — Each event MUST have its own directory: `packages/[package-name]/src/lib/events/[event-name]/`.
@@ -116,9 +125,9 @@ Normative keywords:
 - **DB-013** — Infrastructure-facing persistence ports used for TypeORM service composition MUST be exported from the package's `/typeorm` entrypoint. The main business entrypoint MUST NOT be expanded merely to expose those ports to Nest wiring.
 - **DB-014** — The package `/typeorm` entrypoint MUST expose one package-owned factory per persistence port that needs service composition. The factory accepts TypeORM primitives such as `DataSource` and constructs the package-owned concrete adapter internally.
 - **DB-015** — Package TypeORM factories MUST keep entity, mapper, repository, and concrete persistence implementation knowledge inside the business package. A hosting service MUST NOT recreate adapter construction or import those implementation details.
-- **DB-016** — Package TypeORM factories MUST remain Nest-agnostic. They MUST NOT import Nest provider types or decorators; the hosting service owns Nest provider descriptors and injects its service-owned `DataSource` into the package factory.
+- **DB-016** — Package TypeORM factories MUST remain Nest-agnostic. They MUST NOT import Nest provider types or decorators; the standard `@accounterbro/runtime-executions/nest` adapter owns Nest provider wiring for persistence contributions declared by hosted runtime manifests.
 - **DB-017** — Package TypeORM factories MUST continue to accept the normal TypeORM `DataSource` contract and MUST remain unaware of `AsyncLocalStorage`, `QueryRunner`, or execution-transaction propagation.
-- **DB-018** — Transaction participation for package persistence is a hosting-runtime concern. A service that needs EDP execution transactions MUST supply the shared transaction-aware `DataSource` from `@accounterbro/runtime-executions/typeorm` to the unchanged package factory instead of adding transaction plumbing to the business package.
+- **DB-018** — Transaction participation for package persistence is a hosting-runtime concern. Under the standard Nest composition, `@accounterbro/runtime-executions/nest` supplies the shared transaction-aware `DataSource` to unchanged package factories declared by hosted manifests; the business package remains unaware of transaction plumbing.
 - **DB-019** — A business package MUST NOT introduce its own ambient transaction context or repository-switching proxy to participate in EDP execution; the canonical implementation belongs to shared service runtime.
 
 Detailed shared runtime transaction/store algorithms and Runner/Reader/UseCaseExecutor composition invariants are intentionally not owned here. Service consumers follow `docs/engineering/service-guidelines.md` and `docs/engineering/database-guidelines.md`; changes to the shared runtime implementation follow `packages/runtime-executions/AGENTS.md`.
