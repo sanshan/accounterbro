@@ -22,6 +22,11 @@
             "types": "./dist/typeorm.d.ts",
             "import": "./dist/typeorm.js",
             "default": "./dist/typeorm.js"
+        },
+        "./runtime": {
+            "types": "./dist/runtime.d.ts",
+            "import": "./dist/runtime.js",
+            "default": "./dist/runtime.js"
         }
     },
     "dependencies": {

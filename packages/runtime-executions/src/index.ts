@@ -10,3 +10,5 @@ export { Reader } from './lib/reader/reader.js';
 export { Runner } from './lib/runner/runner.js';
 export { UseCaseExecutionStore } from './lib/use-case-execution/use-case-execution-store.js';
 export { UseCaseExecutor } from './lib/use-case-executor/use-case-executor.js';
+export { collectRuntimePackageTypeOrmSchema, defineRuntimePackage } from './lib/runtime-package/runtime-package.js';
+export type { RuntimeExecutionContribution, RuntimeFactoryProvider, RuntimePackageManifest, RuntimePackageTypeOrmSchema, RuntimeTypeOrmContribution, RuntimeTypeOrmPersistenceContribution } from './lib/runtime-package/runtime-package.js';
