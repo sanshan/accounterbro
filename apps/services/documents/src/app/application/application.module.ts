@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
 import { InfrastructureModule } from '../infrastructure/infrastructure.module';
-import { GetDocumentUseCase } from './use-cases/get-document.use-case';
-import { RegisterDocumentUseCase } from './use-cases/register-document.use-case';
+import { GetDocumentUseCase } from './use-cases/get-document/get-document.use-case';
+import { RegisterDocumentUseCase } from './use-cases/register-document/register-document.use-case';
 
 @Module({
     imports: [InfrastructureModule],
