@@ -8,6 +8,8 @@ Allow a user to submit a file for registration as a Document and receive the res
 
 The request contains only the file.
 
+Registration executes in the calling tenant context. Tenant identity is invocation metadata rather than a file/request-body field, and every resulting Document is owned by that tenant.
+
 This specification does not currently define file type or size restrictions.
 
 ## Document statuses
@@ -22,7 +24,7 @@ This specification does not currently define file type or size restrictions.
 
 ### DOC-REG-001 — Register a new file
 
-Given file content that is not already known to the system,
+Given file content that is not already known within the calling tenant,
 when the registration UseCase completes,
 then exactly one new Document has been created and the request succeeds with:
 
@@ -43,7 +45,7 @@ If registration is interrupted after the Document is prepared but before the fin
 
 ### DOC-REG-002 — Return an existing duplicate
 
-Given file content whose complete binary content is identical to content already known to the system,
+Given file content whose complete binary content is identical to content already known within the calling tenant,
 when a new registration request is made,
 then no new Document is created, the file is not stored again, and the request succeeds with:
 
@@ -61,13 +63,21 @@ Submitting content that matches a `FAILED` Document does not itself request or t
 
 ### DOC-REG-003 — Preserve one Document under concurrent duplicate registration
 
-Given concurrent registration requests with identical binary content,
+Given concurrent registration requests with identical binary content in the same tenant,
 when those requests are processed,
 then only one Document exists for that content.
 
 One request may create and continue registering the Document; the other requests succeed by returning that Document as a duplicate and do not store the file again.
 
 A concurrent duplicate request may observe the existing Document while its status is still `PENDING`.
+
+### DOC-REG-005 — Isolate duplicate detection by tenant
+
+Given two tenants submit identical binary content,
+when both registrations complete,
+then each tenant owns a distinct Document and neither registration reuses the other tenant's Document.
+
+Content-hash uniqueness and concurrent duplicate resolution are tenant-local. Storage references/keys also remain tenant-scoped.
 
 ### DOC-REG-004 — Complete original storage within the registration UseCase
 
@@ -92,3 +102,4 @@ This specification does not define:
 - transport, consumers, staging storage, asynchronous delivery, or broker behavior;
 - internal transaction, Outbox, execution-log, or recovery implementation details;
 - file type or size restrictions.
+- authentication or authorization of the tenant identity supplied by the trusted presenter boundary.

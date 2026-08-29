@@ -19,8 +19,12 @@ export class PrepareDocumentRegistrationHandler
     public async execute(
         operation: PrepareDocumentRegistrationOperation,
     ): Promise<SuccessfulOperationResult<PrepareDocumentRegistrationOutcome>> {
-        const document = Document.pending(operation.payload.documentId, operation.payload.contentHash);
-        const creation = await this.persistence.createOrGetExisting(document);
+        const document = Document.pending(
+            operation.payload.documentId,
+            operation.tenant.id,
+            operation.payload.contentHash,
+        );
+        const creation = await this.persistence.createOrGetExisting(operation.tenant.id, document);
 
         if (creation.kind === 'existing') {
             const outcome = {

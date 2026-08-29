@@ -16,7 +16,7 @@ import {
 } from './execution.js';
 
 const persistence: DocumentPersistence = {
-    createOrGetExisting: async (document) => ({ kind: 'created', document }),
+    createOrGetExisting: async (_tenantId, document) => ({ kind: 'created', document }),
     findById: async () => null,
     update: async () => undefined,
 };

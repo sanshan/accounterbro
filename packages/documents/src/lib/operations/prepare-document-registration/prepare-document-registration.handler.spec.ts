@@ -11,10 +11,10 @@ const documentId = 'document-1' as DocumentId;
 const tenantId = 'tenant-1' as TenantId;
 
 function createPersistence(existing: Document | null = null) {
-    const attempted: Document[] = [];
+    const attempted: Array<{ readonly tenantId: TenantId; readonly document: Document }> = [];
     const persistence: DocumentPersistence = {
-        createOrGetExisting: async (document) => {
-            attempted.push(document);
+        createOrGetExisting: async (scopeTenantId, document) => {
+            attempted.push({ tenantId: scopeTenantId, document });
             return existing
                 ? { kind: 'existing', document: existing }
                 : { kind: 'created', document };
@@ -47,9 +47,11 @@ describe('PrepareDocumentRegistrationHandler', () => {
         const result = await handler.execute(operation());
 
         expect(attempted).toHaveLength(1);
-        expect(attempted[0]?.id).toBe(documentId);
-        expect(attempted[0]?.contentHash).toBe('hash-1');
-        expect(attempted[0]?.status).toBe(DocumentRegistrationStatus.Pending);
+        expect(attempted[0]?.tenantId).toBe(tenantId);
+        expect(attempted[0]?.document.id).toBe(documentId);
+        expect(attempted[0]?.document.tenantId).toBe(tenantId);
+        expect(attempted[0]?.document.contentHash).toBe('hash-1');
+        expect(attempted[0]?.document.status).toBe(DocumentRegistrationStatus.Pending);
         expect(result.data).toEqual({
             kind: 'created',
             document: { id: documentId, status: DocumentRegistrationStatus.Pending },
@@ -61,6 +63,7 @@ describe('PrepareDocumentRegistrationHandler', () => {
         const existingId = 'existing-1' as DocumentId;
         const existing = Document.restore({
             id: existingId,
+            tenantId,
             contentHash: 'hash-1',
             status: DocumentRegistrationStatus.Failed,
             failureReason: 'storage unavailable',
@@ -71,7 +74,8 @@ describe('PrepareDocumentRegistrationHandler', () => {
         const result = await handler.execute(operation());
 
         expect(attempted).toHaveLength(1);
-        expect(attempted[0]?.id).toBe(documentId);
+        expect(attempted[0]?.tenantId).toBe(tenantId);
+        expect(attempted[0]?.document.id).toBe(documentId);
         expect(result.data).toEqual({
             kind: 'duplicate',
             document: { id: existingId, status: DocumentRegistrationStatus.Failed },
