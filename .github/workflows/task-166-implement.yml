@@ -47,11 +47,13 @@ jobs:
         run: python3 .github/task-166.py
       - name: Verify Documents service
         env:
-          DOCUMENTS_DATABASE_HOST: 127.0.0.1
-          DOCUMENTS_DATABASE_PORT: 5432
-          DOCUMENTS_DATABASE_USERNAME: postgres
-          DOCUMENTS_DATABASE_PASSWORD: postgres
-          DOCUMENTS_DATABASE_NAME: accounterbro
+          DOCUMENTS_DB_HOST: 127.0.0.1
+          DOCUMENTS_DB_PORT: 5432
+          DOCUMENTS_DB_USERNAME: postgres
+          DOCUMENTS_DB_PASSWORD: postgres
+          DOCUMENTS_DB_NAME: accounterbro
+          DOCUMENTS_STORAGE_DRIVER: local-folder
+          DOCUMENTS_STORAGE_LOCAL_FOLDER_ROOT: /tmp/accounterbro-documents
         run: |
           pnpm nx run @accounterbro/documents-service:lint
           pnpm nx run @accounterbro/documents-service:typecheck
