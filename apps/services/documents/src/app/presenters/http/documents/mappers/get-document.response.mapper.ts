@@ -1,4 +1,4 @@
-import type { GetDocumentUseCaseResult } from '../../../../application/use-cases/get-document.use-case';
+import type { GetDocumentUseCaseResult } from '../../../../application/use-cases/get-document/get-document.use-case';
 import type { GetDocumentResponseDto } from '../dto/get-document.response.dto';
 
 export function mapGetDocumentResponse(result: GetDocumentUseCaseResult): GetDocumentResponseDto {

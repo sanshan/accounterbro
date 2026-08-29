@@ -17,8 +17,8 @@ import { DocumentRegistrationStatus } from '@accounterbro/documents';
 import type { Actor } from '@event-driven-platform/actor';
 import type { UseCaseExecutor } from '@event-driven-platform/use-case-executor';
 
-import { GetDocumentUseCase } from '../../../application/use-cases/get-document.use-case';
-import { RegisterDocumentUseCase } from '../../../application/use-cases/register-document.use-case';
+import { GetDocumentUseCase } from '../../../application/use-cases/get-document/get-document.use-case';
+import { RegisterDocumentUseCase } from '../../../application/use-cases/register-document/register-document.use-case';
 import { DocumentsController } from './documents.controller';
 
 const actor = {
