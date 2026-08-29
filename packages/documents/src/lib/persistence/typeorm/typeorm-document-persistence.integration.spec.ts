@@ -57,12 +57,12 @@ describe('TypeOrmDocumentPersistence', () => {
         expect(
             table?.uniques.map((unique) => ({
                 name: unique.name,
-                columns: unique.columnNames,
+                columns: [...unique.columnNames].sort(),
             })),
         ).toEqual([
             {
                 name: 'uq_documents_tenant_content_hash',
-                columns: ['tenant_id', 'content_hash'],
+                columns: ['content_hash', 'tenant_id'],
             },
         ]);
     });
