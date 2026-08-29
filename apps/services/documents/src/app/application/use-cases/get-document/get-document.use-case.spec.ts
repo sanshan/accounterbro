@@ -1,4 +1,9 @@
-import type { DocumentId } from '@accounterbro/core';
+import {
+    tenantName,
+    type DocumentId,
+    type TenantId,
+    type TenantReference,
+} from '@accounterbro/core';
 import { DocumentRegistrationStatus, type GetDocumentResult } from '@accounterbro/documents';
 import type { Actor } from '@event-driven-platform/actor';
 import type { Reader } from '@event-driven-platform/reader';
@@ -12,6 +17,11 @@ const actor = {
     origin: {},
 } satisfies Actor;
 
+const tenant = {
+    type: tenantName,
+    id: 'tenant-1' as TenantId,
+} satisfies TenantReference;
+
 const context = {
     intent: {
         id: 'parent-intent-id',
@@ -19,6 +29,7 @@ const context = {
     },
     correlationId: 'correlation-1',
     actor,
+    tenant,
 } satisfies GetDocumentUseCaseContext;
 
 type GetDocumentExecute = (query: unknown) => Promise<GetDocumentResult | null>;

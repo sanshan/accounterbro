@@ -86,7 +86,7 @@ describe('DocumentsController', () => {
         );
     });
 
-    it('maps a validated document id and actor into GetDocumentUseCase execution', async () => {
+    it('maps a validated document id and request identity into GetDocumentUseCase execution', async () => {
         const documentId = 'c1b2ed5f-13d4-4fbd-aaf0-8999e9774f3b' as DocumentId;
         const result = {
             id: documentId,
@@ -110,14 +110,10 @@ describe('DocumentsController', () => {
                 input: { documentId },
                 context: expect.objectContaining({
                     actor,
+                    tenant,
                     correlationId: expect.any(String),
                     intent: expect.any(Object),
                 }),
-            }),
-        );
-        expect(request).not.toEqual(
-            expect.objectContaining({
-                context: expect.objectContaining({ tenant }),
             }),
         );
     });

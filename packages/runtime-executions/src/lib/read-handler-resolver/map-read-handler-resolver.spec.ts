@@ -5,6 +5,11 @@ import type { ReadHandler } from '@event-driven-platform/read-handler';
 
 import { MapReadHandlerResolver } from './map-read-handler-resolver.js';
 
+const tenant = {
+    type: 'test',
+    id: 'test' as AnyRead['tenant']['id'],
+} satisfies AnyRead['tenant'];
+
 const createRead = (name: string): AnyRead => ({
     name,
     actor: {
@@ -12,6 +17,7 @@ const createRead = (name: string): AnyRead => ({
         id: 'test',
         origin: {},
     },
+    tenant,
     parameters: {},
 });
 

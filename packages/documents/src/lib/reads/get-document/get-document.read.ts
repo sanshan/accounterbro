@@ -1,4 +1,4 @@
-import type { DocumentId } from '@accounterbro/core';
+import type { DocumentId, TenantReference } from '@accounterbro/core';
 import type { Read } from '@event-driven-platform/read';
 
 import type { DocumentRegistrationStatus } from '../../document/document-registration-status.js';
@@ -15,6 +15,7 @@ export interface GetDocumentResult {
 
 export type GetDocumentRead = Read<
     typeof documentReadNames.getDocument,
+    TenantReference,
     GetDocumentParameters,
     GetDocumentResult | null
 >;
