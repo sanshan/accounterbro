@@ -1,13 +1,16 @@
-import type { DocumentId } from '@accounterbro/core';
+import type { DocumentId, TenantId } from '@accounterbro/core';
 import { Column, Entity, PrimaryColumn, Unique } from 'typeorm';
 
 import type { DocumentRegistrationStatus } from '../../document/document-registration-status.js';
 
 @Entity('documents')
-@Unique('uq_documents_content_hash', ['contentHash'])
+@Unique('uq_documents_tenant_content_hash', ['tenantId', 'contentHash'])
 export class DocumentEntity {
     @PrimaryColumn({ type: 'uuid' })
     public id!: DocumentId;
+
+    @Column({ name: 'tenant_id', type: 'varchar', nullable: false })
+    public tenantId!: TenantId;
 
     @Column({ name: 'content_hash', type: 'varchar', nullable: false })
     public contentHash!: string;

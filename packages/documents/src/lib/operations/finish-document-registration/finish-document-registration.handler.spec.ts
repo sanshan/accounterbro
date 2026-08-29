@@ -12,16 +12,23 @@ const documentId = 'document-1' as DocumentId;
 const tenantId = 'tenant-1' as TenantId;
 
 function createPersistence(document: Document | null) {
-    const updated: Document[] = [];
+    const lookups: Array<{ readonly tenantId: TenantId; readonly documentId: DocumentId }> = [];
+    const updated: Array<{ readonly tenantId: TenantId; readonly document: Document }> = [];
     const persistence: DocumentPersistence = {
-        createOrGetExisting: async (candidate) => ({ kind: 'created', document: candidate }),
-        findById: async () => document,
-        update: async (next) => {
-            updated.push(next);
+        createOrGetExisting: async (_tenantId, candidate) => ({
+            kind: 'created',
+            document: candidate,
+        }),
+        findById: async (scopeTenantId, requestedDocumentId) => {
+            lookups.push({ tenantId: scopeTenantId, documentId: requestedDocumentId });
+            return document;
+        },
+        update: async (scopeTenantId, next) => {
+            updated.push({ tenantId: scopeTenantId, document: next });
         },
     };
 
-    return { persistence, updated };
+    return { persistence, lookups, updated };
 }
 
 function operation(
@@ -40,22 +47,24 @@ function operation(
 }
 
 function pending(): Document {
-    return Document.pending(documentId, 'hash-1');
+    return Document.pending(documentId, tenantId, 'hash-1');
 }
 
 describe('FinishDocumentRegistrationHandler', () => {
     it('registers a pending document and emits DocumentRegistered', async () => {
-        const { persistence, updated } = createPersistence(pending());
+        const { persistence, lookups, updated } = createPersistence(pending());
         const handler = new FinishDocumentRegistrationHandler(persistence);
 
         const result = await handler.execute(
             operation({ outcome: 'registered', storageReference: 'storage://document-1' }),
         );
 
+        expect(lookups).toEqual([{ tenantId, documentId }]);
         expect(updated).toHaveLength(1);
-        expect(updated[0]?.status).toBe(DocumentRegistrationStatus.Registered);
-        expect(updated[0]?.storageReference).toBe('storage://document-1');
-        expect(updated[0]?.failureReason).toBeUndefined();
+        expect(updated[0]?.tenantId).toBe(tenantId);
+        expect(updated[0]?.document.status).toBe(DocumentRegistrationStatus.Registered);
+        expect(updated[0]?.document.storageReference).toBe('storage://document-1');
+        expect(updated[0]?.document.failureReason).toBeUndefined();
         expect(result.data).toEqual({
             id: documentId,
             status: DocumentRegistrationStatus.Registered,
@@ -81,9 +90,10 @@ describe('FinishDocumentRegistrationHandler', () => {
         );
 
         expect(updated).toHaveLength(1);
-        expect(updated[0]?.status).toBe(DocumentRegistrationStatus.Failed);
-        expect(updated[0]?.storageReference).toBeUndefined();
-        expect(updated[0]?.failureReason).toBe('storage unavailable');
+        expect(updated[0]?.tenantId).toBe(tenantId);
+        expect(updated[0]?.document.status).toBe(DocumentRegistrationStatus.Failed);
+        expect(updated[0]?.document.storageReference).toBeUndefined();
+        expect(updated[0]?.document.failureReason).toBe('storage unavailable');
         expect(result.data).toEqual({
             id: documentId,
             status: DocumentRegistrationStatus.Failed,
