@@ -2,13 +2,12 @@ import { randomUUID } from 'node:crypto';
 
 import type { DocumentId, TenantReference } from '@accounterbro/core';
 import { Actor, Tenant } from '@accounterbro/runtime-presenters/http';
+import { UseCaseExecutor } from '@accounterbro/runtime-executions';
 import type { Actor as ActorValue } from '@event-driven-platform/actor';
 import { IntentFactory } from '@event-driven-platform/intent';
-import type { UseCaseExecutor } from '@event-driven-platform/use-case-executor';
 import {
     Controller,
     Get,
-    Inject,
     Param,
     ParseFilePipeBuilder,
     ParseUUIDPipe,
@@ -18,7 +17,6 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
-import { DOCUMENTS_USE_CASE_EXECUTOR } from '../../../application/application.tokens';
 import {
     GetDocumentUseCase,
     type GetDocumentUseCaseInput,
@@ -60,7 +58,6 @@ function createInvocationContext(action: string, tenant: TenantReference) {
 @Controller('documents')
 export class DocumentsController {
     public constructor(
-        @Inject(DOCUMENTS_USE_CASE_EXECUTOR)
         private readonly useCaseExecutor: UseCaseExecutor,
         private readonly registerDocumentUseCase: RegisterDocumentUseCase,
         private readonly getDocumentUseCase: GetDocumentUseCase,
