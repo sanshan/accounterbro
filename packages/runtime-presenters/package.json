@@ -27,7 +27,7 @@
     "dependencies": {
         "@accounterbro/core": "workspace:*",
         "@accounterbro/runtime-health": "workspace:*",
-        "@event-driven-platform/actor": "^0.1.6",
+        "@event-driven-platform/actor": "^0.1.7",
         "@nestjs/common": "^11.0.0",
         "@nestjs/terminus": "^11.1.0"
     },
