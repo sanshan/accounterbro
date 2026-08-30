@@ -101,6 +101,7 @@ export class DocumentsController {
         const context = {
             ...createInvocationContext('get-document', tenant),
             actor,
+            tenant,
         } satisfies GetDocumentUseCaseContext;
 
         const result = await this.useCaseExecutor.execute({

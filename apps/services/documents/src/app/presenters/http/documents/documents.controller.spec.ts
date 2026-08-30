@@ -110,14 +110,10 @@ describe('DocumentsController', () => {
                 input: { documentId },
                 context: expect.objectContaining({
                     actor,
+                    tenant,
                     correlationId: expect.any(String),
                     intent: expect.any(Object),
                 }),
-            }),
-        );
-        expect(request).not.toEqual(
-            expect.objectContaining({
-                context: expect.objectContaining({ tenant }),
             }),
         );
     });

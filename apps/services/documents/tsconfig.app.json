@@ -24,19 +24,25 @@
     ],
     "references": [
         {
-            "path": "../../../packages/runtime-config/tsconfig.lib.json"
+            "path": "../../../packages/runtime-presenters/tsconfig.lib.json"
         },
         {
             "path": "../../../packages/runtime-health/tsconfig.lib.json"
         },
         {
-            "path": "../../../packages/documents/tsconfig.lib.json"
+            "path": "../../../packages/runtime-executions/tsconfig.lib.json"
+        },
+        {
+            "path": "../../../packages/runtime-config/tsconfig.lib.json"
         },
         {
             "path": "../../../packages/object-storage/tsconfig.lib.json"
         },
         {
-            "path": "../../../packages/runtime-executions/tsconfig.lib.json"
+            "path": "../../../packages/documents/tsconfig.lib.json"
+        },
+        {
+            "path": "../../../packages/core/tsconfig.lib.json"
         }
     ]
 }

@@ -33,6 +33,7 @@ export class GetDocumentUseCase
         const read = {
             name: documentReadNames.getDocument,
             actor: context.actor,
+            tenant: context.tenant,
             parameters: {
                 documentId: input.documentId,
             },
