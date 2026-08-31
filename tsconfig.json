@@ -41,6 +41,9 @@
         },
         {
             "path": "./packages/runtime-health"
+        },
+        {
+            "path": "./packages/runtime-observability"
         }
     ]
 }
