@@ -10,7 +10,7 @@ export type HttpProblemExceptionOptions = Pick<ProblemDetailsOptions, 'detail'>;
 export class HttpProblemException extends HttpException {
     public constructor(
         readonly definition: HttpProblemDefinition,
-        readonly options: HttpProblemExceptionOptions = {},
+        readonly problemOptions: HttpProblemExceptionOptions = {},
     ) {
         super(definition.title, definition.status);
     }
