@@ -23,6 +23,11 @@
             "import": "./dist/http/errors.js",
             "default": "./dist/http/errors.js"
         },
+        "./http/errors/nest": {
+            "types": "./dist/http/errors/nest.d.ts",
+            "import": "./dist/http/errors/nest.js",
+            "default": "./dist/http/errors/nest.js"
+        },
         "./http/openapi": {
             "types": "./dist/http/openapi.d.ts",
             "import": "./dist/http/openapi.js",
