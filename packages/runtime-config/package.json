@@ -2,6 +2,7 @@
     "name": "@accounterbro/runtime-config",
     "version": "1.0.0",
     "private": true,
+    "type": "module",
     "main": "./src/index.ts",
     "types": "./src/index.ts",
     "exports": {
@@ -19,4 +20,3 @@
         "zod": "catalog:"
     }
 }
-

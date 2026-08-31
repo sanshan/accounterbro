@@ -31,7 +31,7 @@ vi.mock('@nx/js', () => ({
         tree.write('packages/example/eslint.config.mjs', "'@nx/dependency-checks'\n");
         tree.write(
             'packages/example/vitest.config.mts',
-            "export default { test: { name: 'example', watch: false, } };\n",
+            "export default { root: __dirname, test: { name: 'example', watch: false, } };\n",
         );
     }),
 }));
@@ -81,6 +81,8 @@ describe('package generator', () => {
         expect(packageJson.dependencies).toBeUndefined();
         expect(packageJson.devDependencies).toBeUndefined();
         expect(eslintConfig).toContain('@nx/dependency-checks');
+        expect(vitestConfig).toContain('root: import.meta.dirname');
+        expect(vitestConfig).not.toContain('__dirname');
         expect(vitestConfig).toContain("name: '@accounterbro/example'");
         expect(vitestConfig).toContain('passWithNoTests: true');
 
@@ -99,4 +101,3 @@ describe('package generator', () => {
         expect(libraryGenerator).not.toHaveBeenCalled();
     });
 });
-

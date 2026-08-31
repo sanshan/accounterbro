@@ -60,6 +60,7 @@ export async function packageGenerator(tree: Tree, options: PackageGeneratorSche
     tree.write(
         vitestConfigPath,
         vitestConfig
+            .replace('root: __dirname,', 'root: import.meta.dirname,')
             .replace(`name: '${options.name}'`, `name: '${projectName}'`)
             .replace('watch: false,', 'watch: false,\n        passWithNoTests: true,'),
     );
@@ -68,4 +69,3 @@ export async function packageGenerator(tree: Tree, options: PackageGeneratorSche
 }
 
 export default packageGenerator;
-
