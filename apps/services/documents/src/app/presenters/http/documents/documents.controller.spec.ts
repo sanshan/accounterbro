@@ -16,7 +16,7 @@ import {
 import { DocumentRegistrationStatus } from '@accounterbro/documents';
 import { UseCaseExecutor } from '@accounterbro/runtime-executions';
 import {
-    HttpProblemException,
+    type HttpProblemException,
     NOT_FOUND_HTTP_PROBLEM,
     PROBLEM_DETAILS_MEDIA_TYPE,
 } from '@accounterbro/runtime-presenters/http/errors';
