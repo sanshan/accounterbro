@@ -17,7 +17,7 @@ describe('RuntimeObservabilityModule', () => {
             ],
         }).compile();
 
-        expect(testingModule.get(PinoLogger)).toBeDefined();
+        expect(await testingModule.resolve(PinoLogger)).toBeDefined();
 
         await testingModule.close();
     });
