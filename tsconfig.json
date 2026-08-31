@@ -44,6 +44,9 @@
         },
         {
             "path": "./packages/runtime-observability"
+        },
+        {
+            "path": "./apps/services/documents-e2e"
         }
     ]
 }
