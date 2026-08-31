@@ -23,6 +23,11 @@
             "import": "./dist/http/errors.js",
             "default": "./dist/http/errors.js"
         },
+        "./http/openapi": {
+            "types": "./dist/http/openapi.d.ts",
+            "import": "./dist/http/openapi.js",
+            "default": "./dist/http/openapi.js"
+        },
         "./http/health": {
             "types": "./dist/http/health.d.ts",
             "import": "./dist/http/health.js",
@@ -37,6 +42,7 @@
         "@event-driven-platform/execution": "^0.0.8",
         "@nestjs/common": "^11.0.0",
         "@nestjs/core": "^11.0.0",
+        "@nestjs/swagger": "^11.4.7",
         "@nestjs/terminus": "^11.1.0"
     },
     "devDependencies": {
