@@ -12,6 +12,7 @@ export function createServiceUseCaseExecutor(
             clock: options.clock,
             executionIdFactory: new DefaultExecutionIdFactory(),
             store: options.store,
+            ...(options.observer ? { observer: options.observer } : {}),
         },
         runtime: {
             leaseOwnerId: options.leaseOwnerId,
