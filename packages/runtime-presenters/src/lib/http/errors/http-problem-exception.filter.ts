@@ -6,6 +6,7 @@ import {
     HttpException,
     Injectable,
     type ArgumentsHost,
+    type ExecutionContext,
 } from '@nestjs/common';
 import { BaseExceptionFilter, HttpAdapterHost, Reflector } from '@nestjs/core';
 
@@ -30,14 +31,14 @@ interface ResolvedHttpProblem {
 @Injectable()
 export class HttpProblemExceptionFilter extends BaseExceptionFilter {
     public constructor(
-        private readonly httpAdapterHost: HttpAdapterHost,
+        private readonly adapterHost: HttpAdapterHost,
         private readonly logger: RuntimePinoLogger,
         private readonly reflector: Reflector,
     ) {
-        super(httpAdapterHost.httpAdapter);
+        super(adapterHost.httpAdapter);
     }
 
-    public catch(exception: unknown, host: ArgumentsHost): void {
+    public override catch(exception: unknown, host: ArgumentsHost): void {
         if (this.shouldPreserveFrameworkPresentation(host)) {
             super.catch(exception, host);
             return;
@@ -53,13 +54,14 @@ export class HttpProblemExceptionFilter extends BaseExceptionFilter {
         this.logTerminalException(exception, resolved);
 
         const response = host.switchToHttp().getResponse();
-        const adapter = this.httpAdapterHost.httpAdapter;
+        const adapter = this.adapterHost.httpAdapter;
         adapter.setHeader(response, 'Content-Type', PROBLEM_DETAILS_MEDIA_TYPE);
         adapter.reply(response, problem, resolved.definition.status);
     }
 
     private shouldPreserveFrameworkPresentation(host: ArgumentsHost): boolean {
-        const handler = host.getHandler();
+        const context = host as ExecutionContext;
+        const handler = context.getHandler();
         if (
             typeof handler === 'function' &&
             this.reflector.get<boolean>(PRESERVE_HTTP_EXCEPTION_PRESENTATION, handler) === true
@@ -67,7 +69,7 @@ export class HttpProblemExceptionFilter extends BaseExceptionFilter {
             return true;
         }
 
-        const controller = host.getClass();
+        const controller = context.getClass();
         return (
             typeof controller === 'function' &&
             this.reflector.get<boolean>(PRESERVE_HTTP_EXCEPTION_PRESENTATION, controller) === true
@@ -78,7 +80,7 @@ export class HttpProblemExceptionFilter extends BaseExceptionFilter {
         if (exception instanceof HttpProblemException) {
             return {
                 definition: exception.definition,
-                detail: exception.options.detail,
+                detail: exception.problemOptions.detail,
                 expected: true,
             };
         }
