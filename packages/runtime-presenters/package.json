@@ -18,6 +18,21 @@
             "import": "./dist/http.js",
             "default": "./dist/http.js"
         },
+        "./http/errors": {
+            "types": "./dist/http/errors.d.ts",
+            "import": "./dist/http/errors.js",
+            "default": "./dist/http/errors.js"
+        },
+        "./http/errors/nest": {
+            "types": "./dist/http/errors/nest.d.ts",
+            "import": "./dist/http/errors/nest.js",
+            "default": "./dist/http/errors/nest.js"
+        },
+        "./http/openapi": {
+            "types": "./dist/http/openapi.d.ts",
+            "import": "./dist/http/openapi.js",
+            "default": "./dist/http/openapi.js"
+        },
         "./http/health": {
             "types": "./dist/http/health.d.ts",
             "import": "./dist/http/health.js",
@@ -27,12 +42,15 @@
     "dependencies": {
         "@accounterbro/core": "workspace:*",
         "@accounterbro/runtime-health": "workspace:*",
-        "@event-driven-platform/actor": "^0.1.6",
+        "@accounterbro/runtime-observability": "workspace:*",
+        "@event-driven-platform/actor": "^0.1.7",
+        "@event-driven-platform/execution": "^0.0.8",
         "@nestjs/common": "^11.0.0",
+        "@nestjs/core": "^11.0.0",
+        "@nestjs/swagger": "^11.4.7",
         "@nestjs/terminus": "^11.1.0"
     },
     "devDependencies": {
-        "@nestjs/core": "^11.0.0",
         "@nestjs/platform-express": "^11.0.0",
         "@nestjs/testing": "^11.0.0",
         "@types/supertest": "^7.2.1",

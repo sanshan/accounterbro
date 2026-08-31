@@ -1,8 +1,13 @@
 import { randomUUID } from 'node:crypto';
 
 import type { DocumentId, TenantReference } from '@accounterbro/core';
-import { Actor, Tenant } from '@accounterbro/runtime-presenters/http';
 import { UseCaseExecutor } from '@accounterbro/runtime-executions';
+import { Actor, Tenant } from '@accounterbro/runtime-presenters/http';
+import {
+    HttpProblemException,
+    NOT_FOUND_HTTP_PROBLEM,
+} from '@accounterbro/runtime-presenters/http/errors';
+import { ApiEndpoint } from '@accounterbro/runtime-presenters/http/openapi';
 import type { Actor as ActorValue } from '@event-driven-platform/actor';
 import { IntentFactory } from '@event-driven-platform/intent';
 import {
@@ -90,6 +95,7 @@ export class DocumentsController {
     }
 
     @Get(':documentId')
+    @ApiEndpoint({ errors: [NOT_FOUND_HTTP_PROBLEM] })
     public async getDocument(
         @Param('documentId', new ParseUUIDPipe({ version: '4' })) documentId: string,
         @Actor() actor: ActorValue,
@@ -109,6 +115,10 @@ export class DocumentsController {
             input,
             context,
         });
+
+        if ('kind' in result) {
+            throw new HttpProblemException(NOT_FOUND_HTTP_PROBLEM);
+        }
 
         return mapGetDocumentResponse(result);
     }

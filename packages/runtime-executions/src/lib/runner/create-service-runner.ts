@@ -28,6 +28,7 @@ export function createServiceRunner(options: CreateServiceRunnerOptions): Runner
             operationEventEnvelopeFactory,
             outboxRecordFactory,
             outboxStore: options.outboxStore,
+            ...(options.observer ? { observer: options.observer } : {}),
         },
         runtime: {
             leaseOwnerId: options.leaseOwnerId,

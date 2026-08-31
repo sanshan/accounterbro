@@ -2,6 +2,7 @@ import { FixedClock } from '@event-driven-platform/clock';
 import { DefaultExecutionIdFactory, type ExecutionLeaseOwnerId } from '@event-driven-platform/execution';
 import type { ExecutionLogStore } from '@event-driven-platform/execution-log-store';
 import type { ExecutionTransaction } from '@event-driven-platform/execution-transaction';
+import type { RunnerObserver } from '@event-driven-platform/observability';
 import { DefaultOperationEventEnvelopeFactory } from '@event-driven-platform/operation-event-envelope-factory';
 import { DefaultOutboxRecordFactory } from '@event-driven-platform/outbox';
 import type { OutboxStore } from '@event-driven-platform/outbox-store';
@@ -30,6 +31,7 @@ describe('createServiceRunner', () => {
         const executionTransaction = Object.create(null) as ExecutionTransaction;
         const executionLogStore = Object.create(null) as ExecutionLogStore;
         const outboxStore = Object.create(null) as OutboxStore;
+        const observer = { observe: vi.fn() } satisfies RunnerObserver;
 
         const runner = createServiceRunner({
             clock,
@@ -38,6 +40,7 @@ describe('createServiceRunner', () => {
             executionTransaction,
             executionLogStore,
             outboxStore,
+            observer,
         });
 
         expect(runner).toBeDefined();
@@ -64,6 +67,7 @@ describe('createServiceRunner', () => {
         expect(configuration.dependencies.executionTransaction).toBe(executionTransaction);
         expect(configuration.dependencies.executionLogStore).toBe(executionLogStore);
         expect(configuration.dependencies.outboxStore).toBe(outboxStore);
+        expect(configuration.dependencies.observer).toBe(observer);
         expect(configuration.runtime.leaseOwnerId).toBe(leaseOwnerId);
         expect(configuration.options.leaseDurationMs).toBe(30_000);
         expect(configuration.dependencies).not.toHaveProperty('guardEvaluator');

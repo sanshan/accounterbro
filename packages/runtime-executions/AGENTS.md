@@ -16,6 +16,15 @@ Tests in this package MUST cover behavior implemented by AccounterBro itself: co
 
 MUST NOT duplicate tests for behavior already owned and tested by EDP merely because `runtime-executions` consumes an EDP contract. Prefer typecheck/build evidence for structural contract compatibility and add runtime tests only for AccounterBro-owned behavior.
 
+## Failure and retry ownership
+
+- EDP `ExecutionFailure` and `ExecutionFailureError` are the canonical classified execution-failure contracts. MUST NOT introduce a parallel AccounterBro execution-failure hierarchy or classification model.
+- a handler or infrastructure adapter may wrap a failure in `ExecutionFailureError` only when that boundary knows the failure semantics it is classifying, and SHOULD preserve the original error through `cause`;
+- unknown/unclassified errors MUST remain unclassified. Shared runtime composition MUST NOT globally infer failure codes or retryability from arbitrary TypeORM, PostgreSQL, network, or other infrastructure errors;
+- Runner retry remains Command-owned through EDP `Command.options.retry`; shared composition MUST NOT add a service-wide Runner retry policy;
+- Reader source retry remains Query-owned through EDP `QueryOptions.retry`; shared composition MUST NOT add a service-wide Reader retry policy or broaden retry around cache/coordinator behavior;
+- UseCaseExecutor has no internal retry policy. Shared composition MUST NOT add a UseCaseExecutor retry loop or retry configuration.
+
 ## Operation handler resolution
 
 The canonical Operation resolver boundary is:
