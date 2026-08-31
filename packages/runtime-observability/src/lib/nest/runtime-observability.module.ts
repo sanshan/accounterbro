@@ -1,5 +1,6 @@
 import { Module, type DynamicModule } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
+import type { Options as PinoHttpOptions } from 'pino-http';
 
 import {
     createRuntimePinoOptions,
@@ -9,16 +10,14 @@ import {
 @Module({})
 export class RuntimeObservabilityModule {
     static register(options: RuntimeLoggerOptions): DynamicModule {
+        const pinoHttp: PinoHttpOptions = {
+            ...createRuntimePinoOptions(options),
+            autoLogging: false,
+        };
+
         return {
             module: RuntimeObservabilityModule,
-            imports: [
-                LoggerModule.forRoot({
-                    pinoHttp: {
-                        ...createRuntimePinoOptions(options),
-                        autoLogging: false,
-                    },
-                }),
-            ],
+            imports: [LoggerModule.forRoot({ pinoHttp })],
             exports: [LoggerModule],
         };
     }
