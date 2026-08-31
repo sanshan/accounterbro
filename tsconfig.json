@@ -31,7 +31,7 @@
             "path": "./tools/generators"
         },
         {
-            "path": "./packages/service-runtime"
+            "path": "./packages/runtime-executions"
         },
         {
             "path": "./packages/object-storage"
@@ -43,7 +43,7 @@
             "path": "./packages/runtime-health"
         },
         {
-            "path": "./apps/services/documents-e2e"
+            "path": "./packages/runtime-observability"
         }
     ]
 }

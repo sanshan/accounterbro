@@ -6,7 +6,7 @@ Allow a user to retrieve the current registration state of a Document by its sta
 
 ## Input
 
-The request contains a Document identifier.
+The request contains a Document identifier and executes in the calling tenant context. Tenant identity is invocation metadata rather than a route parameter.
 
 ## Requirements
 
@@ -31,6 +31,14 @@ Given a Document identifier that does not exist,
 when the Document is requested,
 then the request returns a not-found result.
 
+### DOC-GET-003 — Hide a Document owned by another tenant
+
+Given a valid Document identifier owned by another tenant,
+when the Document is requested in the calling tenant context,
+then the request returns the same not-found result as an unknown identifier.
+
+The lookup must include tenant ownership at the persistence query boundary. It must not load a globally identified Document and compare ownership afterward.
+
 ## Out of scope
 
 This specification does not define:
@@ -38,4 +46,5 @@ This specification does not define:
 - listing Documents;
 - search, filtering, sorting, or pagination;
 - polling, push notifications, or any UI update mechanism;
-- persistence or read-pipeline implementation details.
+- specific persistence technology or read-pipeline details beyond the required tenant-scoped lookup boundary.
+- authentication or authorization of the tenant identity supplied by the trusted presenter boundary.

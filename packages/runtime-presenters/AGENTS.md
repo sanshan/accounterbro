@@ -4,7 +4,7 @@ These rules apply to `packages/runtime-presenters/` in addition to the root work
 
 `@accounterbro/runtime-presenters` is a technical runtime package, not a business feature package. Keep the root entrypoint intentionally minimal; transport-specific behavior belongs in explicit subpath entrypoints such as `@accounterbro/runtime-presenters/http`.
 
-Consumer-facing internal-service HTTP guidance is owned by `docs/engineering/http-presenter-guidelines.md`. This file owns only implementation-local invariants for changing the shared runtime-presenter package itself.
+Consumer-facing internal-service HTTP guidance is owned by `docs/engineering/http-presenter-guidelines.md`. Cross-cutting failure/observability ownership is recorded in `docs/engineering/observability-and-http-errors.md`. This file owns only implementation-local invariants for changing the shared runtime-presenter package itself.
 
 ## HTTP request identity
 
@@ -37,6 +37,39 @@ The middleware is a trusted-upstream adapter, not authentication or authorizatio
 
 Tests in this package own request-identity transport behavior and should use plain request/header data. Service controller tests MUST NOT duplicate those cases; service E2E may send the canonical trusted headers to exercise the same production middleware path.
 
+## HTTP errors
+
+`@accounterbro/runtime-presenters/http/errors` owns canonical Problem Details definitions and runtime mapping primitives. Keep this entrypoint free from eager Nest filter composition so consumers that only need definitions do not load the filter/runtime-observability/EDP chain.
+
+`@accounterbro/runtime-presenters/http/errors/nest` owns the Nest global ordinary-error composition through `HttpErrorsModule`.
+
+The canonical behavior is:
+
+- `HttpProblemDefinition` is the single runtime/OpenAPI source for public `code`, `status`, `title`, and `type`;
+- `ExecutionFailureError` maps by `executionFailure.code` only, never by message or `retryable`;
+- expected application/business results remain normal results below the presenter; when their public HTTP contract is non-2xx, the presenter explicitly selects a canonical problem through `HttpProblemException`;
+- ordinary Nest `HttpException` values map by status;
+- unknown thrown values become the safe internal problem without exposing stack/cause/internal detail;
+- an active OpenTelemetry `traceId` may be exposed as a safe problem reference;
+- expected client/business problems are not terminal server-error logs, while a non-expected terminal exception is logged with full diagnostics once at the consuming HTTP boundary.
+
+Do not introduce another failure taxonomy, service-local HTTP code table, message/retryability-based status mapping, or global classification of unknown infrastructure errors here.
+
+## HTTP OpenAPI
+
+`@accounterbro/runtime-presenters/http/openapi` owns business/application endpoint error documentation.
+
+`@ApiEndpoint({ errors })` accepts canonical `HttpProblemDefinition` values. `createOpenApiDocument(...)` first builds the normal Nest/Swagger document and then projects those errors, preserving these invariants:
+
+- runtime and OpenAPI reuse the same canonical problem definitions;
+- variants sharing one status are grouped under one OpenAPI response;
+- successful status is not controlled by `@ApiEndpoint`; Nest defaults and explicit `@HttpCode(...)` remain runtime truth;
+- successful schemas stay on the standard Nest/Swagger path;
+- controllers do not repeat status/title/type/schema literals in stacks of `Api*Response` decorators;
+- generic internal errors are not mechanically repeated on every endpoint.
+
+Do not move Swagger types into `/http/errors`. Runtime error adaptation and OpenAPI projection remain separate entrypoints joined only by canonical problem definitions.
+
 ## HTTP health
 
 `@accounterbro/runtime-presenters/http/health` owns the reusable Nest + Terminus adapter for internal-service liveness and readiness HTTP endpoints.
@@ -54,5 +87,7 @@ The adapter MUST:
 The consuming application remains responsible for its global prefix and for enabling Nest shutdown hooks. The health adapter MUST NOT set either one.
 
 This subpath may depend on the transport-independent `@accounterbro/runtime-health` contract and Nest/Terminus only. It MUST NOT import `@accounterbro/runtime-health/typeorm`, TypeORM, service modules, business packages, EDP execution packages, or concrete readiness checks.
+
+Health remains a separate Terminus-owned system contract even when the global ordinary-error filter is installed. Preserve that through the shared health controller/filter ownership boundary; do not add URL-string health checks to the generic error filter and do not require ordinary `@ApiEndpoint`/Problem Details declarations on health methods.
 
 Tests here own the HTTP adapter behavior: route composition, liveness isolation, readiness success/failure mapping, stable indicator names, sensitive-error suppression, and graceful-shutdown response. Service tests should retain only integration evidence that the service supplies its own checks correctly.

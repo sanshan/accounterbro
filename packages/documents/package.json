@@ -22,20 +22,25 @@
             "types": "./dist/typeorm.d.ts",
             "import": "./dist/typeorm.js",
             "default": "./dist/typeorm.js"
+        },
+        "./runtime": {
+            "types": "./dist/runtime.d.ts",
+            "import": "./dist/runtime.js",
+            "default": "./dist/runtime.js"
         }
     },
     "dependencies": {
         "@accounterbro/core": "workspace:*",
-        "@accounterbro/service-runtime": "workspace:*",
-        "@event-driven-platform/actor": "^0.1.4",
-        "@event-driven-platform/event": "^0.1.4",
-        "@event-driven-platform/intent": "^0.2.1",
-        "@event-driven-platform/operation": "^0.1.5",
-        "@event-driven-platform/operation-handler": "^0.0.6",
-        "@event-driven-platform/operation-result": "^0.1.4",
-        "@event-driven-platform/read": "^0.0.5",
-        "@event-driven-platform/read-handler": "^0.0.4",
-        "@event-driven-platform/subject": "^0.1.4",
+        "@accounterbro/runtime-executions": "workspace:*",
+        "@event-driven-platform/actor": "^0.1.7",
+        "@event-driven-platform/event": "^0.1.7",
+        "@event-driven-platform/intent": "^0.2.4",
+        "@event-driven-platform/operation": "^0.1.8",
+        "@event-driven-platform/operation-handler": "^0.0.9",
+        "@event-driven-platform/operation-result": "^0.1.7",
+        "@event-driven-platform/read": "^0.0.8",
+        "@event-driven-platform/read-handler": "^0.0.7",
+        "@event-driven-platform/subject": "^0.1.7",
         "tslib": "^2.3.0",
         "typeorm": "catalog:"
     },

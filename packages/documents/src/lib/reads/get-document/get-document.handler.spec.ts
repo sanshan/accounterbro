@@ -1,4 +1,9 @@
-import type { DocumentId } from '@accounterbro/core';
+import {
+    tenantName,
+    type DocumentId,
+    type TenantId,
+    type TenantReference,
+} from '@accounterbro/core';
 
 import { Document } from '../../document/document.aggregate.js';
 import { DocumentRegistrationStatus } from '../../document/document-registration-status.js';
@@ -8,19 +13,33 @@ import { GetDocumentReadHandler } from './get-document.handler.js';
 import type { GetDocumentRead } from './get-document.read.js';
 
 const documentId = 'document-1' as DocumentId;
+const tenant = {
+    type: tenantName,
+    id: 'tenant-1' as TenantId,
+} satisfies TenantReference;
 
-function createPersistence(document: Document | null): DocumentPersistence {
-    return {
-        createOrGetExisting: async (candidate) => ({ kind: 'created', document: candidate }),
-        findById: async () => document,
+function createPersistence(document: Document | null) {
+    const lookups: Array<{ readonly tenantId: TenantId; readonly documentId: DocumentId }> = [];
+    const persistence: DocumentPersistence = {
+        createOrGetExisting: async (_tenantId, candidate) => ({
+            kind: 'created',
+            document: candidate,
+        }),
+        findById: async (tenantId, requestedDocumentId) => {
+            lookups.push({ tenantId, documentId: requestedDocumentId });
+            return document;
+        },
         update: async () => undefined,
     };
+
+    return { persistence, lookups };
 }
 
 function read(id: DocumentId = documentId): GetDocumentRead {
     return {
         name: documentReadNames.getDocument,
         actor: { type: 'user', id: 'user-1', origin: {} },
+        tenant,
         parameters: { documentId: id },
     };
 }
@@ -29,20 +48,24 @@ describe('GetDocumentReadHandler', () => {
     it('returns only the current document id and status', async () => {
         const document = Document.restore({
             id: documentId,
+            tenantId: tenant.id,
             contentHash: 'internal-content-hash',
             status: DocumentRegistrationStatus.Registered,
             storageReference: 'storage://document-1',
         });
-        const handler = new GetDocumentReadHandler(createPersistence(document));
+        const { persistence, lookups } = createPersistence(document);
+        const handler = new GetDocumentReadHandler(persistence);
 
         await expect(handler.execute(read())).resolves.toEqual({
             id: documentId,
             status: DocumentRegistrationStatus.Registered,
         });
+        expect(lookups).toEqual([{ tenantId: tenant.id, documentId }]);
     });
 
     it('returns null when the document does not exist', async () => {
-        const handler = new GetDocumentReadHandler(createPersistence(null));
+        const { persistence } = createPersistence(null);
+        const handler = new GetDocumentReadHandler(persistence);
         const missingDocumentId = 'missing-document' as DocumentId;
 
         await expect(handler.execute(read(missingDocumentId))).resolves.toBeNull();

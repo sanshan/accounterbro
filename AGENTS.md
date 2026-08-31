@@ -298,3 +298,4 @@ Nested `AGENTS.md` files may require additional checks. Those checks are mandato
 MUST NOT declare work complete with known failing relevant tests, type/build errors, broken Nx project discovery, unresolved plugin errors, or an inconsistent lockfile.
 
 If a required check cannot be run, state exactly which check was not run and why.
+

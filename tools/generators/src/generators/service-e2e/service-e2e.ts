@@ -254,3 +254,4 @@ module.exports = async function () {
 }
 
 export default serviceE2eGenerator;
+

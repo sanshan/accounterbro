@@ -7,7 +7,10 @@ export class GetDocumentReadHandler implements ReadHandler<GetDocumentRead> {
     public constructor(private readonly persistence: DocumentPersistence) {}
 
     public async execute(read: GetDocumentRead): Promise<GetDocumentResult | null> {
-        const document = await this.persistence.findById(read.parameters.documentId);
+        const document = await this.persistence.findById(
+            read.tenant.id,
+            read.parameters.documentId,
+        );
 
         if (!document) {
             return null;

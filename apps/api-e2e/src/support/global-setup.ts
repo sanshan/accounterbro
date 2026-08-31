@@ -12,3 +12,4 @@ module.exports = async function () {
     await waitForPortOpen(port, { host });
     globalThis.__TEARDOWN_MESSAGE__ = '\nTearing down...\n';
 };
+

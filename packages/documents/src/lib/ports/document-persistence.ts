@@ -1,4 +1,4 @@
-import type { DocumentId } from '@accounterbro/core';
+import type { DocumentId, TenantId } from '@accounterbro/core';
 
 import type { Document } from '../document/document.aggregate.js';
 
@@ -7,7 +7,10 @@ export type CreateDocumentResult =
     | { readonly kind: 'existing'; readonly document: Document };
 
 export abstract class DocumentPersistence {
-    public abstract createOrGetExisting(document: Document): Promise<CreateDocumentResult>;
-    public abstract findById(id: DocumentId): Promise<Document | null>;
-    public abstract update(document: Document): Promise<void>;
+    public abstract createOrGetExisting(
+        tenantId: TenantId,
+        document: Document,
+    ): Promise<CreateDocumentResult>;
+    public abstract findById(tenantId: TenantId, id: DocumentId): Promise<Document | null>;
+    public abstract update(tenantId: TenantId, document: Document): Promise<void>;
 }

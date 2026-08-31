@@ -193,3 +193,4 @@ jobs:
 
       - name: Run Web E2E
         run: pnpm nx run @accounterbro/web-e2e:e2e
+

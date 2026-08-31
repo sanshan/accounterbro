@@ -99,3 +99,4 @@ describe('package generator', () => {
         expect(libraryGenerator).not.toHaveBeenCalled();
     });
 });
+

@@ -5,6 +5,7 @@ export class DocumentMapper {
     public static toDomain(entity: DocumentEntity): Document {
         return Document.restore({
             id: entity.id,
+            tenantId: entity.tenantId,
             contentHash: entity.contentHash,
             status: entity.status,
             storageReference: entity.storageReference ?? undefined,
@@ -15,6 +16,7 @@ export class DocumentMapper {
     public static toPersistence(document: Document): DocumentEntity {
         return {
             id: document.id,
+            tenantId: document.tenantId,
             contentHash: document.contentHash,
             status: document.status,
             storageReference: document.storageReference ?? null,

@@ -1,14 +1,18 @@
 import { randomUUID } from 'node:crypto';
 
 import type { DocumentId, TenantReference } from '@accounterbro/core';
+import { UseCaseExecutor } from '@accounterbro/runtime-executions';
 import { Actor, Tenant } from '@accounterbro/runtime-presenters/http';
+import {
+    HttpProblemException,
+    NOT_FOUND_HTTP_PROBLEM,
+} from '@accounterbro/runtime-presenters/http/errors';
+import { ApiEndpoint } from '@accounterbro/runtime-presenters/http/openapi';
 import type { Actor as ActorValue } from '@event-driven-platform/actor';
 import { IntentFactory } from '@event-driven-platform/intent';
-import type { UseCaseExecutor } from '@event-driven-platform/use-case-executor';
 import {
     Controller,
     Get,
-    Inject,
     Param,
     ParseFilePipeBuilder,
     ParseUUIDPipe,
@@ -18,17 +22,16 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
-import { DOCUMENTS_USE_CASE_EXECUTOR } from '../../../application/application.tokens';
 import {
     GetDocumentUseCase,
     type GetDocumentUseCaseInput,
-} from '../../../application/use-cases/get-document.use-case';
-import type { GetDocumentUseCaseContext } from '../../../application/use-cases/get-document.use-case.context';
+} from '../../../application/use-cases/get-document/get-document.use-case';
+import type { GetDocumentUseCaseContext } from '../../../application/use-cases/get-document/get-document.use-case.context';
 import {
     RegisterDocumentUseCase,
     type RegisterDocumentInput,
-} from '../../../application/use-cases/register-document.use-case';
-import type { RegisterDocumentUseCaseContext } from '../../../application/use-cases/register-document.use-case.context';
+} from '../../../application/use-cases/register-document/register-document.use-case';
+import type { RegisterDocumentUseCaseContext } from '../../../application/use-cases/register-document/register-document.use-case.context';
 import type { GetDocumentResponseDto } from './dto/get-document.response.dto';
 import type { RegisterDocumentResponseDto } from './dto/register-document.response.dto';
 import { mapGetDocumentResponse } from './mappers/get-document.response.mapper';
@@ -60,7 +63,6 @@ function createInvocationContext(action: string, tenant: TenantReference) {
 @Controller('documents')
 export class DocumentsController {
     public constructor(
-        @Inject(DOCUMENTS_USE_CASE_EXECUTOR)
         private readonly useCaseExecutor: UseCaseExecutor,
         private readonly registerDocumentUseCase: RegisterDocumentUseCase,
         private readonly getDocumentUseCase: GetDocumentUseCase,
@@ -93,6 +95,7 @@ export class DocumentsController {
     }
 
     @Get(':documentId')
+    @ApiEndpoint({ errors: [NOT_FOUND_HTTP_PROBLEM] })
     public async getDocument(
         @Param('documentId', new ParseUUIDPipe({ version: '4' })) documentId: string,
         @Actor() actor: ActorValue,
@@ -104,6 +107,7 @@ export class DocumentsController {
         const context = {
             ...createInvocationContext('get-document', tenant),
             actor,
+            tenant,
         } satisfies GetDocumentUseCaseContext;
 
         const result = await this.useCaseExecutor.execute({
@@ -111,6 +115,10 @@ export class DocumentsController {
             input,
             context,
         });
+
+        if ('kind' in result) {
+            throw new HttpProblemException(NOT_FOUND_HTTP_PROBLEM);
+        }
 
         return mapGetDocumentResponse(result);
     }
