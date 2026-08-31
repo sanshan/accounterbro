@@ -8,6 +8,7 @@ import { TerminusModule } from '@nestjs/terminus';
 import type { ReadinessCheck } from '@accounterbro/runtime-health';
 
 import { HttpHealthController } from './http-health.controller.js';
+import { HttpHealthExceptionFilter } from './http-health-exception.filter.js';
 import { HTTP_HEALTH_READINESS_CHECKS } from './readiness-checks.token.js';
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_MS = 1_000;
@@ -35,6 +36,7 @@ export class HttpHealthModule {
             ],
             controllers: [HttpHealthController],
             providers: [
+                HttpHealthExceptionFilter,
                 {
                     provide: HTTP_HEALTH_READINESS_CHECKS,
                     inject: options.readinessChecks.inject ?? [],

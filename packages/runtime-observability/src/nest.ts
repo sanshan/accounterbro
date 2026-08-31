@@ -2,4 +2,4 @@ export {
     RuntimeObservabilityModule,
     type RuntimeObservabilityModuleOptions,
 } from './lib/nest/runtime-observability.module.js';
-export { Logger as RuntimeNestLogger } from 'nestjs-pino';
+export { Logger as RuntimeNestLogger, PinoLogger as RuntimePinoLogger } from 'nestjs-pino';
