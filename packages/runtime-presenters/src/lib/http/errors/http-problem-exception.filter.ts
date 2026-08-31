@@ -59,16 +59,18 @@ export class HttpProblemExceptionFilter extends BaseExceptionFilter {
     }
 
     private shouldPreserveFrameworkPresentation(host: ArgumentsHost): boolean {
-        const targets = [host.getHandler(), host.getClass()].filter(
-            (target): target is Function => typeof target === 'function',
-        );
+        const handler = host.getHandler();
+        if (
+            typeof handler === 'function' &&
+            this.reflector.get<boolean>(PRESERVE_HTTP_EXCEPTION_PRESENTATION, handler) === true
+        ) {
+            return true;
+        }
 
+        const controller = host.getClass();
         return (
-            targets.length > 0 &&
-            this.reflector.getAllAndOverride<boolean>(
-                PRESERVE_HTTP_EXCEPTION_PRESENTATION,
-                targets,
-            ) === true
+            typeof controller === 'function' &&
+            this.reflector.get<boolean>(PRESERVE_HTTP_EXCEPTION_PRESENTATION, controller) === true
         );
     }
 
