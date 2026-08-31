@@ -54,6 +54,9 @@ function expectProblemDetails(
     expect(response.status).toBe(expected.status);
     expect(response.headers['content-type']).toMatch(/^application\/problem\+json/);
     expect(response.data).toMatchObject(expected);
+    if (response.data.traceId !== undefined) {
+        expect(response.data.traceId).toEqual(expect.any(String));
+    }
     expect(response.data).not.toHaveProperty('stack');
     expect(response.data).not.toHaveProperty('cause');
 }

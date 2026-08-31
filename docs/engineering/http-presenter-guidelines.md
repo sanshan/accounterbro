@@ -2,16 +2,18 @@
 
 These rules define the reusable HTTP presentation boundary for internal Nest services in AccounterBro.
 
-Apply them when a service exposes `presenters/http`. They complement `docs/engineering/service-guidelines.md`; they do not make HTTP mandatory for every internal service.
+Apply them when a service exposes `presenters/http`. They complement `docs/engineering/service-guidelines.md` and `docs/engineering/observability-and-http-errors.md`; they do not make HTTP mandatory for every internal service.
 
 ## Canonical implemented references
 
 Use the closest proven implementation for the responsibility being changed:
 
-- `apps/services/documents/src/app/presenters/http/documents` is the current business HTTP presenter reference for concrete UseCase invocation, request identity, file upload, DTO mapping, and controller tests.
+- `apps/services/documents/src/app/presenters/http/documents` is the current business HTTP presenter reference for concrete UseCase invocation, request identity, file upload, DTO mapping, expected-result HTTP presentation, endpoint-specific `@ApiEndpoint(...)`, and controller tests.
 - `@accounterbro/runtime-presenters/http/health` is the implementation owner for reusable Nest/Terminus liveness and readiness HTTP adaptation.
 - `apps/api` and `apps/services/documents` are the proven running-service consumers of the shared health adapter: API preserves its global `/api` prefix, while Documents exposes the relative routes directly as `/health/live` and `/health/ready`.
 - `@accounterbro/runtime-presenters/http` is the implementation owner for reusable HTTP request-identity middleware and decorators.
+- `@accounterbro/runtime-presenters/http/errors` owns canonical Problem Details definitions/runtime mappings; `/http/errors/nest` owns Nest global ordinary-error composition.
+- `@accounterbro/runtime-presenters/http/openapi` owns compact endpoint-specific error declarations and canonical OpenAPI projection.
 
 These references are not templates requiring every endpoint to contain every file or dependency.
 
@@ -29,6 +31,8 @@ A service with HTTP presenters MUST:
 - preserve shutdown hooks and other lifecycle behavior already owned by the service.
 
 Use `apps/api/src/main.ts` and `apps/api/src/app/infrastructure/config/api.config.ts` as the current HTTP bootstrap/configuration reference. Do not hard-code ports in bootstrap code or validate the same raw port in more than one owner.
+
+When a service consumes shared runtime observability, use `@accounterbro/runtime-observability/nest` for Nest/Pino/OpenTelemetry lifecycle composition and structured startup logging rather than recreating service-local logger/telemetry configuration. The cross-cutting ownership rules are in `docs/engineering/observability-and-http-errors.md`.
 
 The base internal-service generator remains transport-agnostic. Do not add an HTTP listener to every generated service merely because some services expose HTTP presenters.
 
@@ -150,6 +154,42 @@ A presenter mapper MAY select, rename, flatten, or format values for the HTTP co
 
 Do not introduce generic mapper interfaces/base classes until repeated implemented endpoints prove a concrete need.
 
+## Ordinary HTTP error contract
+
+Ordinary application/framework failures use the canonical RFC 9457-compatible `application/problem+json` contract from `@accounterbro/runtime-presenters/http/errors`; Nest installs the shared filter through `/http/errors/nest`.
+
+The canonical flow is defined in `docs/engineering/observability-and-http-errors.md`. At the HTTP boundary:
+
+- classified `ExecutionFailureError` maps by `executionFailure.code` only;
+- an expected application/business result remains a normal result below the presenter and is explicitly selected as a canonical `HttpProblemDefinition` by the presenter when the public HTTP contract is non-2xx;
+- ordinary Nest `HttpException` status maps to the canonical problem family;
+- unknown thrown values become the safe internal problem without exposing internal diagnostics;
+- an active OpenTelemetry `traceId` may appear as a safe support reference.
+
+Do not create service-local Problem Details DTOs, exception filters, failure-code tables, or retryability/message-to-status mappings while the shared runtime owns them. Expected business/client problems are not automatically terminal server-error logs.
+
+## OpenAPI endpoint contracts
+
+For ordinary business/application endpoints with endpoint-specific public errors, use one compact declaration from `@accounterbro/runtime-presenters/http/openapi`:
+
+```ts
+@ApiEndpoint({ errors: [NOT_FOUND_HTTP_PROBLEM] })
+```
+
+The supplied values are canonical `HttpProblemDefinition`s. Controllers MUST NOT repeat their status/title/type/schema literals with `@ApiNotFoundResponse`, `@ApiConflictResponse`, or similar stacks.
+
+`@ApiEndpoint` owns only endpoint-specific public error projection. It MUST NOT own or duplicate successful status configuration, replace HTTP verb decorators/`@HttpCode(...)`, infer errors from the filter/call graph, or require generic internal errors to be listed on every method.
+
+Nest defaults and explicit `@HttpCode(...)` remain runtime truth for successful statuses. Successful schema discovery remains on the standard Nest/Swagger path. Build OpenAPI through `createOpenApiDocument(...)`; it preserves normal Nest/Swagger success metadata and then projects canonical endpoint problems, grouping variants sharing one HTTP status into one response.
+
+Business packages remain independent of Swagger; these declarations belong at the HTTP presenter boundary.
+
+## Health and ordinary errors remain separate
+
+Health remains owned by `@accounterbro/runtime-presenters/http/health` and Terminus. Do not convert health failures to Problem Details or add ordinary `@ApiEndpoint` declarations merely for visual uniformity.
+
+The generic ordinary-error filter MUST NOT special-case `/health` URL strings. The shared health controller owns its own filter boundary so Terminus response semantics remain intact even when the global ordinary-error filter is installed.
+
 ## Presentation tests
 
 Controller/presenter tests own only behavior introduced by the HTTP boundary. Use mocked/stubbed application/runtime collaborators rather than exercising persistence or EDP internals through controller tests.
@@ -160,7 +200,9 @@ For business UseCase endpoints, test when applicable that:
 - actor/tenant and other presenter-owned invocation metadata are placed into the expected concrete UseCase context;
 - the intended UseCase is submitted through `UseCaseExecutor` once for a valid invocation;
 - the application result is mapped to the expected HTTP response;
-- material Nest-owned binding/validation behavior that forms part of the HTTP contract is configured correctly.
+- material Nest-owned binding/validation behavior that forms part of the HTTP contract is configured correctly;
+- material expected application results are selected as the intended canonical public problem;
+- representative generated OpenAPI uses canonical endpoint errors and the real Nest success status without duplicated success configuration.
 
 Presenter tests MUST NOT duplicate:
 
@@ -168,7 +210,8 @@ Presenter tests MUST NOT duplicate:
 - Runner/Reader/UseCaseExecutor semantics;
 - Operation/Read handler behavior;
 - persistence, transaction, recovery, idempotency/deduplication, or ObjectStorage behavior;
-- request-identity parsing/validation behavior owned by `@accounterbro/runtime-presenters/http`.
+- request-identity parsing/validation behavior owned by `@accounterbro/runtime-presenters/http`;
+- shared Problem Details/filter/OpenAPI projection semantics owned by `runtime-presenters`.
 
 Shared health HTTP adapter behavior is owned and tested by `@accounterbro/runtime-presenters/http/health`. A consuming service should retain only the integration evidence that its own composition supplies the expected readiness checks and route prefix; do not recreate duplicate service-local health presenter tests.
 
@@ -192,12 +235,12 @@ Service E2E Jest projects use their explicit `e2e` target rather than the root `
 
 Use `apps/api-e2e` as the global-prefix health E2E reference and `apps/services/documents-e2e` as the internal-service HTTP E2E reference, including health routes without a global prefix and without business request-identity headers. E2E may verify service-owned HTTP integration, but MUST NOT duplicate lower-boundary semantics already covered by their owners.
 
+The proven cross-service ordinary-error evidence is intentionally small: API unknown-route failures and Documents business/framework failures use the same Problem Details envelope conventions, accept a safe active `traceId` reference, and do not expose stack/cause; both services keep health on the separate Terminus contract. Do not add artificial production failure endpoints solely for error-contract testing.
+
 ## Current omissions
 
 This guidance intentionally does not define behavior that has not yet established a reusable implementation pattern, including:
 
-- general error response contracts beyond already implemented framework/runtime behavior;
-- shared HTTP exception filters;
 - gateway/authentication implementation behind the trusted-upstream contract;
 - authorization policy;
 - non-HTTP presenters.
