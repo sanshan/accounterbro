@@ -200,6 +200,9 @@ importers:
       '@accounterbro/runtime-health':
         specifier: workspace:*
         version: link:../../packages/runtime-health
+      '@accounterbro/runtime-observability':
+        specifier: workspace:*
+        version: link:../../packages/runtime-observability
       '@accounterbro/runtime-presenters':
         specifier: workspace:*
         version: link:../../packages/runtime-presenters
