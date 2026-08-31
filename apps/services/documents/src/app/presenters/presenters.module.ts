@@ -1,5 +1,6 @@
 import { createTypeOrmDatabaseReadinessCheck } from '@accounterbro/runtime-health/typeorm';
 import { httpRequestIdentityMiddleware } from '@accounterbro/runtime-presenters/http';
+import { HttpErrorsModule } from '@accounterbro/runtime-presenters/http/errors/nest';
 import { HttpHealthModule } from '@accounterbro/runtime-presenters/http/health';
 import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
 import { DataSource } from 'typeorm';
@@ -10,6 +11,7 @@ import { DocumentsController } from './http/documents/documents.controller';
 @Module({
     imports: [
         ApplicationModule,
+        HttpErrorsModule,
         HttpHealthModule.register({
             imports: [ApplicationModule],
             readinessChecks: {

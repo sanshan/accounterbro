@@ -10,11 +10,8 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-    HttpErrorsModule,
-    HttpProblemException,
-    NOT_FOUND_HTTP_PROBLEM,
-} from '../../../http/errors.js';
+import { HttpProblemException, NOT_FOUND_HTTP_PROBLEM } from '../../../http/errors.js';
+import { HttpErrorsModule } from '../../../http/errors/nest.js';
 import { HttpHealthModule } from '../../../http/health.js';
 
 @Controller('test-errors')

@@ -1,6 +1,5 @@
 export { mapExecutionFailureToHttpProblem } from '../lib/http/errors/execution-failure-http-mapping.js';
 export { mapHttpStatusToProblem } from '../lib/http/errors/http-exception-http-mapping.js';
-export { HttpErrorsModule } from '../lib/http/errors/http-errors.module.js';
 export {
     CONFLICT_HTTP_PROBLEM,
     FORBIDDEN_HTTP_PROBLEM,

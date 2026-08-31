@@ -16,6 +16,7 @@
         "@accounterbro/runtime-config": "workspace:*",
         "@accounterbro/runtime-executions": "workspace:*",
         "@accounterbro/runtime-health": "workspace:*",
+        "@accounterbro/runtime-observability": "workspace:*",
         "@accounterbro/runtime-presenters": "workspace:*",
         "@event-driven-platform/actor": "^0.1.7",
         "@event-driven-platform/clock": "^0.0.9",
