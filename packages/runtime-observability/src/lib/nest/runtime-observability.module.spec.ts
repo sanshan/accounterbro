@@ -1,5 +1,3 @@
-import 'reflect-metadata';
-
 import { Test } from '@nestjs/testing';
 import { PinoLogger } from 'nestjs-pino';
 
