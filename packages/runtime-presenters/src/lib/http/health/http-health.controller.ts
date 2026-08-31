@@ -6,8 +6,10 @@ import {
     HealthIndicatorService,
 } from '@nestjs/terminus';
 
+import { PreserveHttpExceptionPresentation } from '../http-exception-presentation.js';
 import { HTTP_HEALTH_READINESS_CHECKS } from './readiness-checks.token.js';
 
+@PreserveHttpExceptionPresentation()
 @Controller('health')
 export class HttpHealthController {
     constructor(
