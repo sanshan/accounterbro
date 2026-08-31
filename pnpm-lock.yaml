@@ -6,9 +6,6 @@ settings:
 
 catalogs:
   default:
-    '@playwright/test':
-      specifier: 1.62.0
-      version: 1.62.0
     pg:
       specifier: ^8.23.0
       version: 8.23.0
@@ -56,9 +53,6 @@ importers:
       '@nx/node':
         specifier: 23.0.2
         version: 23.0.2(f93ba7f6f2e3e4590e27a78b083b09a9)
-      '@nx/playwright':
-        specifier: 23.0.2
-        version: 23.0.2(@babel/traverse@7.29.8)(@nx/jest@23.0.2(9363faa5ebfef467fc69bb7c6f0b5939))(@playwright/test@1.62.0)(@swc-node/register@1.11.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@swc/types@0.1.28)(typescript@5.9.3))(@swc/cli@0.8.1(@swc/core@1.15.47(@swc/helpers@0.5.23)))(@swc/core@1.15.47(@swc/helpers@0.5.23))(@zkochan/js-yaml@0.0.7)(eslint@9.39.5(jiti@2.4.2))(nx@23.0.2(@swc-node/register@1.11.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@swc/types@0.1.28)(typescript@5.9.3))(@swc/core@1.15.47(@swc/helpers@0.5.23)))
       '@nx/plugin':
         specifier: 23.0.2
         version: 23.0.2(0776b71f011f22135c31ec50000a8ad3)
@@ -131,9 +125,6 @@ importers:
       eslint-plugin-jsx-a11y:
         specifier: 6.10.1
         version: 6.10.1(eslint@9.39.5(jiti@2.4.2))
-      eslint-plugin-playwright:
-        specifier: ^1.6.2
-        version: 1.8.3(eslint@9.39.5(jiti@2.4.2))
       eslint-plugin-react:
         specifier: ^7.35.0
         version: 7.37.5(eslint@9.39.5(jiti@2.4.2))
@@ -382,15 +373,6 @@ importers:
       '@testing-library/user-event':
         specifier: ^14.6.4
         version: 14.6.6(@testing-library/dom@10.4.0)
-
-  apps/web-e2e:
-    devDependencies:
-      '@accounterbro/runtime-config':
-        specifier: workspace:*
-        version: link:../../packages/runtime-config
-      '@playwright/test':
-        specifier: 'catalog:'
-        version: 1.62.0
 
   packages/core:
     dependencies:
@@ -5241,16 +5223,6 @@ packages:
     peerDependencies:
       eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9
 
-  eslint-plugin-playwright@1.8.3:
-    resolution: {integrity: sha512-h87JPFHkz8a6oPhn8GRGGhSQoAJjx0AkOv1jME6NoMk2FpEsfvfJJNaQDxLSqSALkCr0IJXPGTnp6SIRVu5Nqg==}
-    engines: {node: '>=16.6.0'}
-    peerDependencies:
-      eslint: '>=8.40.0'
-      eslint-plugin-jest: '>=25'
-    peerDependenciesMeta:
-      eslint-plugin-jest:
-        optional: true
-
   eslint-plugin-react-hooks@5.0.0:
     resolution: {integrity: sha512-hIOwI+5hYGpJEc4uPRmz2ulCjAGD/N13Lukkh8cLV0i2IRk/bdZDYjgLVHj+U9Z704kLIdIO6iueGvxNur0sgw==}
     engines: {node: '>=10'}
@@ -5671,10 +5643,6 @@ packages:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
     deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
-
-  globals@13.24.0:
-    resolution: {integrity: sha512-AhO5QUcj8llrbG09iWhPU2B204J1xnPeL8kQmVorSsy+Sjj1sk8gIyh6cUocGmH4L0UuhAJy+hJMRA4mgA4mFQ==}
-    engines: {node: '>=8'}
 
   globals@14.0.0:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
@@ -11657,6 +11625,7 @@ snapshots:
       - nx
       - supports-color
       - verdaccio
+    optional: true
 
   '@nx/plugin@23.0.2(0776b71f011f22135c31ec50000a8ad3)':
     dependencies:
@@ -12390,6 +12359,7 @@ snapshots:
   '@playwright/test@1.62.0':
     dependencies:
       playwright: 1.62.0
+    optional: true
 
   '@polka/url@1.0.0-next.29': {}
 
@@ -14832,11 +14802,6 @@ snapshots:
       safe-regex-test: 1.1.0
       string.prototype.includes: 2.0.1
 
-  eslint-plugin-playwright@1.8.3(eslint@9.39.5(jiti@2.4.2)):
-    dependencies:
-      eslint: 9.39.5(jiti@2.4.2)
-      globals: 13.24.0
-
   eslint-plugin-react-hooks@5.0.0(eslint@9.39.5(jiti@2.4.2)):
     dependencies:
       eslint: 9.39.5(jiti@2.4.2)
@@ -15413,10 +15378,6 @@ snapshots:
       inherits: 2.0.4
       minimatch: 5.1.9
       once: 1.4.0
-
-  globals@13.24.0:
-    dependencies:
-      type-fest: 0.20.2
 
   globals@14.0.0: {}
 
@@ -17472,13 +17433,15 @@ snapshots:
       pvutils: 1.2.0
       tslib: 2.8.1
 
-  playwright-core@1.62.0: {}
+  playwright-core@1.62.0:
+    optional: true
 
   playwright@1.62.0:
     dependencies:
       playwright-core: 1.62.0
     optionalDependencies:
       fsevents: 2.3.2
+    optional: true
 
   pluralize@8.0.0: {}
 

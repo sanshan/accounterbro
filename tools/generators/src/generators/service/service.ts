@@ -439,10 +439,6 @@ export const AppDataSource = new DataSource({
 `,
     );
 
-    tree.write(`${typeormRoot}/entities/.gitkeep`, '');
-    tree.write(`${typeormRoot}/repositories/.gitkeep`, '');
-    tree.write(`${typeormRoot}/migrations/.gitkeep`, '');
-
     tree.write(
         `${projectRoot}/src/app/infrastructure/infrastructure.module.ts`,
         `import { Module } from '@nestjs/common';
@@ -477,4 +473,3 @@ export class PresentersModule {}
 }
 
 export default serviceGenerator;
-

@@ -13,9 +13,6 @@
             "path": "./apps/api-e2e"
         },
         {
-            "path": "./apps/web-e2e"
-        },
-        {
             "path": "./apps/services/documents"
         },
         {

@@ -283,8 +283,6 @@ Avoid asserting private state transitions, hook internals, or implementation-spe
 
 Use the project's existing test tooling and Testing Library conventions.
 
-`apps/web-e2e` owns browser-level user journeys. E2E should cover meaningful cross-boundary flows rather than duplicate every component validation case.
-
 ## 18. New Feature Workflow
 
 When planning or implementing a frontend feature:
@@ -312,7 +310,5 @@ pnpm nx run @accounterbro/web:typecheck
 pnpm nx run @accounterbro/web:test
 pnpm nx run @accounterbro/web:build
 ```
-
-When a user-visible browser flow changes, run the relevant `@accounterbro/web-e2e` target as well.
 
 Do not declare Web work complete with known lint/type/build/test failures or unresolved accessibility/performance issues introduced by the change.

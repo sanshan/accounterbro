@@ -38,7 +38,6 @@ export default defineConfig(() => {
             watch: false,
             globals: true,
             environment: 'jsdom',
-            passWithNoTests: true,
             setupFiles: ['./src/test/setup.ts'],
             include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
             reporters: ['default'],

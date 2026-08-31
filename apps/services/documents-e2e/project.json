@@ -18,7 +18,6 @@
             "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
             "options": {
                 "jestConfig": "apps/services/documents-e2e/jest.config.cts",
-                "passWithNoTests": true,
                 "runInBand": true
             },
             "dependsOn": [
@@ -30,4 +29,3 @@
         }
     }
 }
-

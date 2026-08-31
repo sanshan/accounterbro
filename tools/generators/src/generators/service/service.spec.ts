@@ -197,17 +197,17 @@ describe('service generator', () => {
             tree.exists(
                 'apps/services/example/src/app/infrastructure/persistence/typeorm/entities/.gitkeep',
             ),
-        ).toBe(true);
+        ).toBe(false);
         expect(
             tree.exists(
                 'apps/services/example/src/app/infrastructure/persistence/typeorm/repositories/.gitkeep',
             ),
-        ).toBe(true);
+        ).toBe(false);
         expect(
             tree.exists(
                 'apps/services/example/src/app/infrastructure/persistence/typeorm/migrations/.gitkeep',
             ),
-        ).toBe(true);
+        ).toBe(false);
         expect(tree.exists('apps/services/example/src/index.ts')).toBe(false);
         expect(tree.children('apps/services/example/src/lib')).toEqual([]);
         expect(tree.exists('apps/services/example/tsconfig.lib.json')).toBe(false);
@@ -239,4 +239,3 @@ describe('service generator', () => {
         expect(libraryGenerator).not.toHaveBeenCalled();
     });
 });
-
