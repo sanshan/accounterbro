@@ -1,8 +1,5 @@
 export {
     createEdpOpenTelemetryObservers,
-    toReaderTelemetryRecord,
-    toRunnerTelemetryRecord,
-    toUseCaseExecutorTelemetryRecord,
     type EdpOpenTelemetryObservers,
 } from './lib/edp-opentelemetry-observers.js';
 export {
