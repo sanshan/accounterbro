@@ -20,6 +20,29 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Apply EDP observer return contract fix
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('packages/runtime-observability/src/lib/edp-opentelemetry-observers.ts')
+          text = path.read_text()
+          text = text.replace(
+              "observe: (observation) => recorder.record(toRunnerTelemetryRecord(observation)),",
+              "observe: (observation) => {\n                recorder.record(toRunnerTelemetryRecord(observation));\n                return undefined;\n            },",
+          )
+          text = text.replace(
+              "observe: (observation) => recorder.record(toReaderTelemetryRecord(observation)),",
+              "observe: (observation) => {\n                recorder.record(toReaderTelemetryRecord(observation));\n                return undefined;\n            },",
+          )
+          text = text.replace(
+              "observe: (observation) =>\n                recorder.record(toUseCaseExecutorTelemetryRecord(observation)),",
+              "observe: (observation) => {\n                recorder.record(toUseCaseExecutorTelemetryRecord(observation));\n                return undefined;\n            },",
+          )
+          path.write_text(text)
+          PY
+
       - name: Install pnpm
         uses: pnpm/action-setup@v6
         with:
@@ -35,17 +58,17 @@ jobs:
       - name: Refresh dependencies and lockfile
         run: pnpm install --no-frozen-lockfile
 
-      - name: Commit refreshed lockfile
+      - name: Commit prepared task changes
         shell: bash
         run: |
-          if git diff --quiet -- pnpm-lock.yaml; then
+          if git diff --quiet -- pnpm-lock.yaml packages/runtime-observability/src/lib/edp-opentelemetry-observers.ts; then
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pnpm-lock.yaml
-          git commit -m "Refresh lockfile for OpenTelemetry"
+          git add pnpm-lock.yaml packages/runtime-observability/src/lib/edp-opentelemetry-observers.ts
+          git commit -m "Fix EDP observer telemetry composition"
           git push origin "HEAD:${{ github.head_ref }}"
 
       - name: Run focused type checks
