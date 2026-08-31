@@ -14,8 +14,16 @@ import {
     type TenantReference,
 } from '@accounterbro/core';
 import { DocumentRegistrationStatus } from '@accounterbro/documents';
+import { UseCaseExecutor } from '@accounterbro/runtime-executions';
+import {
+    HttpProblemException,
+    NOT_FOUND_HTTP_PROBLEM,
+    PROBLEM_DETAILS_MEDIA_TYPE,
+} from '@accounterbro/runtime-presenters/http/errors';
+import { createOpenApiDocument } from '@accounterbro/runtime-presenters/http/openapi';
 import type { Actor } from '@event-driven-platform/actor';
-import type { UseCaseExecutor } from '@event-driven-platform/use-case-executor';
+import type { INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 
 import { GetDocumentUseCase } from '../../../application/use-cases/get-document/get-document.use-case';
 import { RegisterDocumentUseCase } from '../../../application/use-cases/register-document/register-document.use-case';
@@ -118,14 +126,59 @@ describe('DocumentsController', () => {
         );
     });
 
-    it('maps the GetDocumentUseCase not-found result without retesting read behavior', async () => {
+    it('presents the GetDocumentUseCase not-found result as the canonical HTTP problem', async () => {
         const documentId = '08c721b4-a64b-461b-adb5-bc845de424ac' as DocumentId;
         const { executor } = createExecutor({ kind: 'not-found' });
         const useCases = createUseCases();
         const controller = new DocumentsController(executor, useCases.register, useCases.get);
 
-        await expect(controller.getDocument(documentId, actor, tenant)).resolves.toEqual({
-            kind: 'not-found',
-        });
+        await expect(controller.getDocument(documentId, actor, tenant)).rejects.toMatchObject({
+            definition: NOT_FOUND_HTTP_PROBLEM,
+        } satisfies Partial<HttpProblemException>);
+    });
+
+    it('projects the endpoint-specific not-found contract without duplicating success statuses', async () => {
+        const useCases = createUseCases();
+        const { executor } = createExecutor(undefined);
+        const module = await Test.createTestingModule({
+            controllers: [DocumentsController],
+            providers: [
+                { provide: UseCaseExecutor, useValue: executor },
+                { provide: RegisterDocumentUseCase, useValue: useCases.register },
+                { provide: GetDocumentUseCase, useValue: useCases.get },
+            ],
+        }).compile();
+        const app: INestApplication = module.createNestApplication();
+        await app.init();
+
+        try {
+            const document = createOpenApiDocument(app, {
+                openapi: '3.0.0',
+                info: { title: 'documents-test', version: '1' },
+            });
+            const getOperation = document.paths['/documents/{documentId}']?.get;
+
+            expect(getOperation?.responses['200']).toEqual({ description: '' });
+            expect(getOperation?.responses['404']).toMatchObject({
+                description: NOT_FOUND_HTTP_PROBLEM.title,
+                content: {
+                    [PROBLEM_DETAILS_MEDIA_TYPE]: {
+                        schema: {
+                            properties: {
+                                type: { enum: [NOT_FOUND_HTTP_PROBLEM.type] },
+                                title: { enum: [NOT_FOUND_HTTP_PROBLEM.title] },
+                                status: { enum: [NOT_FOUND_HTTP_PROBLEM.status] },
+                                code: { enum: [NOT_FOUND_HTTP_PROBLEM.code] },
+                            },
+                        },
+                    },
+                },
+            });
+            expect(document.paths['/documents']?.post?.responses['201']).toEqual({
+                description: '',
+            });
+        } finally {
+            await app.close();
+        }
     });
 });

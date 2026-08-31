@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import axios from 'axios';
+import axios, { type AxiosResponse } from 'axios';
 
 interface RegisterDocumentResponse {
     readonly id: string;
@@ -13,6 +13,14 @@ interface RegisterDocumentResponse {
 interface GetDocumentResponse {
     readonly id: string;
     readonly status: string;
+}
+
+interface ProblemDetailsResponse {
+    readonly type: string;
+    readonly title: string;
+    readonly status: number;
+    readonly code: string;
+    readonly traceId?: string;
 }
 
 const trustedIdentityHeaders = {
@@ -37,6 +45,17 @@ async function createFixtureForm(): Promise<FormData> {
     form.append('file', new Blob([fixture]), 'document.txt');
 
     return form;
+}
+
+function expectProblemDetails(
+    response: AxiosResponse<ProblemDetailsResponse>,
+    expected: Omit<ProblemDetailsResponse, 'traceId'>,
+): void {
+    expect(response.status).toBe(expected.status);
+    expect(response.headers['content-type']).toMatch(/^application\/problem\+json/);
+    expect(response.data).toMatchObject(expected);
+    expect(response.data).not.toHaveProperty('stack');
+    expect(response.data).not.toHaveProperty('cause');
 }
 
 describe('Documents HTTP', () => {
@@ -76,12 +95,48 @@ describe('Documents HTTP', () => {
     });
 
     it('covers DOC-GET-002 for an unknown valid Document id', async () => {
-        const response = await axios.get(`/documents/${randomUUID()}`, {
+        const response = await axios.get<ProblemDetailsResponse>(`/documents/${randomUUID()}`, {
             headers: trustedIdentityHeaders,
+            validateStatus: () => true,
         });
 
-        expect(response.status).toBe(200);
-        expect(response.data).toEqual({ kind: 'not-found' });
+        expectProblemDetails(response, {
+            type: 'urn:accounterbro:problem:not-found',
+            title: 'Not Found',
+            status: 404,
+            code: 'not-found',
+        });
+    });
+
+    it('maps Nest UUID binding failures to the shared Problem Details contract', async () => {
+        const response = await axios.get<ProblemDetailsResponse>('/documents/not-a-uuid', {
+            headers: trustedIdentityHeaders,
+            validateStatus: () => true,
+        });
+
+        expectProblemDetails(response, {
+            type: 'urn:accounterbro:problem:invalid-request',
+            title: 'Invalid Request',
+            status: 400,
+            code: 'invalid-request',
+        });
+    });
+
+    it('maps missing file upload failures to the shared Problem Details contract', async () => {
+        const form = new FormData();
+        form.append('note', 'missing file');
+
+        const response = await axios.post<ProblemDetailsResponse>('/documents', form, {
+            headers: trustedIdentityHeaders,
+            validateStatus: () => true,
+        });
+
+        expectProblemDetails(response, {
+            type: 'urn:accounterbro:problem:invalid-request',
+            title: 'Invalid Request',
+            status: 400,
+            code: 'invalid-request',
+        });
     });
 
     it('covers DOC-REG-005 and DOC-GET-003 across two tenants', async () => {
@@ -118,8 +173,9 @@ describe('Documents HTTP', () => {
             axios.get<GetDocumentResponse>(`/documents/${createdByTenantB.data.id}`, {
                 headers: tenantBHeaders,
             }),
-            axios.get(`/documents/${createdByTenantA.data.id}`, {
+            axios.get<ProblemDetailsResponse>(`/documents/${createdByTenantA.data.id}`, {
                 headers: tenantBHeaders,
+                validateStatus: () => true,
             }),
         ]);
 
@@ -131,7 +187,11 @@ describe('Documents HTTP', () => {
             id: createdByTenantB.data.id,
             status: 'REGISTERED',
         });
-        expect(hiddenFromTenantB.status).toBe(200);
-        expect(hiddenFromTenantB.data).toEqual({ kind: 'not-found' });
+        expectProblemDetails(hiddenFromTenantB, {
+            type: 'urn:accounterbro:problem:not-found',
+            title: 'Not Found',
+            status: 404,
+            code: 'not-found',
+        });
     });
 });
