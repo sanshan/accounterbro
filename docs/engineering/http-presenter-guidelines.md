@@ -2,18 +2,20 @@
 
 These rules define the reusable HTTP presentation boundary for internal Nest services in AccounterBro.
 
-Apply them when a service exposes `presenters/http`. They complement `docs/engineering/service-guidelines.md`; they do not make HTTP mandatory for every internal service.
+Apply them when a service exposes `presenters/http`. They complement `docs/engineering/service-guidelines.md` and `docs/engineering/observability-and-http-errors.md`; they do not make HTTP mandatory for every internal service.
 
 ## Canonical implemented references
 
 Use the closest proven implementation for the responsibility being changed:
 
-- `apps/services/documents/src/app/presenters/http/documents` is the current business HTTP presenter reference for concrete UseCase invocation, request identity, file upload, DTO mapping, and controller tests.
-- `@accounterbro/runtime-presenters/http/health` is the implementation owner for reusable Nest/Terminus liveness and readiness HTTP adaptation.
-- `apps/api` and `apps/services/documents` are the proven running-service consumers of the shared health adapter: API preserves its global `/api` prefix, while Documents exposes the relative routes directly as `/health/live` and `/health/ready`.
-- `@accounterbro/runtime-presenters/http` is the implementation owner for reusable HTTP request-identity middleware and decorators.
+- `apps/services/documents/src/app/presenters/http/documents` is the business HTTP presenter reference for concrete UseCase invocation, request identity, file upload, DTO mapping, expected-result-to-HTTP-error presentation, `@ApiEndpoint(...)`, and controller tests.
+- `@accounterbro/runtime-presenters/http` owns reusable HTTP request-identity middleware and decorators.
+- `@accounterbro/runtime-presenters/http/errors` owns canonical Problem Details definitions/runtime mapping primitives; `/http/errors/nest` owns Nest global error-filter composition.
+- `@accounterbro/runtime-presenters/http/openapi` owns compact endpoint error declarations and canonical OpenAPI projection.
+- `@accounterbro/runtime-presenters/http/health` owns reusable Nest/Terminus liveness and readiness adaptation.
+- `apps/api` and `apps/services/documents` are the proven running-service consumers of shared observability, ordinary HTTP errors, and health. API preserves its global `/api` prefix; Documents exposes relative routes directly.
 
-These references are not templates requiring every endpoint to contain every file or dependency.
+These references demonstrate ownership and dependency direction. They are not templates requiring every endpoint or service to consume every capability.
 
 ## HTTP service runtime
 
@@ -21,14 +23,13 @@ Adding a `presenters/http` boundary makes the hosting service an HTTP server pro
 
 A service with HTTP presenters MUST:
 
-- create the Nest application with `NestFactory.create(...)`, not only `createApplicationContext(...)`;
-- expose its listen port through the canonical typed service configuration boundary;
-- use `@accounterbro/runtime-config` as the raw port owner when the same port is consumed by workspace/E2E tooling;
-- obtain the namespaced service config through its existing `registerAs` `KEY` / `ConfigType` contract in `main.ts`;
-- call `app.listen(config.port)` during bootstrap;
-- preserve shutdown hooks and other lifecycle behavior already owned by the service.
+- create the Nest application with `NestFactory.create(...)`;
+- expose its listen port through canonical typed service configuration;
+- obtain namespaced service config through its existing `registerAs` `KEY` / `ConfigType` contract;
+- call `app.listen(config.port)`;
+- preserve shutdown hooks and lifecycle behavior already owned by the service.
 
-Use `apps/api/src/main.ts` and `apps/api/src/app/infrastructure/config/api.config.ts` as the current HTTP bootstrap/configuration reference. Do not hard-code ports in bootstrap code or validate the same raw port in more than one owner.
+When the service consumes the shared runtime observability module, use its exported Nest logger for Nest logging and structured startup logging rather than reintroducing default string-only startup logs. The complete logging/telemetry/error ownership is defined in `docs/engineering/observability-and-http-errors.md`.
 
 The base internal-service generator remains transport-agnostic. Do not add an HTTP listener to every generated service merely because some services expose HTTP presenters.
 
@@ -51,13 +52,13 @@ Presenters MAY depend on concrete service UseCases and application-facing input/
 Presenters MUST NOT:
 
 - call Runner, Reader, Operation/Read handlers, repositories, TypeORM, ObjectStorage, or other infrastructure boundaries directly when a UseCase owns that orchestration;
-- move business rules or application orchestration into controllers, DTOs, or mappers;
+- move business rules or application orchestration into controllers, DTOs, mappers, or HTTP error definitions;
 - pass Nest, Express, Multer, request, or DTO types into application/UseCase code;
 - expose application/domain/UseCase result objects directly as HTTP response contracts merely for convenience.
 
 Controllers remain thin transport adapters.
 
-System health endpoints are technical runtime behavior rather than durable business UseCases. Consume `@accounterbro/runtime-presenters/http/health` and supply transport-independent `ReadinessCheck` instances from `@accounterbro/runtime-health` through service composition. For PostgreSQL readiness, use `@accounterbro/runtime-health/typeorm` with the hosting service's existing Nest-managed `DataSource`. Do not force `UseCaseExecutor` into health endpoints or recreate a service-local health controller/indicator flow solely for structural symmetry.
+System health endpoints are technical runtime behavior rather than durable business UseCases. Consume `@accounterbro/runtime-presenters/http/health` and supply transport-independent `ReadinessCheck` instances from `@accounterbro/runtime-health`. Do not force `UseCaseExecutor` into health endpoints.
 
 ## Placement
 
@@ -67,64 +68,45 @@ Organize HTTP presentation by feature/capability under:
 presenters/http/<feature>/
 ```
 
-Use the smallest structure required by the feature. A normal business HTTP feature may contain:
+Use the smallest structure required by the feature. A normal business HTTP feature may contain its controller, focused controller spec, HTTP DTOs, and response mappers. Do not create empty symmetry-only directories or generic base controllers/mappers.
 
-```text
-presenters/http/<feature>/
-├── <feature>.controller.ts
-├── <feature>.controller.spec.ts
-├── dto/
-│   ├── <action>.request.dto.ts
-│   └── <action>.response.dto.ts
-└── mappers/
-    └── <action>.response.mapper.ts
-```
-
-Do not create empty symmetry-only directories or generic base controllers/mappers. Add only files required by concrete endpoints.
-
-Keep presenter-owned Nest module/composition wiring at the nearest presenter module boundary established by the service. Do not put HTTP composition into application or infrastructure modules.
+Keep presenter-owned Nest composition at the nearest presenter module boundary. Do not put HTTP composition into application or infrastructure modules.
 
 ## Business controllers and durable UseCases
 
-Concrete service UseCases are Nest providers and MUST be obtained through constructor DI. Controllers MUST NOT instantiate UseCases, reconstruct their stable dependencies, or manually resolve them from the Nest container.
+Concrete service UseCases are Nest providers and MUST be obtained through constructor DI. Controllers MUST NOT instantiate UseCases, reconstruct their dependencies, or manually resolve them from the Nest container.
 
-When an HTTP business endpoint invokes a durable concrete UseCase, preserve the service execution boundary from `docs/engineering/service-guidelines.md`: submit that UseCase through the service-wide EDP `UseCaseExecutor`; do not call `useCase.execute()` directly merely because the UseCase is injectable.
+When an HTTP business endpoint invokes a durable concrete UseCase, submit that UseCase through the service-wide EDP `UseCaseExecutor`; do not call `useCase.execute()` directly merely because the UseCase is injectable.
 
-For such an endpoint, the controller owns only transport adaptation and invocation assembly:
+The controller owns transport adaptation and invocation assembly:
 
 1. extract and validate transport input;
-2. obtain request identity/context values through the shared HTTP runtime utilities when required;
-3. construct the concrete UseCase input and typed UseCase context;
-4. submit the concrete UseCase through `UseCaseExecutor`;
-5. map the result to the HTTP response contract.
+2. obtain required request identity/context values through shared HTTP utilities;
+3. construct the concrete UseCase input and typed context;
+4. submit through `UseCaseExecutor`;
+5. select the public HTTP outcome and map successful results to response DTOs.
 
-Invocation-specific metadata remains explicit. Do not introduce request-scoped UseCases, ambient current-user/current-tenant providers, presenter-local AsyncLocalStorage, or similar hidden state to avoid constructing the typed UseCase context.
+Invocation metadata remains explicit. Do not introduce request-scoped UseCases, ambient current-user/current-tenant providers, presenter-local AsyncLocalStorage, or similar hidden state.
 
 ## Actor and tenant request identity
 
-Use the shared HTTP presenter runtime from `@accounterbro/runtime-presenters/http` for request identity. That package owns parsing/validation behavior and the canonical header contract; service code MUST NOT reproduce raw identity-header names or parse them independently.
+Use `@accounterbro/runtime-presenters/http` for request identity. The package owns parsing/validation and the canonical header contract; service code MUST NOT reproduce raw identity-header names or parse them independently.
 
-A presenter module whose controllers use `@Actor()` or `@Tenant()` MUST apply `httpRequestIdentityMiddleware` to those routes before controller invocation.
+A presenter module whose controllers use `@Actor()` or `@Tenant()` MUST apply `httpRequestIdentityMiddleware` to those business routes before controller invocation.
 
-Scope request-identity middleware to the business routes that require it. Reusable health routes from `@accounterbro/runtime-presenters/http/health` do not acquire Actor/Tenant requirements merely because another controller in the same service uses request identity. `apps/services/documents` is the proven reference for this route-scoped composition.
+Scope request-identity middleware to routes that require it. Shared health routes do not acquire Actor/Tenant requirements merely because another controller uses request identity.
 
-The middleware/decorators represent a trusted-upstream identity contract, not authentication or authorization. Production exposure requires an upstream auth/gateway boundary that authenticates callers, removes untrusted caller-supplied AccounterBro identity headers, validates the upstream contract, and injects trusted values.
+The middleware/decorators represent a trusted-upstream identity contract, not authentication or authorization. Production exposure requires an upstream boundary that authenticates callers, strips untrusted caller-supplied AccounterBro identity headers, validates the upstream contract, and injects trusted values.
 
-Controllers use the shared extraction decorators and pass only identity values required by the concrete application context. A UseCase that needs actor but not tenant MUST NOT receive tenant merely because it is available on the request.
-
-UseCases remain unaware of HTTP request objects, trusted headers, middleware, and presenter decorators.
-
-For the exact request-identity implementation invariants, change `@accounterbro/runtime-presenters/http` under its own package instructions rather than duplicating those rules in service documentation.
+Controllers pass only identity values required by the concrete application context. UseCases remain unaware of HTTP request objects, trusted headers, middleware, and presenter decorators.
 
 ## DTO ownership and transport validation
 
-DTOs are HTTP contracts and belong inside the HTTP presenter boundary.
+DTOs are HTTP contracts and stay inside the HTTP presenter boundary.
 
 Request DTOs own HTTP-visible request shape and transport validation. They MUST NOT be imported into application/domain code or reused as UseCase input types merely for convenience.
 
-Response DTOs own the HTTP-visible response shape. Controllers MUST NOT expose application/domain/UseCase result objects directly when an explicit HTTP contract is required.
-
-If an endpoint has no structured body/query contract, do not create a request DTO just for symmetry.
+Response DTOs own the HTTP-visible successful response shape. Controllers MUST NOT expose application/domain/UseCase result objects directly when an explicit HTTP contract is required.
 
 Use standard Nest validation/binding primitives when they already express the transport rule. Do not add a custom validator or abstraction when Nest owns the behavior.
 
@@ -132,23 +114,58 @@ Use standard Nest validation/binding primitives when they already express the tr
 
 For a normal single multipart upload, use Nest's standard file primitives such as `FileInterceptor`, `@UploadedFile`, and `ParseFilePipe` / `ParseFilePipeBuilder`.
 
-Use Nest's built-in file validators such as `MaxFileSizeValidator` when file-size validation is required. Do not implement uploaded-file size as a `class-validator` decorator while the Nest file validator owns that concern.
+Use built-in file validators such as `MaxFileSizeValidator` when required. When application input already accepts `Uint8Array`, an in-memory Multer `Buffer` may be passed as `file.buffer` without copying solely for conversion. Keep `Express.Multer.File` metadata inside the HTTP boundary unless a concrete application requirement needs it.
 
-When application input already accepts `Uint8Array`, an in-memory Multer `Buffer` may be passed as `file.buffer` without copying solely to convert it. Keep `Express.Multer.File` and other Multer metadata inside the HTTP boundary unless a concrete application requirement needs that metadata.
+## Successful response mapping
 
-## Response mapping
+Every application/UseCase result exposed as a successful business HTTP response MUST have an explicit presenter mapping step to its response contract.
 
-Every application/UseCase result exposed as a business HTTP response MUST have an explicit presenter mapping step to its response contract.
-
-Feature-specific response mappers belong under the feature presenter boundary, for example:
-
-```text
-presenters/http/<feature>/mappers/
-```
-
-A presenter mapper MAY select, rename, flatten, or format values for the HTTP contract. It MUST NOT implement business decisions, persistence translation, authorization, or application orchestration.
+A presenter mapper may select, rename, flatten, or format values. It MUST NOT implement business decisions, persistence translation, authorization, or application orchestration.
 
 Do not introduce generic mapper interfaces/base classes until repeated implemented endpoints prove a concrete need.
+
+## Ordinary HTTP error contract
+
+Ordinary application/framework failures use the canonical RFC 9457-compatible `application/problem+json` contract from `@accounterbro/runtime-presenters/http/errors` and Nest composition from `/http/errors/nest`.
+
+The runtime error flow and failure/retry ownership are defined in `docs/engineering/observability-and-http-errors.md`. At the presenter boundary:
+
+- a classified `ExecutionFailureError` is mapped by `executionFailure.code` only;
+- an expected application/business result remains a normal result below the presenter and is explicitly converted by the presenter to the appropriate canonical `HttpProblemDefinition` when the public HTTP contract is non-2xx;
+- ordinary Nest `HttpException` status is mapped to the canonical problem family;
+- unknown thrown values become the safe internal problem and do not expose diagnostics.
+
+Do not create service-local Problem Details DTOs, exception filters, failure-code tables, or retryability-to-status mappings while the shared runtime owns them. HTTP status MUST NOT be inferred from `retryable` or error-message text.
+
+Expected business/client problems are not automatically server-error logs. Terminal exception diagnostics follow the shared log-once policy.
+
+## OpenAPI endpoint contracts
+
+For ordinary business/application endpoints with endpoint-specific public errors, use one compact declaration from `@accounterbro/runtime-presenters/http/openapi`:
+
+```ts
+@ApiEndpoint({ errors: [NOT_FOUND_HTTP_PROBLEM] })
+```
+
+The supplied values are canonical `HttpProblemDefinition`s. Controllers MUST NOT repeat their status/title/type/schema literals with `@ApiNotFoundResponse`, `@ApiConflictResponse`, or similar stacks.
+
+`@ApiEndpoint` owns only endpoint-specific public error projection. It MUST NOT:
+
+- own or duplicate successful status configuration;
+- replace HTTP verb decorators or `@HttpCode(...)`;
+- infer errors from the exception filter or call graph;
+- require generic internal errors to be listed on every endpoint;
+- replace the normal Nest/Swagger successful schema path.
+
+Nest defaults and explicit `@HttpCode(...)` remain runtime truth for success statuses. Build the document through `createOpenApiDocument(...)` so native Nest/Swagger success metadata is preserved and canonical endpoint errors are projected afterward. Error variants sharing one HTTP status are represented under one response.
+
+Business packages remain independent of Swagger; these declarations belong at the HTTP presenter boundary.
+
+## Health is not an ordinary application error contract
+
+Health remains owned by `@accounterbro/runtime-presenters/http/health` and Terminus. Do not add ordinary `@ApiEndpoint`/Problem Details declarations to health methods merely for uniformity, and do not convert health failures into RFC 9457 responses.
+
+The generic ordinary-error filter MUST NOT special-case `/health` path strings. The shared health controller owns its own filter boundary so Terminus semantics remain intact even when the global ordinary-error filter is installed.
 
 ## Presentation tests
 
@@ -157,49 +174,38 @@ Controller/presenter tests own only behavior introduced by the HTTP boundary. Us
 For business UseCase endpoints, test when applicable that:
 
 - transport input becomes the exact expected UseCase input;
-- actor/tenant and other presenter-owned invocation metadata are placed into the expected concrete UseCase context;
-- the intended UseCase is submitted through `UseCaseExecutor` once for a valid invocation;
-- the application result is mapped to the expected HTTP response;
-- material Nest-owned binding/validation behavior that forms part of the HTTP contract is configured correctly.
+- actor/tenant metadata enters the expected concrete UseCase context;
+- the intended UseCase is submitted through `UseCaseExecutor` once;
+- successful application results are mapped to the expected HTTP response;
+- a material expected application result is selected as the intended canonical HTTP problem;
+- generated OpenAPI for representative endpoints reflects declared canonical errors and the real Nest success status without duplicated success configuration.
 
-Presenter tests MUST NOT duplicate:
-
-- UseCase specification behavior;
-- Runner/Reader/UseCaseExecutor semantics;
-- Operation/Read handler behavior;
-- persistence, transaction, recovery, idempotency/deduplication, or ObjectStorage behavior;
-- request-identity parsing/validation behavior owned by `@accounterbro/runtime-presenters/http`.
-
-Shared health HTTP adapter behavior is owned and tested by `@accounterbro/runtime-presenters/http/health`. A consuming service should retain only the integration evidence that its own composition supplies the expected readiness checks and route prefix; do not recreate duplicate service-local health presenter tests.
+Presenter tests MUST NOT duplicate UseCase specs, Runner/Reader/UseCaseExecutor semantics, handlers, persistence, request-identity parsing, shared Problem Details mapping, or shared health behavior.
 
 ## HTTP service E2E
 
-Create the E2E project for an internal HTTP service with:
+Create an internal HTTP-service E2E project with:
 
 ```bash
 pnpm nx g @accounterbro/generators:service-e2e <name>
 ```
 
-The canonical layout and identity are:
+The service MUST already satisfy the HTTP runtime contract before adding its E2E harness. Use the current project targets rather than inventing verification commands.
 
-```text
-apps/services/<name>-e2e -> @accounterbro/<name>-service-e2e
-```
+Use `apps/api-e2e` as the global-prefix reference and `apps/services/documents-e2e` as the business-service HTTP reference. E2E owns running-service integration evidence only. Current proven evidence includes:
 
-The service MUST already satisfy the HTTP runtime contract above before adding its E2E harness. The service-E2E generator owns the reusable Jest/SWC support project, dependency on the target service, migration + HTTP-server orchestration, and the `e2e` serve configuration it adds.
+- API ordinary unknown-route failures use the shared Problem Details envelope while `/api/health/*` stays Terminus-owned;
+- Documents business not-found and Nest binding/upload failures use the same ordinary Problem Details conventions while `/health/*` stays Terminus-owned;
+- safe active `traceId` references may be exposed, while stack/cause/internal diagnostics are not.
 
-Service E2E Jest projects use their explicit `e2e` target rather than the root `@nx/jest/plugin` generic `test` inference. The base service generator remains transport-agnostic and MUST NOT receive E2E-specific serve configuration preemptively.
-
-Use `apps/api-e2e` as the global-prefix health E2E reference and `apps/services/documents-e2e` as the internal-service HTTP E2E reference, including health routes without a global prefix and without business request-identity headers. E2E may verify service-owned HTTP integration, but MUST NOT duplicate lower-boundary semantics already covered by their owners.
+Do not add artificial production failure endpoints or duplicate lower-boundary package tests.
 
 ## Current omissions
 
-This guidance intentionally does not define behavior that has not yet established a reusable implementation pattern, including:
+This guidance still intentionally leaves unimplemented transport concerns outside the proven shared boundary, including:
 
-- general error response contracts beyond already implemented framework/runtime behavior;
-- shared HTTP exception filters;
-- gateway/authentication implementation behind the trusted-upstream contract;
+- gateway/authentication implementation behind the trusted-upstream identity contract;
 - authorization policy;
 - non-HTTP presenters.
 
-Add such reusable rules only after a concrete requirement and proven implementation establish them.
+Add reusable rules for those concerns only after a concrete requirement and proven implementation establish them.
