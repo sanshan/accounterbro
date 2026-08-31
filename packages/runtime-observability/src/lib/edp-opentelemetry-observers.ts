@@ -197,14 +197,22 @@ export function createEdpOpenTelemetryObservers(): EdpOpenTelemetryObservers {
 
     return {
         runner: {
-            observe: (observation) => recorder.record(toRunnerTelemetryRecord(observation)),
+            observe: (observation) => {
+                recorder.record(toRunnerTelemetryRecord(observation));
+                return undefined;
+            },
         },
         reader: {
-            observe: (observation) => recorder.record(toReaderTelemetryRecord(observation)),
+            observe: (observation) => {
+                recorder.record(toReaderTelemetryRecord(observation));
+                return undefined;
+            },
         },
         useCaseExecutor: {
-            observe: (observation) =>
-                recorder.record(toUseCaseExecutorTelemetryRecord(observation)),
+            observe: (observation) => {
+                recorder.record(toUseCaseExecutorTelemetryRecord(observation));
+                return undefined;
+            },
         },
     };
 }
