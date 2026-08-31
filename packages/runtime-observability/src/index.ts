@@ -1,4 +1,8 @@
 export {
+    createEdpOpenTelemetryObservers,
+    type EdpOpenTelemetryObservers,
+} from './lib/edp-opentelemetry-observers.js';
+export {
     serializeHttpRequestForLog,
     serializeHttpResponseForLog,
     type SerializedHttpRequestLog,
@@ -15,6 +19,11 @@ export {
     type RuntimeLoggerOptions,
     type RuntimeLoggerServiceIdentity,
 } from './lib/runtime-pino-options.js';
+export {
+    createRuntimeTelemetry,
+    RuntimeTelemetry,
+    type RuntimeTelemetryOptions,
+} from './lib/runtime-telemetry.js';
 export {
     getActiveTraceLogFields,
     type ActiveTraceLogFields,

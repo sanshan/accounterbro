@@ -1,3 +1,4 @@
+import { createEdpOpenTelemetryObservers } from '@accounterbro/runtime-observability';
 import { SystemClock } from '@event-driven-platform/clock';
 import { Module, type DynamicModule, type FactoryProvider, type Provider } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -72,6 +73,7 @@ export class RuntimeExecutionsModule {
             (runtimePackage) => runtimePackage.execution?.readBindingContainers ?? [],
         );
         const schema = collectRuntimePackageTypeOrmSchema(packages);
+        const observers = createEdpOpenTelemetryObservers();
 
         const providers: Provider[] = [
             ...executionProviders,
@@ -139,13 +141,17 @@ export class RuntimeExecutionsModule {
                         executionTransaction,
                         executionLogStore,
                         outboxStore,
+                        observer: observers.runner,
                     }),
             },
             {
                 provide: Reader,
                 inject: [ReadHandlerResolver],
                 useFactory: (readHandlerResolver: ReadHandlerResolver) =>
-                    createServiceReader({ readHandlerResolver }),
+                    createServiceReader({
+                        readHandlerResolver,
+                        observer: observers.reader,
+                    }),
             },
             {
                 provide: UseCaseExecutor,
@@ -159,6 +165,7 @@ export class RuntimeExecutionsModule {
                         clock,
                         leaseOwnerId: process.leaseOwnerId,
                         store,
+                        observer: observers.useCaseExecutor,
                     }),
             },
         ];
