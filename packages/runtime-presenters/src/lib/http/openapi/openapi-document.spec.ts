@@ -142,8 +142,17 @@ describe('OpenAPI endpoint contract', () => {
 
     it('leaves the shared operational health contract outside ApiEndpoint', () => {
         const liveness = document.paths['/health/live']?.get;
+        const successResponse = liveness?.responses['200'];
 
-        expect(liveness?.responses['200']).toEqual({ description: '' });
+        expect(successResponse).toMatchObject({
+            description: 'The Health Check is successful',
+            content: {
+                'application/json': {
+                    schema: { type: 'object' },
+                },
+            },
+        });
+        expect(successResponse).not.toHaveProperty(`content.${PROBLEM_DETAILS_MEDIA_TYPE}`);
         expect(Object.keys(liveness ?? {})).not.toContain('x-accounterbro-endpoint-errors');
         expect(liveness?.responses['400']).toBeUndefined();
         expect(liveness?.responses['500']).toBeUndefined();
