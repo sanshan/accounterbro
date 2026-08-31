@@ -43,11 +43,6 @@
                 "command": "node apps/services/documents/dist/main.js"
             }
         },
-        "test": {
-            "options": {
-                "passWithNoTests": true
-            }
-        },
         "migration:generate": {
             "executor": "nx:run-commands",
             "options": {
@@ -74,4 +69,3 @@
         }
     }
 }
-

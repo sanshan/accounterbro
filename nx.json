@@ -60,12 +60,6 @@
                 "watchDepsTargetName": "watch-deps",
                 "serveStaticTargetName": "serve-static"
             }
-        },
-        {
-            "plugin": "@nx/playwright/plugin",
-            "options": {
-                "targetName": "e2e"
-            }
         }
     ],
     "targetDefaults": {

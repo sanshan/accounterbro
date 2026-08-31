@@ -255,8 +255,9 @@ The service generator may reproduce only the reusable vendor integration shell:
 - service-local `typeorm-options.ts`;
 - Nest `TypeOrmModule.forRootAsync(...)` shell;
 - CLI `data-source.ts` shell;
-- empty service-local `entities/`, `repositories/`, and `migrations/` locations when retained for future genuinely service-owned persistence;
 - migration targets/scripts.
+
+Create service-local `entities/`, `repositories/`, or `migrations/` directories only when a concrete service-owned artifact needs them. Empty tracked directories are not part of the generated contract.
 
 The generator MUST NOT copy API-specific entities, health behavior, migrations, repository adapters, physical database topology, package-owned business/runtime entities/migrations, package persistence adapters/factories, or a custom database lifecycle abstraction.
 
