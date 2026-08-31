@@ -1,0 +1,62 @@
+name: Task 192 preparation
+
+on:
+  pull_request:
+    branches:
+      - epic-190-service-observability-errors
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    if: github.head_ref == 'task-192-opentelemetry-edp-observers'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Refresh dependencies and lockfile
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Commit refreshed lockfile
+        shell: bash
+        run: |
+          if git diff --quiet -- pnpm-lock.yaml; then
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml
+          git commit -m "Refresh lockfile for OpenTelemetry"
+          git push origin "HEAD:${{ github.head_ref }}"
+
+      - name: Run focused type checks
+        run: |
+          pnpm nx run @accounterbro/runtime-observability:typecheck
+          pnpm nx run @accounterbro/runtime-executions:typecheck
+
+      - name: Run focused tests
+        run: pnpm nx run @accounterbro/runtime-observability:test
+
+      - name: Run focused builds
+        run: |
+          pnpm nx run @accounterbro/runtime-observability:build
+          pnpm nx run @accounterbro/runtime-executions:build
