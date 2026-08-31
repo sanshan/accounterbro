@@ -51,9 +51,14 @@ class TestErrorsController {
 
 describe('HttpErrorsModule', () => {
     let app: INestApplication;
-    let logger: RuntimePinoLogger;
+    const logger = {
+        error: vi.fn(),
+        warn: vi.fn(),
+    };
 
     beforeEach(async () => {
+        vi.clearAllMocks();
+
         const module: TestingModule = await Test.createTestingModule({
             imports: [
                 RuntimeObservabilityModule.register({
@@ -75,11 +80,13 @@ describe('HttpErrorsModule', () => {
                 }),
             ],
             controllers: [TestErrorsController],
-        }).compile();
+        })
+            .overrideProvider(RuntimePinoLogger)
+            .useValue(logger)
+            .compile();
 
         app = module.createNestApplication();
         await app.init();
-        logger = app.get(RuntimePinoLogger);
     });
 
     afterEach(async () => {
@@ -87,8 +94,6 @@ describe('HttpErrorsModule', () => {
     });
 
     it('maps a classified EDP failure by code without exposing its diagnostics', async () => {
-        const warn = vi.spyOn(logger, 'warn');
-
         const response = await request(app.getHttpServer())
             .get('/test-errors/execution-failure')
             .expect(403);
@@ -102,15 +107,13 @@ describe('HttpErrorsModule', () => {
         });
         expect(JSON.stringify(response.body)).not.toContain('internal guard detail');
         expect(JSON.stringify(response.body)).not.toContain('sensitive guard cause');
-        expect(warn).toHaveBeenCalledOnce();
-        expect(warn.mock.calls[0]?.[0]).toEqual({
+        expect(logger.warn).toHaveBeenCalledOnce();
+        expect(logger.warn.mock.calls[0]?.[0]).toEqual({
             err: expect.any(ExecutionFailureError),
         });
     });
 
     it('maps ordinary Nest client exceptions to the shared envelope without logging them as server errors', async () => {
-        const error = vi.spyOn(logger, 'error');
-
         const response = await request(app.getHttpServer())
             .get('/test-errors/bad-request')
             .expect(400);
@@ -123,13 +126,10 @@ describe('HttpErrorsModule', () => {
             code: 'invalid-request',
         });
         expect(JSON.stringify(response.body)).not.toContain('sensitive validation detail');
-        expect(error).not.toHaveBeenCalled();
+        expect(logger.error).not.toHaveBeenCalled();
     });
 
     it('renders explicitly selected presenter problems without converting them into EDP failures', async () => {
-        const error = vi.spyOn(logger, 'error');
-        const warn = vi.spyOn(logger, 'warn');
-
         const response = await request(app.getHttpServer())
             .get('/test-errors/expected-not-found')
             .expect(404);
@@ -142,13 +142,11 @@ describe('HttpErrorsModule', () => {
             code: 'not-found',
             detail: 'Document was not found.',
         });
-        expect(error).not.toHaveBeenCalled();
-        expect(warn).not.toHaveBeenCalled();
+        expect(logger.error).not.toHaveBeenCalled();
+        expect(logger.warn).not.toHaveBeenCalled();
     });
 
     it('renders unknown exceptions as safe internal problems and logs the terminal occurrence once', async () => {
-        const error = vi.spyOn(logger, 'error');
-
         const response = await request(app.getHttpServer())
             .get('/test-errors/unknown')
             .expect(500);
@@ -161,8 +159,8 @@ describe('HttpErrorsModule', () => {
             code: 'internal-error',
         });
         expect(JSON.stringify(response.body)).not.toContain('sensitive internal failure');
-        expect(error).toHaveBeenCalledOnce();
-        expect(error.mock.calls[0]?.[0]).toEqual({ err: expect.any(Error) });
+        expect(logger.error).toHaveBeenCalledOnce();
+        expect(logger.error.mock.calls[0]?.[0]).toEqual({ err: expect.any(Error) });
     });
 
     it('preserves the Terminus-owned health response through the metadata composition boundary', async () => {
