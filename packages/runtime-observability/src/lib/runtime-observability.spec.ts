@@ -1,12 +1,12 @@
 import { Writable } from 'node:stream';
 
 import { ExecutionFailureError } from '@event-driven-platform/execution';
-import pino from 'pino';
+import pino, { type Logger } from 'pino';
 
 import { serializeRuntimeError } from './runtime-error.serializer.js';
 import { createRuntimePinoOptions } from './runtime-pino-options.js';
 
-function captureSingleLog(writeLog: (logger: pino.Logger) => void) {
+function captureSingleLog(writeLog: (logger: Logger) => void) {
     let output = '';
     const stream = new Writable({
         write(chunk, _encoding, callback) {
