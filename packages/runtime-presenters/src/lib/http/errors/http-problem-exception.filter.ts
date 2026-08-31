@@ -6,11 +6,9 @@ import {
     HttpException,
     Injectable,
     type ArgumentsHost,
-    type ExecutionContext,
 } from '@nestjs/common';
-import { BaseExceptionFilter, HttpAdapterHost, Reflector } from '@nestjs/core';
+import { BaseExceptionFilter, HttpAdapterHost } from '@nestjs/core';
 
-import { PRESERVE_HTTP_EXCEPTION_PRESENTATION } from '../http-exception-presentation.js';
 import { mapExecutionFailureToHttpProblem } from './execution-failure-http-mapping.js';
 import { mapHttpStatusToProblem } from './http-exception-http-mapping.js';
 import { INTERNAL_HTTP_PROBLEM } from './http-problems.js';
@@ -33,17 +31,11 @@ export class HttpProblemExceptionFilter extends BaseExceptionFilter {
     public constructor(
         private readonly adapterHost: HttpAdapterHost,
         private readonly logger: RuntimePinoLogger,
-        private readonly reflector: Reflector,
     ) {
         super(adapterHost.httpAdapter);
     }
 
     public override catch(exception: unknown, host: ArgumentsHost): void {
-        if (this.shouldPreserveFrameworkPresentation(host)) {
-            super.catch(exception, host);
-            return;
-        }
-
         const resolved = this.resolveProblem(exception);
         const traceId = getActiveTraceLogFields()?.traceId;
         const problem = createProblemDetails(resolved.definition, {
@@ -57,23 +49,6 @@ export class HttpProblemExceptionFilter extends BaseExceptionFilter {
         const adapter = this.adapterHost.httpAdapter;
         adapter.setHeader(response, 'Content-Type', PROBLEM_DETAILS_MEDIA_TYPE);
         adapter.reply(response, problem, resolved.definition.status);
-    }
-
-    private shouldPreserveFrameworkPresentation(host: ArgumentsHost): boolean {
-        const context = host as ExecutionContext;
-        const handler = context.getHandler();
-        if (
-            typeof handler === 'function' &&
-            this.reflector.get<boolean>(PRESERVE_HTTP_EXCEPTION_PRESENTATION, handler) === true
-        ) {
-            return true;
-        }
-
-        const controller = context.getClass();
-        return (
-            typeof controller === 'function' &&
-            this.reflector.get<boolean>(PRESERVE_HTTP_EXCEPTION_PRESENTATION, controller) === true
-        );
     }
 
     private resolveProblem(exception: unknown): ResolvedHttpProblem {

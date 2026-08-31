@@ -1,15 +1,15 @@
 import type { ReadinessCheck } from '@accounterbro/runtime-health';
-import { Controller, Get, Inject } from '@nestjs/common';
+import { Controller, Get, Inject, UseFilters } from '@nestjs/common';
 import {
     HealthCheck,
     HealthCheckService,
     HealthIndicatorService,
 } from '@nestjs/terminus';
 
-import { PreserveHttpExceptionPresentation } from '../http-exception-presentation.js';
+import { HttpHealthExceptionFilter } from './http-health-exception.filter.js';
 import { HTTP_HEALTH_READINESS_CHECKS } from './readiness-checks.token.js';
 
-@PreserveHttpExceptionPresentation()
+@UseFilters(HttpHealthExceptionFilter)
 @Controller('health')
 export class HttpHealthController {
     constructor(

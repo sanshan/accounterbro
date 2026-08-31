@@ -163,7 +163,7 @@ describe('HttpErrorsModule', () => {
         expect(logger.error.mock.calls[0]?.[0]).toEqual({ err: expect.any(Error) });
     });
 
-    it('preserves the Terminus-owned health response through the metadata composition boundary', async () => {
+    it('preserves the Terminus-owned health response through the health adapter boundary', async () => {
         const response = await request(app.getHttpServer()).get('/health/ready').expect(503);
 
         expect(response.headers['content-type']).not.toMatch(/^application\/problem\+json/);
