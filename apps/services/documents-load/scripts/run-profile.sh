@@ -38,9 +38,9 @@ cd "$workspace_directory"
 started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 set +e
 "${compose[@]}" run --rm --user "$(id -u):$(id -g)" \
-    --environment "DOCUMENTS_LOAD_RUN_ID=$run_id" \
-    --environment "DOCUMENTS_LOAD_PROFILE=$profile" \
-    --environment "DOCUMENTS_LOAD_REPORT_DIRECTORY=/reports/$run_id" \
+    --env "DOCUMENTS_LOAD_RUN_ID=$run_id" \
+    --env "DOCUMENTS_LOAD_PROFILE=$profile" \
+    --env "DOCUMENTS_LOAD_REPORT_DIRECTORY=/reports/$run_id" \
     k6 run \
     --out experimental-prometheus-rw \
     --tag "testid=$run_id" \
