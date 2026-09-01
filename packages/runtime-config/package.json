@@ -12,6 +12,11 @@
             "import": "./dist/index.js",
             "default": "./dist/index.js"
         },
+        "./workspace": {
+            "types": "./src/workspace.ts",
+            "import": "./src/workspace.ts",
+            "default": "./src/workspace.ts"
+        },
         "./package.json": "./package.json"
     },
     "dependencies": {
