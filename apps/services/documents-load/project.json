@@ -25,6 +25,20 @@
             "options": {
                 "command": "docker compose --project-name accounterbro-documents-load --file apps/services/documents-load/docker-compose.yaml down --volumes --remove-orphans"
             }
+        },
+        "smoke": {
+            "executor": "nx:run-commands",
+            "cache": false,
+            "options": {
+                "command": "bash apps/services/documents-load/scripts/run-profile.sh smoke"
+            }
+        },
+        "baseline": {
+            "executor": "nx:run-commands",
+            "cache": false,
+            "options": {
+                "command": "bash apps/services/documents-load/scripts/run-profile.sh baseline"
+            }
         }
     }
 }
