@@ -35,8 +35,29 @@ To start only the environment for inspection or troubleshooting:
 pnpm nx run @accounterbro/documents-service-load:environment:up
 ```
 
+Print the current isolated environment logs through the same Nx interface:
+
+```bash
+pnpm nx run @accounterbro/documents-service-load:environment:logs
+```
+
 Stop the environment and remove its disposable database, storage, and telemetry state with:
 
 ```bash
 pnpm nx run @accounterbro/documents-service-load:environment:down
 ```
+
+## GitHub Actions
+
+The `Documents performance` workflow is intentionally separate from normal CI and runs only on demand after the workflow exists on the repository default branch.
+
+From the Actions UI, select `Documents performance`, choose `smoke` or `baseline`, and run it for the required ref. On a pull request, a trusted repository member/collaborator can instead add exactly one of these comments:
+
+```text
+/performance smoke
+/performance baseline
+```
+
+A comment-triggered run checks out the current PR head. A newer request does not cancel a performance run that has already started. The workflow uses the same Nx profile targets as local execution, writes the text report to the job summary, uploads the complete report directory as an artifact, prints isolated-environment logs when the load step fails, and always calls the Nx cleanup target.
+
+GitHub only delivers `workflow_dispatch` and `issue_comment` events for a workflow file that is present on the default branch. Therefore these triggers become testable after the Epic containing this workflow is merged to `main`; task/Epic branch CI can validate the code and workflow file but cannot produce a genuine on-demand event for it.
