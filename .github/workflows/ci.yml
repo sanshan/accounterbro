@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -56,6 +57,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -69,6 +72,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Set Nx affected SHAs
+        uses: nrwl/nx-set-shas@v5
 
       - name: Verify Nx project references
         run: pnpm nx sync:check
@@ -104,16 +110,13 @@ jobs:
           pnpm nx run @accounterbro/documents-service:migration:run
 
       - name: Run unit and integration tests
-        run: pnpm nx run-many -t test
+        run: pnpm nx affected -t test
 
       - name: Build applications
         run: pnpm nx run-many -t build
 
-      - name: Run API E2E
-        run: pnpm nx run @accounterbro/api-e2e:e2e
-
-      - name: Run Documents E2E
-        run: pnpm nx run @accounterbro/documents-service-e2e:e2e
+      - name: Run E2E
+        run: pnpm nx affected -t e2e --parallel=1
 
       - name: Verify API artifact startup
         shell: bash
