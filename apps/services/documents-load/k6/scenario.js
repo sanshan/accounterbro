@@ -1,8 +1,16 @@
 import { check } from 'k6';
 import http from 'k6/http';
+import { Counter, Rate, Trend } from 'k6/metrics';
 
 const baseUrl = __ENV.DOCUMENTS_LOAD_BASE_URL || 'http://documents:3001';
 const runId = __ENV.DOCUMENTS_LOAD_RUN_ID || 'documents-load-local';
+
+const registerRequests = new Counter('documents_http_register_requests');
+const registerFailed = new Rate('documents_http_register_failed');
+const registerDuration = new Trend('documents_http_register_duration', true);
+const getRequests = new Counter('documents_http_get_requests');
+const getFailed = new Rate('documents_http_get_failed');
+const getDuration = new Trend('documents_http_get_duration', true);
 
 const identityHeaders = {
     'x-accounterbro-actor-type': 'user',
@@ -18,6 +26,12 @@ function responseBody(response) {
     }
 }
 
+function recordOperation(requests, failed, duration, response, expectedStatus) {
+    requests.add(1);
+    failed.add(response.status !== expectedStatus);
+    duration.add(response.timings.duration);
+}
+
 export function registerThenGetDocument() {
     const uniqueContents = `Documents load test ${runId} VU ${__VU} iteration ${__ITER}`;
     const registerResponse = http.post(
@@ -30,6 +44,8 @@ export function registerThenGetDocument() {
             tags: { name: 'Documents register', operation: 'register' },
         },
     );
+    recordOperation(registerRequests, registerFailed, registerDuration, registerResponse, 201);
+
     const registered = responseBody(registerResponse);
     const documentId = registered?.id;
 
@@ -54,6 +70,8 @@ export function registerThenGetDocument() {
         headers: identityHeaders,
         tags: { name: 'Documents get', operation: 'get' },
     });
+    recordOperation(getRequests, getFailed, getDuration, getResponse, 200);
+
     const found = responseBody(getResponse);
 
     check(
