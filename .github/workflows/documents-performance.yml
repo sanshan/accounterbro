@@ -53,11 +53,11 @@ jobs:
           if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
             profile="$DISPATCH_PROFILE"
             checkout_ref="$GITHUB_SHA"
-            request_source="manual dispatch"
+            request_source="manual dispatch by ${GITHUB_ACTOR}"
           else
             profile="${COMMENT_BODY#'/performance '}"
             checkout_ref="refs/pull/${PR_NUMBER}/head"
-            request_source="PR #${PR_NUMBER} comment"
+            request_source="PR #${PR_NUMBER} comment by ${GITHUB_ACTOR}"
           fi
 
           case "$profile" in
@@ -73,6 +73,7 @@ jobs:
           echo "profile=$profile" >> "$GITHUB_OUTPUT"
           echo "checkout_ref=$checkout_ref" >> "$GITHUB_OUTPUT"
           echo "request_source=$request_source" >> "$GITHUB_OUTPUT"
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
           echo "DOCUMENTS_LOAD_RUN_ID=$run_id" >> "$GITHUB_ENV"
 
       - name: Checkout requested revision
@@ -100,7 +101,7 @@ jobs:
         run: pnpm nx run @accounterbro/documents-service-load:${{ steps.request.outputs.profile }}
 
       - name: Print environment diagnostics on failure
-        if: failure() && steps.load.outcome != 'skipped'
+        if: steps.load.outcome == 'failure'
         run: pnpm nx run @accounterbro/documents-service-load:environment:logs
 
       - name: Publish performance report to job summary
@@ -140,7 +141,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: documents-performance-${{ steps.request.outputs.profile }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: apps/services/documents-load/reports/${{ env.DOCUMENTS_LOAD_RUN_ID }}/
+          path: apps/services/documents-load/reports/${{ steps.request.outputs.run_id }}/
           if-no-files-found: warn
           retention-days: 14
 
