@@ -1,0 +1,51 @@
+{
+    "name": "@accounterbro/documents-service-load",
+    "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+    "projectType": "application",
+    "tags": ["type:e2e"],
+    "implicitDependencies": ["@accounterbro/documents-service"],
+    "targets": {
+        "environment:config": {
+            "executor": "nx:run-commands",
+            "cache": false,
+            "options": {
+                "command": "docker compose --project-name accounterbro-documents-load --file apps/services/documents-load/docker-compose.yaml config"
+            }
+        },
+        "environment:up": {
+            "executor": "nx:run-commands",
+            "cache": false,
+            "options": {
+                "command": "docker compose --project-name accounterbro-documents-load --file apps/services/documents-load/docker-compose.yaml up --detach --build --wait documents"
+            }
+        },
+        "environment:down": {
+            "executor": "nx:run-commands",
+            "cache": false,
+            "options": {
+                "command": "docker compose --project-name accounterbro-documents-load --file apps/services/documents-load/docker-compose.yaml down --volumes --remove-orphans"
+            }
+        },
+        "environment:logs": {
+            "executor": "nx:run-commands",
+            "cache": false,
+            "options": {
+                "command": "docker compose --project-name accounterbro-documents-load --file apps/services/documents-load/docker-compose.yaml logs --no-color"
+            }
+        },
+        "smoke": {
+            "executor": "nx:run-commands",
+            "cache": false,
+            "options": {
+                "command": "bash apps/services/documents-load/scripts/run-profile.sh smoke"
+            }
+        },
+        "baseline": {
+            "executor": "nx:run-commands",
+            "cache": false,
+            "options": {
+                "command": "bash apps/services/documents-load/scripts/run-profile.sh baseline"
+            }
+        }
+    }
+}

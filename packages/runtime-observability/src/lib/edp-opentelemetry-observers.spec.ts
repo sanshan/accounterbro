@@ -2,6 +2,13 @@ import type {
     ReaderObservationContext,
     RunnerObservationContext,
 } from '@event-driven-platform/observability';
+import { metrics } from '@opentelemetry/api';
+import {
+    AggregationTemporality,
+    InMemoryMetricExporter,
+    MeterProvider,
+    PeriodicExportingMetricReader,
+} from '@opentelemetry/sdk-metrics';
 
 import {
     createEdpOpenTelemetryObservers,
@@ -110,5 +117,52 @@ describe('EDP OpenTelemetry mapping', () => {
                 },
             }),
         ).not.toThrow();
+    });
+
+    it('rebinds metric instruments when a real provider is registered after construction', async () => {
+        metrics.disable();
+        const observers = createEdpOpenTelemetryObservers();
+
+        observers.runner.observe({
+            type: 'execution.requested',
+            context: runnerContext,
+        });
+
+        const exporter = new InMemoryMetricExporter(AggregationTemporality.CUMULATIVE);
+        const reader = new PeriodicExportingMetricReader({
+            exporter,
+            exportIntervalMillis: 60_000,
+        });
+        const provider = new MeterProvider({ readers: [reader] });
+
+        expect(metrics.setGlobalMeterProvider(provider)).toBe(true);
+
+        try {
+            observers.runner.observe({
+                type: 'attempt.completed',
+                context: runnerContext,
+                attempt: 2,
+                outcome: 'error',
+                retryable: true,
+                durationMs: 17,
+            });
+            await provider.forceFlush();
+
+            const metricNames = exporter.getMetrics().flatMap((resourceMetrics) =>
+                resourceMetrics.scopeMetrics.flatMap((scopeMetrics) =>
+                    scopeMetrics.metrics.map((metric) => metric.descriptor.name),
+                ),
+            );
+
+            expect(metricNames).toEqual(
+                expect.arrayContaining([
+                    'edp.lifecycle.observations',
+                    'edp.lifecycle.duration',
+                ]),
+            );
+        } finally {
+            metrics.disable();
+            await provider.shutdown();
+        }
     });
 });

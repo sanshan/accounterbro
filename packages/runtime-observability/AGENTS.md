@@ -47,7 +47,8 @@ OpenTelemetry SDK and EDP observer adaptation are owned here; EDP execution sema
 - tenant is not a metric dimension by default;
 - high-cardinality correlation values may be trace attributes where useful;
 - OpenTelemetry `traceId` and EDP `correlationId` are separate identities and MUST NOT be collapsed;
-- observer/exporter failure MUST NOT change Runner/Reader/UseCaseExecutor semantics. EDP `SafeObserver` remains the execution-side failure-isolation owner.
+- observer/exporter failure MUST NOT change Runner/Reader/UseCaseExecutor semantics. EDP `SafeObserver` remains the execution-side failure-isolation owner;
+- EDP metric instruments MUST bind to the current global `MeterProvider` when observations are recorded and rebind if that provider changes, because runtime observer bundles may be constructed before the hosting Nest lifecycle starts the OpenTelemetry SDK.
 
 `createEdpOpenTelemetryObservers()` is the canonical adapter bundle. `@accounterbro/runtime-executions/nest` creates this bundle once for its Runner/Reader/UseCaseExecutor composition; hosting services MUST NOT create service-local EDP observer providers.
 

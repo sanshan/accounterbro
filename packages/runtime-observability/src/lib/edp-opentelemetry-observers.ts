@@ -3,7 +3,9 @@ import {
     SpanKind,
     trace,
     type Attributes,
-    type Meter,
+    type Counter,
+    type Histogram,
+    type MeterProvider,
     type Tracer,
 } from '@opentelemetry/api';
 import type {
@@ -29,6 +31,14 @@ interface EdpTelemetryRecord {
     readonly retryDelayMs?: number;
 }
 
+interface EdpMetricInstruments {
+    readonly provider: MeterProvider;
+    readonly observations: Counter;
+    readonly durations: Histogram;
+    readonly retries: Counter;
+    readonly retryDelays: Histogram;
+}
+
 export interface EdpOpenTelemetryObservers {
     readonly runner: RunnerObserver;
     readonly reader: ReaderObserver;
@@ -37,27 +47,39 @@ export interface EdpOpenTelemetryObservers {
 
 class EdpOpenTelemetryRecorder {
     private readonly tracer: Tracer;
-    private readonly observations;
-    private readonly durations;
-    private readonly retries;
-    private readonly retryDelays;
+    private metricInstruments?: EdpMetricInstruments;
 
-    public constructor(meter: Meter = metrics.getMeter(INSTRUMENTATION_NAME)) {
+    public constructor() {
         this.tracer = trace.getTracer(INSTRUMENTATION_NAME);
-        this.observations = meter.createCounter('edp.lifecycle.observations', {
-            description: 'Count of EDP lifecycle observations.',
-        });
-        this.durations = meter.createHistogram('edp.lifecycle.duration', {
-            description: 'Duration reported by EDP lifecycle observations.',
-            unit: 'ms',
-        });
-        this.retries = meter.createCounter('edp.retry.scheduled', {
-            description: 'Count of retries scheduled by EDP execution boundaries.',
-        });
-        this.retryDelays = meter.createHistogram('edp.retry.delay', {
-            description: 'Retry delay scheduled by EDP execution boundaries.',
-            unit: 'ms',
-        });
+    }
+
+    private getMetricInstruments(): EdpMetricInstruments {
+        const provider = metrics.getMeterProvider();
+        if (this.metricInstruments?.provider === provider) {
+            return this.metricInstruments;
+        }
+
+        const meter = provider.getMeter(INSTRUMENTATION_NAME);
+        const metricInstruments: EdpMetricInstruments = {
+            provider,
+            observations: meter.createCounter('edp.lifecycle.observations', {
+                description: 'Count of EDP lifecycle observations.',
+            }),
+            durations: meter.createHistogram('edp.lifecycle.duration', {
+                description: 'Duration reported by EDP lifecycle observations.',
+                unit: 'ms',
+            }),
+            retries: meter.createCounter('edp.retry.scheduled', {
+                description: 'Count of retries scheduled by EDP execution boundaries.',
+            }),
+            retryDelays: meter.createHistogram('edp.retry.delay', {
+                description: 'Retry delay scheduled by EDP execution boundaries.',
+                unit: 'ms',
+            }),
+        };
+
+        this.metricInstruments = metricInstruments;
+        return metricInstruments;
     }
 
     public record(record: EdpTelemetryRecord): void {
@@ -67,16 +89,17 @@ class EdpOpenTelemetryRecorder {
             ...(record.name ? { 'edp.name': record.name } : {}),
             ...record.metricAttributes,
         };
+        const metricInstruments = this.getMetricInstruments();
 
-        this.observations.add(1, metricAttributes);
+        metricInstruments.observations.add(1, metricAttributes);
 
         if (record.durationMs !== undefined) {
-            this.durations.record(record.durationMs, metricAttributes);
+            metricInstruments.durations.record(record.durationMs, metricAttributes);
         }
 
         if (record.retryDelayMs !== undefined) {
-            this.retries.add(1, metricAttributes);
-            this.retryDelays.record(record.retryDelayMs, metricAttributes);
+            metricInstruments.retries.add(1, metricAttributes);
+            metricInstruments.retryDelays.record(record.retryDelayMs, metricAttributes);
         }
 
         const traceAttributes: Attributes = {

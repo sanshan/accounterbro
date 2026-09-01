@@ -1,0 +1,153 @@
+name: Documents performance
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Load profile to execute
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - baseline
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  contents: read
+
+jobs:
+  performance:
+    name: Run Documents load profile
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        (
+          github.event.comment.author_association == 'OWNER' ||
+          github.event.comment.author_association == 'MEMBER' ||
+          github.event.comment.author_association == 'COLLABORATOR'
+        ) &&
+        (
+          github.event.comment.body == '/performance smoke' ||
+          github.event.comment.body == '/performance baseline'
+        )
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Resolve request
+        id: request
+        shell: bash
+        env:
+          DISPATCH_PROFILE: ${{ inputs.profile }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            profile="$DISPATCH_PROFILE"
+            checkout_ref="$GITHUB_SHA"
+            request_source="manual dispatch by ${GITHUB_ACTOR}"
+          else
+            profile="${COMMENT_BODY#'/performance '}"
+            checkout_ref="refs/pull/${PR_NUMBER}/head"
+            request_source="PR #${PR_NUMBER} comment by ${GITHUB_ACTOR}"
+          fi
+
+          case "$profile" in
+            smoke|baseline) ;;
+            *)
+              echo "Unsupported performance profile: $profile" >&2
+              exit 2
+              ;;
+          esac
+
+          run_id="gha-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${profile}"
+
+          echo "profile=$profile" >> "$GITHUB_OUTPUT"
+          echo "checkout_ref=$checkout_ref" >> "$GITHUB_OUTPUT"
+          echo "request_source=$request_source" >> "$GITHUB_OUTPUT"
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "DOCUMENTS_LOAD_RUN_ID=$run_id" >> "$GITHUB_ENV"
+
+      - name: Checkout requested revision
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ steps.request.outputs.checkout_ref }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Documents performance profile
+        id: load
+        run: pnpm nx run @accounterbro/documents-service-load:${{ steps.request.outputs.profile }}
+
+      - name: Print environment diagnostics on failure
+        if: steps.load.outcome == 'failure'
+        run: pnpm nx run @accounterbro/documents-service-load:environment:logs
+
+      - name: Publish performance report to job summary
+        if: always()
+        shell: bash
+        env:
+          PROFILE: ${{ steps.request.outputs.profile }}
+          REQUEST_SOURCE: ${{ steps.request.outputs.request_source }}
+        run: |
+          set -euo pipefail
+
+          report_directory="apps/services/documents-load/reports/${DOCUMENTS_LOAD_RUN_ID}"
+          markdown_report="$report_directory/documents-load-report.md"
+          text_report="$report_directory/documents-load-report.txt"
+
+          {
+            echo "## Documents performance"
+            echo
+            echo "- Profile: \`$PROFILE\`"
+            echo "- Run ID: \`$DOCUMENTS_LOAD_RUN_ID\`"
+            echo "- Requested by: $REQUEST_SOURCE"
+            echo "- Tested commit: \`$(git rev-parse HEAD 2>/dev/null || echo unavailable)\`"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ -f "$markdown_report" ]]; then
+            cat "$markdown_report" >> "$GITHUB_STEP_SUMMARY"
+          elif [[ -f "$text_report" ]]; then
+            {
+              echo '```text'
+              cat "$text_report"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No performance report was produced. Inspect the workflow log and environment diagnostics above." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload performance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: documents-performance-${{ steps.request.outputs.profile }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: apps/services/documents-load/reports/${{ steps.request.outputs.run_id }}/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Clean up load-test environment
+        if: always()
+        run: pnpm nx run @accounterbro/documents-service-load:environment:down
