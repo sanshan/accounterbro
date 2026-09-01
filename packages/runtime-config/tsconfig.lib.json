@@ -4,11 +4,13 @@
         "rootDir": "src",
         "outDir": "dist",
         "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
+        "allowJs": true,
+        "checkJs": true,
         "emitDeclarationOnly": true,
         "importHelpers": true,
         "noImplicitReturns": true,
         "types": ["node"]
     },
-    "include": ["src/**/*.ts"],
+    "include": ["src/**/*.ts", "src/**/*.cjs"],
     "references": []
 }

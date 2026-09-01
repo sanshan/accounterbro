@@ -1,4 +1,8 @@
+import { createRequire } from 'node:module';
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+const require = createRequire(import.meta.url);
 
 const originalApiPort = process.env.API_PORT;
 const originalDocumentsPort = process.env.DOCUMENTS_PORT;
@@ -20,6 +24,15 @@ async function loadRuntimeConfig() {
     return import('../src/index');
 }
 
+function loadCommonJsRuntimeConfig() {
+    // eslint-disable-next-line @nx/enforce-module-boundaries -- Exercise the package's CommonJS export condition.
+    const entrypoint = require.resolve('@accounterbro/runtime-config');
+    delete require.cache[entrypoint];
+
+    // eslint-disable-next-line @nx/enforce-module-boundaries -- Exercise the package's CommonJS export condition.
+    return require('@accounterbro/runtime-config');
+}
+
 describe('runtimeConfig', () => {
     beforeEach(() => {
         vi.resetModules();
@@ -36,6 +49,16 @@ describe('runtimeConfig', () => {
 
     it('uses default ports when shared environment variables are absent', async () => {
         const { runtimeConfig } = await loadRuntimeConfig();
+
+        expect(runtimeConfig).toEqual({
+            api: { port: 3000 },
+            documents: { port: 3001 },
+            web: { port: 4200 },
+        });
+    });
+
+    it('exposes the same defaults through the CommonJS entrypoint', () => {
+        const { runtimeConfig } = loadCommonJsRuntimeConfig();
 
         expect(runtimeConfig).toEqual({
             api: { port: 3000 },
