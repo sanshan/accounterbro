@@ -3,5 +3,6 @@
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "packages/runtime-presenters/src",
     "projectType": "library",
-    "tags": []
+    "tags": ["type:runtime"]
 }
+

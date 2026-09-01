@@ -1,5 +1,5 @@
 /// <reference types='vitest' />
-import { runtimeConfig } from '@accounterbro/runtime-config';
+import { runtimeConfig } from '@accounterbro/runtime-config/workspace';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
@@ -38,7 +38,6 @@ export default defineConfig(() => {
             watch: false,
             globals: true,
             environment: 'jsdom',
-            passWithNoTests: true,
             setupFiles: ['./src/test/setup.ts'],
             include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
             reporters: ['default'],

@@ -107,7 +107,7 @@ export async function serviceE2eGenerator(
         $schema: '../../../node_modules/nx/schemas/project-schema.json',
         sourceRoot: `${e2eRoot}/src`,
         projectType: 'application',
-        tags: [],
+        tags: ['type:e2e'],
         implicitDependencies: [serviceProjectName],
         targets: {
             [serverTargetName]: {
@@ -148,7 +148,6 @@ export async function serviceE2eGenerator(
             outDir: `out-tsc/${options.name}-service-e2e`,
             esModuleInterop: true,
             noUnusedLocals: false,
-            noImplicitAny: false,
         },
         include: ['jest.config.ts', 'jest.config.cts', 'src/**/*.ts'],
         references: [{ path: '../../../packages/runtime-config' }],
@@ -214,8 +213,9 @@ export function ${runtimeConfigFunctionName}() {
 
 import { ${runtimeConfigFunctionName} } from './runtime-config';
 
-/* eslint-disable */
-var __TEARDOWN_MESSAGE__: string;
+declare global {
+    var __TEARDOWN_MESSAGE__: string;
+}
 
 module.exports = async function () {
     const { host, port } = ${runtimeConfigFunctionName}();
@@ -254,3 +254,4 @@ module.exports = async function () {
 }
 
 export default serviceE2eGenerator;
+

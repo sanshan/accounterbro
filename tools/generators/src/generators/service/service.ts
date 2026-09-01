@@ -106,7 +106,7 @@ export async function serviceGenerator(
         $schema: '../../../node_modules/nx/schemas/project-schema.json',
         sourceRoot: `${projectRoot}/src`,
         projectType: 'application',
-        tags: [],
+        tags: ['type:app'],
         targets: {
             build: {
                 executor: '@nx/js:tsc',
@@ -291,12 +291,26 @@ void bootstrap();
         `${projectRoot}/src/app/app.module.ts`,
         `import { Module } from '@nestjs/common';
 
-import { InfrastructureModule } from './infrastructure/infrastructure.module';
+import { PresentersModule } from './presenters/presenters.module';
+
+@Module({
+    imports: [PresentersModule],
+})
+export class AppModule {}
+`,
+    );
+
+    tree.write(
+        `${projectRoot}/src/app/application/application.module.ts`,
+        `import { Module } from '@nestjs/common';
+
+import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 
 @Module({
     imports: [InfrastructureModule],
+    exports: [InfrastructureModule],
 })
-export class AppModule {}
+export class ApplicationModule {}
 `,
     );
 
@@ -425,10 +439,6 @@ export const AppDataSource = new DataSource({
 `,
     );
 
-    tree.write(`${typeormRoot}/entities/.gitkeep`, '');
-    tree.write(`${typeormRoot}/repositories/.gitkeep`, '');
-    tree.write(`${typeormRoot}/migrations/.gitkeep`, '');
-
     tree.write(
         `${projectRoot}/src/app/infrastructure/infrastructure.module.ts`,
         `import { Module } from '@nestjs/common';
@@ -441,6 +451,19 @@ import { ${pascalName}TypeormModule } from './persistence/typeorm/${options.name
     exports: [${pascalName}ConfigModule, ${pascalName}TypeormModule],
 })
 export class InfrastructureModule {}
+`,
+    );
+
+    tree.write(
+        `${projectRoot}/src/app/presenters/presenters.module.ts`,
+        `import { Module } from '@nestjs/common';
+
+import { ApplicationModule } from '../application/application.module';
+
+@Module({
+    imports: [ApplicationModule],
+})
+export class PresentersModule {}
 `,
     );
 

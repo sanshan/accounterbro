@@ -3,7 +3,7 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/api-e2e/src",
   "projectType": "application",
-  "tags": [],
+  "tags": ["type:e2e"],
   "implicitDependencies": ["@accounterbro/api"],
   "targets": {
     "api-server": {
@@ -18,7 +18,6 @@
       "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
       "options": {
         "jestConfig": "apps/api-e2e/jest.config.cts",
-        "passWithNoTests": true,
         "runInBand": true
       },
       "dependsOn": [

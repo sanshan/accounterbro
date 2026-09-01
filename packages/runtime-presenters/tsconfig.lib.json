@@ -10,7 +10,17 @@
         "types": ["node"]
     },
     "include": ["src/**/*.ts"],
-    "references": [],
+    "references": [
+        {
+            "path": "../runtime-observability/tsconfig.lib.json"
+        },
+        {
+            "path": "../runtime-health/tsconfig.lib.json"
+        },
+        {
+            "path": "../core/tsconfig.lib.json"
+        }
+    ],
     "exclude": [
         "vite.config.ts",
         "vite.config.mts",

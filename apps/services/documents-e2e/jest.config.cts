@@ -1,8 +1,9 @@
-import { readFileSync } from 'fs';
+const { readFileSync } = require('node:fs');
+
 const swcJestConfig = JSON.parse(readFileSync(`${__dirname}/.spec.swcrc`, 'utf-8'));
 swcJestConfig.swcrc = false;
 
-export default {
+module.exports = {
     displayName: 'documents-service-e2e',
     preset: '../../../jest.preset.js',
     globalSetup: '<rootDir>/src/support/global-setup.ts',

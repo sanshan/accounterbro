@@ -1,8 +1,7 @@
 {
-    "name": "@accounterbro/object-storage",
+    "name": "@accounterbro/runtime-config",
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
-    "sourceRoot": "packages/object-storage/src",
+    "sourceRoot": "packages/runtime-config/src",
     "projectType": "library",
     "tags": ["type:runtime"]
 }
-

@@ -42,7 +42,7 @@ export async function packageGenerator(tree: Tree, options: PackageGeneratorSche
         $schema: projectJson.$schema,
         sourceRoot: `${projectRoot}/src`,
         projectType: 'library',
-        tags: [],
+        tags: ['type:business'],
     }));
 
     for (const generatedFile of tree.children(`${projectRoot}/src/lib`)) {
@@ -60,6 +60,7 @@ export async function packageGenerator(tree: Tree, options: PackageGeneratorSche
     tree.write(
         vitestConfigPath,
         vitestConfig
+            .replace('root: __dirname,', 'root: import.meta.dirname,')
             .replace(`name: '${options.name}'`, `name: '${projectName}'`)
             .replace('watch: false,', 'watch: false,\n        passWithNoTests: true,'),
     );

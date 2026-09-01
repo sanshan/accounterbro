@@ -76,6 +76,7 @@ describe('service e2e generator', () => {
             name: '@accounterbro/documents-service-e2e',
             sourceRoot: 'apps/services/documents-e2e/src',
             projectType: 'application',
+            tags: ['type:e2e'],
             implicitDependencies: ['@accounterbro/documents-service'],
         });
         expect(project.targets['documents-server']).toMatchObject({
@@ -121,8 +122,10 @@ describe('service e2e generator', () => {
             extends: '../../../tsconfig.base.json',
             references: [{ path: '../../../packages/runtime-config' }],
         });
+        expect(tsconfig.compilerOptions.noImplicitAny).toBeUndefined();
         expect(runtimeConfig).toContain('runtimeConfig.documents');
         expect(runtimeConfig).toContain('getDocumentsServiceE2eRuntimeConfig');
+        expect(globalSetup).toContain('declare global');
         expect(globalSetup).toContain('waitForPortOpen(port, { host })');
         expect(testSetup).toContain('axios.defaults.baseURL = baseUrl');
         expect(jestConfig).toContain("preset: '../../../jest.preset.js'");
@@ -171,3 +174,4 @@ describe('service e2e generator', () => {
         );
     });
 });
+

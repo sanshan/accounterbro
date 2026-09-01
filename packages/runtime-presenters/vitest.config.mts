@@ -1,12 +1,11 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig(() => ({
-    root: __dirname,
+    root: import.meta.dirname,
     cacheDir: '../../node_modules/.vite/packages/runtime-presenters',
     test: {
         name: '@accounterbro/runtime-presenters',
         watch: false,
-        passWithNoTests: true,
         globals: true,
         environment: 'jsdom',
         include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],

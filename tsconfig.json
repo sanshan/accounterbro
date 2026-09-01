@@ -13,9 +13,6 @@
             "path": "./apps/api-e2e"
         },
         {
-            "path": "./apps/web-e2e"
-        },
-        {
             "path": "./apps/services/documents"
         },
         {
@@ -44,6 +41,9 @@
         },
         {
             "path": "./packages/runtime-observability"
+        },
+        {
+            "path": "./apps/services/documents-e2e"
         }
     ]
 }

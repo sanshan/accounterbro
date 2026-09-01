@@ -83,6 +83,7 @@ describe('service generator', () => {
 
         expect(projectJson.name).toBe('@accounterbro/example-service');
         expect(projectJson.projectType).toBe('application');
+        expect(projectJson.tags).toEqual(['type:app']);
         expect(projectJson.targets.build.executor).toBe('@nx/js:tsc');
         expect(projectJson.targets.serve.executor).toBe('@nx/js:node');
         expect(projectJson.targets.start.options.command).toBe(
@@ -121,6 +122,18 @@ describe('service generator', () => {
         });
 
         const main = tree.read('apps/services/example/src/main.ts', 'utf-8');
+        const appModule = tree.read(
+            'apps/services/example/src/app/app.module.ts',
+            'utf-8',
+        );
+        const applicationModule = tree.read(
+            'apps/services/example/src/app/application/application.module.ts',
+            'utf-8',
+        );
+        const presentersModule = tree.read(
+            'apps/services/example/src/app/presenters/presenters.module.ts',
+            'utf-8',
+        );
         const envSchema = tree.read(
             'apps/services/example/src/app/infrastructure/config/example-env.schema.ts',
             'utf-8',
@@ -149,6 +162,21 @@ describe('service generator', () => {
 
         expect(main).toContain('NestFactory.createApplicationContext(AppModule)');
         expect(main).not.toContain('.listen(');
+        expect(appModule).toContain(
+            "import { PresentersModule } from './presenters/presenters.module';",
+        );
+        expect(appModule).toContain('imports: [PresentersModule]');
+        expect(appModule).not.toContain('InfrastructureModule');
+        expect(applicationModule).toContain(
+            "import { InfrastructureModule } from '../infrastructure/infrastructure.module';",
+        );
+        expect(applicationModule).toContain('imports: [InfrastructureModule]');
+        expect(applicationModule).toContain('exports: [InfrastructureModule]');
+        expect(presentersModule).toContain(
+            "import { ApplicationModule } from '../application/application.module';",
+        );
+        expect(presentersModule).toContain('imports: [ApplicationModule]');
+        expect(presentersModule).not.toContain('InfrastructureModule');
         expect(envSchema).toContain('EXAMPLE_DB_HOST');
         expect(envSchema).toContain('EXAMPLE_DB_PORT: PortSchema');
         expect(envSchema).not.toContain('EXAMPLE_PORT');
@@ -169,17 +197,17 @@ describe('service generator', () => {
             tree.exists(
                 'apps/services/example/src/app/infrastructure/persistence/typeorm/entities/.gitkeep',
             ),
-        ).toBe(true);
+        ).toBe(false);
         expect(
             tree.exists(
                 'apps/services/example/src/app/infrastructure/persistence/typeorm/repositories/.gitkeep',
             ),
-        ).toBe(true);
+        ).toBe(false);
         expect(
             tree.exists(
                 'apps/services/example/src/app/infrastructure/persistence/typeorm/migrations/.gitkeep',
             ),
-        ).toBe(true);
+        ).toBe(false);
         expect(tree.exists('apps/services/example/src/index.ts')).toBe(false);
         expect(tree.children('apps/services/example/src/lib')).toEqual([]);
         expect(tree.exists('apps/services/example/tsconfig.lib.json')).toBe(false);

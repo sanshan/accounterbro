@@ -18,19 +18,9 @@ cp .env.example .env
 docker compose up -d database
 ```
 
-The API database is created by the PostgreSQL container from the values already present in `.env.example`.
+The copied environment contains the safe local database, service-port, and Documents storage values. The PostgreSQL container creates the API database from those values.
 
-The Documents service owns a separate logical database. For local development, add these values to `.env`:
-
-```dotenv
-DOCUMENTS_DB_HOST=localhost
-DOCUMENTS_DB_PORT=5432
-DOCUMENTS_DB_USERNAME=postgres
-DOCUMENTS_DB_PASSWORD=postgres
-DOCUMENTS_DB_NAME=accounterbro_documents
-```
-
-Create that database once in the existing PostgreSQL container:
+The Documents service owns a separate logical database. Create it once in the existing PostgreSQL container:
 
 ```bash
 docker compose exec database createdb -U postgres accounterbro_documents
@@ -76,13 +66,8 @@ pnpm nx run-many -t test
 pnpm nx run-many -t build
 pnpm nx run @accounterbro/api-e2e:e2e
 pnpm nx run @accounterbro/documents-service-e2e:e2e
-pnpm nx run @accounterbro/web-e2e:e2e
 ```
 
-The E2E targets require their normal runtime dependencies. For local Web E2E runs, install the Playwright Chromium browser first when it is not already available:
-
-```bash
-pnpm exec playwright install chromium
-```
+The E2E targets require their normal runtime dependencies.
 
 GitHub Actions also verifies that the built API and Web artifacts can start successfully.
