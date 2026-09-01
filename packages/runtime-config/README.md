@@ -11,4 +11,6 @@ The package currently:
 
 The package does not locate or load `.env` files. Nx, CI, deployment, or the invoking process is responsible for populating `process.env` before the package is evaluated.
 
+Runtime consumers use the package root, which is built to `dist` like the other runtime packages. The `./workspace` subpath is reserved for Nx/Vite configuration that must resolve the shared port contract before project builds run.
+
 Environment loading and ownership rules are defined in `docs/engineering/environment-guidelines.md`. Service-specific typed Nest configuration is defined in `docs/engineering/service-configuration-guidelines.md`.

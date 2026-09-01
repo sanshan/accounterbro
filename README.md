@@ -18,19 +18,9 @@ cp .env.example .env
 docker compose up -d database
 ```
 
-The API database is created by the PostgreSQL container from the values already present in `.env.example`.
+The copied environment contains the safe local database, service-port, and Documents storage values. The PostgreSQL container creates the API database from those values.
 
-The Documents service owns a separate logical database. For local development, add these values to `.env`:
-
-```dotenv
-DOCUMENTS_DB_HOST=localhost
-DOCUMENTS_DB_PORT=5432
-DOCUMENTS_DB_USERNAME=postgres
-DOCUMENTS_DB_PASSWORD=postgres
-DOCUMENTS_DB_NAME=accounterbro_documents
-```
-
-Create that database once in the existing PostgreSQL container:
+The Documents service owns a separate logical database. Create it once in the existing PostgreSQL container:
 
 ```bash
 docker compose exec database createdb -U postgres accounterbro_documents
