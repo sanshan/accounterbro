@@ -114,6 +114,7 @@ jobs:
           set -euo pipefail
 
           report_directory="apps/services/documents-load/reports/${DOCUMENTS_LOAD_RUN_ID}"
+          markdown_report="$report_directory/documents-load-report.md"
           text_report="$report_directory/documents-load-report.txt"
 
           {
@@ -126,7 +127,9 @@ jobs:
             echo
           } >> "$GITHUB_STEP_SUMMARY"
 
-          if [[ -f "$text_report" ]]; then
+          if [[ -f "$markdown_report" ]]; then
+            cat "$markdown_report" >> "$GITHUB_STEP_SUMMARY"
+          elif [[ -f "$text_report" ]]; then
             {
               echo '```text'
               cat "$text_report"
