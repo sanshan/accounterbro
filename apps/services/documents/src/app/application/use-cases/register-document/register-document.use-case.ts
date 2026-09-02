@@ -43,6 +43,8 @@ function storageFailureReason(error: unknown): string {
 export class RegisterDocumentUseCase
     implements UseCase<RegisterDocumentInput, RegisterDocumentResult, RegisterDocumentUseCaseContext>
 {
+    public readonly name = `${documentName}.register`;
+
     public constructor(
         private readonly runner: Runner,
         private readonly objectStorage: ObjectStorage,
