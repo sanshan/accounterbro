@@ -220,21 +220,10 @@
                         "uid": "${DS_PROMETHEUS}"
                     },
                     "editorMode": "code",
-                    "expr": "histogram_quantile(0.95, sum by (le, edp_component, edp_name) ({__name__=~\"edp_lifecycle_duration.*_bucket\", edp_component=~\"runner|reader\", edp_event=~\"execution.completed|read.completed\"}))",
+                    "expr": "histogram_quantile(0.95, sum by (le, edp_component, edp_name) ({__name__=~\"edp_lifecycle_duration.*_bucket\", edp_component=~\"use-case-executor|runner|reader\", edp_event=~\"execution.completed|read.completed\"}))",
                     "legendFormat": "{{edp_component}} / {{edp_name}}",
                     "range": true,
                     "refId": "A"
-                },
-                {
-                    "datasource": {
-                        "type": "prometheus",
-                        "uid": "${DS_PROMETHEUS}"
-                    },
-                    "editorMode": "code",
-                    "expr": "histogram_quantile(0.95, sum by (le, edp_component) ({__name__=~\"edp_lifecycle_duration.*_bucket\", edp_component=\"use-case-executor\", edp_event=\"execution.completed\"}))",
-                    "legendFormat": "use-case-executor / combined",
-                    "range": true,
-                    "refId": "B"
                 }
             ],
             "title": "Documents EDP top-level duration p95",

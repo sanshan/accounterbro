@@ -206,8 +206,10 @@ export function toUseCaseExecutorTelemetryRecord(
     return {
         component: 'use-case-executor',
         event: observation.type,
+        name: observation.context.useCase,
         metricAttributes: boundedObservationAttributes(observation),
         traceAttributes: {
+            'edp.use_case': observation.context.useCase,
             'edp.intent.id': observation.context.intentId,
             'edp.correlation.id': observation.context.correlationId,
         },

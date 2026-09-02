@@ -96,6 +96,8 @@ application/
       <use-case-name>.use-case.spec.ts
 ```
 
+Each concrete UseCase MUST expose an explicit deployment-stable, namespaced `readonly name` from the application's bounded vocabulary. The name is EDP observability identity only; do not derive it from the runtime class/constructor name or use it as invocation, Intent, or idempotency identity.
+
 Each UseCase MUST define its own concrete context type extending EDP `UseCaseContext` with exactly the additional invocation metadata it needs.
 
 Actor, tenant, and similar invocation values belong in that concrete context only when the UseCase requires them. Preserve typed concrete-context flow end to end through `UseCaseExecutor`; do not hide invocation metadata in AsyncLocalStorage, ambient current-user/current-tenant providers, casts, or local executor wrappers.

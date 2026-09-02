@@ -16,7 +16,7 @@ pnpm nx run @accounterbro/documents-service-load:baseline
 
 Both commands create a fresh isolated stack, execute the same public HTTP business scenario (`POST /documents`, then `GET /documents/:id`), gracefully stop Documents to flush its OpenTelemetry metrics, and write text, Markdown, and JSON reports under `reports/<run-id>`. Set `DOCUMENTS_LOAD_RUN_ID` to provide a stable run identifier; otherwise the command generates one.
 
-The report keeps the overall k6 result and breaks client latency down into `register` and `get`. Server-side EDP latency is based on top-level lifecycle completion events (`execution.completed` for UseCaseExecutor/Runner and `read.completed` for Reader), so internal claim/attempt/source phases are not mixed into the displayed p95. Runner and Reader retain their EDP operation/read names. The current EDP UseCaseExecutor observation context has no UseCase-name dimension, so its row is explicitly shown as `combined`.
+The report keeps the overall k6 result and breaks client latency down into `register` and `get`. Server-side EDP latency is based on top-level lifecycle completion events (`execution.completed` for UseCaseExecutor/Runner and `read.completed` for Reader), so internal claim/attempt/source phases are not mixed into the displayed p95. UseCaseExecutor, Runner, and Reader retain their EDP UseCase/operation/read names.
 
 Smoke uses one iteration and fails when any check or HTTP request fails. Baseline uses explicit 15-second warm-up, 30-second steady, and 15-second cool-down stages. Its latency results are an initial reference measurement, not an SLO or a required CI gate.
 

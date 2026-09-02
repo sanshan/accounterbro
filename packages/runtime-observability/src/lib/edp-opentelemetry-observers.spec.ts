@@ -1,6 +1,7 @@
 import type {
     ReaderObservationContext,
     RunnerObservationContext,
+    UseCaseExecutorObservationContext,
 } from '@event-driven-platform/observability';
 import { metrics } from '@opentelemetry/api';
 import {
@@ -27,6 +28,12 @@ const runnerContext: RunnerObservationContext = {
 const readerContext: ReaderObservationContext = {
     read: 'documents.get',
     tenant: {} as ReaderObservationContext['tenant'],
+};
+
+const useCaseExecutorContext: UseCaseExecutorObservationContext = {
+    useCase: 'documents.register-document',
+    intentId: 'intent-2',
+    correlationId: 'correlation-2',
 };
 
 describe('EDP OpenTelemetry mapping', () => {
@@ -79,16 +86,15 @@ describe('EDP OpenTelemetry mapping', () => {
     it('keeps UseCaseExecutor telemetry retry-free and unclassified', () => {
         const record = toUseCaseExecutorTelemetryRecord({
             type: 'execution.completed',
-            context: {
-                intentId: 'intent-2',
-                correlationId: 'correlation-2',
-            },
+            context: useCaseExecutorContext,
             outcome: 'error',
             durationMs: 31,
         });
 
+        expect(record.name).toBe('documents.register-document');
         expect(record.metricAttributes).toEqual({ 'edp.outcome': 'error' });
         expect(record.retryDelayMs).toBeUndefined();
+        expect(record.traceAttributes['edp.use_case']).toBe('documents.register-document');
         expect(record.metricAttributes).not.toHaveProperty('failure.code');
         expect(record.traceAttributes).not.toHaveProperty('failure.code');
     });
@@ -112,6 +118,7 @@ describe('EDP OpenTelemetry mapping', () => {
             observers.useCaseExecutor.observe({
                 type: 'execution.requested',
                 context: {
+                    useCase: 'documents.get-document',
                     intentId: 'intent-3',
                     correlationId: 'correlation-3',
                 },

@@ -204,7 +204,7 @@ const report = {
                 reader: 'read.completed',
             },
             series: lifecycle,
-            useCaseNameAvailable: false,
+            useCaseNameAvailable: true,
         },
         retries: {
             totalScheduled: retrySeries.reduce((total, series) => total + (series.scheduled ?? 0), 0),
@@ -222,11 +222,7 @@ function percentage(value) {
 }
 
 function lifecycleName(series) {
-    if (series.name) {
-        return series.name;
-    }
-
-    return series.component === 'use-case-executor' ? 'combined' : 'n/a';
+    return series.name ?? 'n/a';
 }
 
 function componentName(component) {
@@ -299,7 +295,6 @@ const textReport = [
     '',
     'Documents EDP top-level lifecycle',
     ...lifecycleLines,
-    '- UseCaseExecutor is combined because the current EDP observation context does not expose a UseCase name.',
     '',
     'Documents EDP retries',
     ...retryLines,
@@ -362,11 +357,9 @@ const markdownReport = [
     '',
     '### EDP top-level lifecycle',
     '',
-    '| Layer | Operation/read | Lifecycle event | Observations | p95 |',
+    '| Layer | UseCase/operation/read | Lifecycle event | Observations | p95 |',
     '| --- | --- | --- | ---: | ---: |',
     markdownLifecycle,
-    '',
-    '> UseCaseExecutor is shown as `combined` because the current EDP observation context does not expose a UseCase name. Runner and Reader retain their operation/read names.',
     '',
     '### EDP retries',
     '',
