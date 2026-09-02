@@ -76,10 +76,11 @@ describe('EDP OpenTelemetry mapping', () => {
         expect(readerRecord.traceAttributes['edp.attempt']).toBe(3);
     });
 
-    it('keeps UseCaseExecutor telemetry retry-free and unclassified', () => {
+    it('keeps UseCaseExecutor retry-free while exposing stable UseCase identity', () => {
         const record = toUseCaseExecutorTelemetryRecord({
             type: 'execution.completed',
             context: {
+                useCase: 'document.register',
                 intentId: 'intent-2',
                 correlationId: 'correlation-2',
             },
@@ -87,8 +88,14 @@ describe('EDP OpenTelemetry mapping', () => {
             durationMs: 31,
         });
 
+        expect(record.name).toBe('document.register');
         expect(record.metricAttributes).toEqual({ 'edp.outcome': 'error' });
         expect(record.retryDelayMs).toBeUndefined();
+        expect(record.traceAttributes).toMatchObject({
+            'edp.use_case': 'document.register',
+            'edp.intent.id': 'intent-2',
+            'edp.correlation.id': 'correlation-2',
+        });
         expect(record.metricAttributes).not.toHaveProperty('failure.code');
         expect(record.traceAttributes).not.toHaveProperty('failure.code');
     });
@@ -112,6 +119,7 @@ describe('EDP OpenTelemetry mapping', () => {
             observers.useCaseExecutor.observe({
                 type: 'execution.requested',
                 context: {
+                    useCase: 'document.register',
                     intentId: 'intent-3',
                     correlationId: 'correlation-3',
                 },
