@@ -1,0 +1,17 @@
+{
+    "rule_id": "PRR-004",
+    "cases": [
+        {
+            "id": "service-local-runner-retry-wrapper",
+            "expected": "violation",
+            "context": "EDP Runner owns Command-driven retry and @accounterbro/runtime-executions owns standard service composition.",
+            "diff": "diff --git a/apps/services/documents/src/app/infrastructure/execution/service-runner.ts b/apps/services/documents/src/app/infrastructure/execution/service-runner.ts\nnew file mode 100644\n+export class ServiceRunner {\n+    public async run(command: Command) {\n+        for (let attempt = 0; attempt < 3; attempt += 1) {\n+            try { return await this.runner.run(command); } catch {}\n+        }\n+    }\n+}"
+        },
+        {
+            "id": "standard-manifest-composition",
+            "expected": "no-violation",
+            "context": "The service owns its DataSource and hosted-package selection while the shared Nest adapter owns the execution provider graph.",
+            "diff": "diff --git a/apps/services/documents/src/app/infrastructure/infrastructure.module.ts b/apps/services/documents/src/app/infrastructure/infrastructure.module.ts\n+imports: [\n+    DocumentsTypeOrmModule,\n+    RuntimeExecutionsModule.register([documents]),\n+]"
+        }
+    ]
+}
