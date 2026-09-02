@@ -299,3 +299,12 @@ MUST NOT declare work complete with known failing relevant tests, type/build err
 
 If a required check cannot be run, state exactly which check was not run and why.
 
+## Code Review Rules
+
+For every code-changing pull request:
+
+- Read `docs/review/README.md` and evaluate every applicable rule under `docs/review/rules/`.
+- A blocking policy finding must include `type: POLICY`, the rule ID, blocking severity, an affected location, and concrete evidence.
+- Do not repeat lint, typecheck, test, build, E2E, or Nx consistency results when their normal CI checks are green.
+- Treat taste, optional cleanup, and hypothetical future architecture as non-blocking opinions.
+- Produce a clean result only when no blocking policy or correctness finding remains for the reviewed head.
