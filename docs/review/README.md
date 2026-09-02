@@ -168,6 +168,33 @@ A blocking rule MUST be downgraded to `advisory` when its decision boundary cann
 
 Removal does not authorize reuse of the stable ID. Repository history remains the record of retired rules and prior findings.
 
+## Active catalog
+
+Active policy rules are stored as one JSON file per rule under `docs/review/rules/`. Active catalog IDs use the stable `PRR-NNN` format. A rule file is named `<id>.json` and contains exactly the fields defined by the atomic review-rule contract. Calibration cases are stored in the matching `docs/review/calibration/<id>.json` file so rule definitions remain provider-neutral and do not acquire test-only fields.
+
+Run the dependency-free catalog validator from the repository root:
+
+```bash
+pnpm review:validate
+```
+
+The command validates the validator's negative cases and then the committed catalog. It performs no LLM call.
+
+### Initial rule inventory
+
+The initial catalog deliberately contains only these high-signal decisions:
+
+| Rule | Concern | Canonical source | Why AI review owns it |
+| --- | --- | --- | --- |
+| `PRR-001` | A coherent change is unrelated to the declared task scope. | `AGENTS.md#12-change-discipline` | Determining whether a diff is causally required by a task needs semantic comparison of the task and change; path, type, lint, and test checks cannot establish that relationship. |
+| `PRR-002` | A scoped instruction file becomes a second owner of reusable guidance. | `AGENTS.md#workspace-agent-rules` | The problem is semantic duplication of ownership, including paraphrases; exact-text or link validation cannot distinguish it from valid routing and local constraints. |
+| `PRR-003` | A service test repeats semantics owned by a consumed boundary. | `docs/engineering/service-guidelines.md#testing-ownership` | Existing test runners can execute the test but cannot decide whether its assertions prove service-owned behavior or merely restate EDP/package/runtime behavior. |
+| `PRR-004` | A service reconstructs EDP or shared execution-runtime behavior. | `docs/engineering/service-guidelines.md#shared-edp-runtime-consumption` | ESLint enforces import direction, not semantic reimplementation through locally named wrappers, providers, policies, or stores. |
+| `PRR-005` | Generator behavior changes while its canonical README retains a false contract. | `tools/generators/README.md` | CI can run generators but does not semantically compare their commands/output contract with the prose developers consume. |
+| `PRR-006` | Documents registration invents file type or size restrictions absent from the approved specification. | `specs/documents/register-document.md#input` | Structural checks and current happy-path tests do not prove that newly added transport validation preserves the specification's accepted input space. |
+
+The catalog does not reproduce Nx project boundaries, service-layer import restrictions, type checking, build behavior, test execution, E2E behavior, or `nx sync:check`; normal deterministic CI already owns those checks.
+
 ## Reviewer procedure
 
 For the exact pull-request head under review, an independent reviewer MUST:

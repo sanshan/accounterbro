@@ -79,6 +79,9 @@ jobs:
       - name: Verify Nx project references
         run: pnpm nx sync:check
 
+      - name: Validate review catalog
+        run: pnpm review:validate
+
       - name: Create E2E databases
         env:
           PGPASSWORD: ${{ env.API_DB_PASSWORD }}
