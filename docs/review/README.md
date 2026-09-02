@@ -1,0 +1,190 @@
+# Independent Pull-Request Review Contract
+
+This document is the canonical owner of the provider-neutral contract for independent AI pull-request review in AccounterBro. It defines how review policy is represented, evaluated, reported, calibrated, and maintained.
+
+Repository architecture, implementation, and workflow requirements remain owned by the applicable root or nested `AGENTS.md`, `docs/engineering/`, specifications, and other repository-local sources. Review rules point to those sources; they do not replace them. Provider settings may only route a reviewer to this repository-owned contract and must not contain a second policy catalog.
+
+## Scope
+
+Independent review applies to every code-changing pull request. It is performed by a reviewer separate from the implementation agent and does not replace implementer self-review or deterministic CI.
+
+A review conclusion is valid only for the exact pull-request head revision that was reviewed. A new relevant commit requires a new review conclusion for the new head.
+
+This contract does not define a provider integration, GitHub event or comment representation, CI gate, initial rule catalog, or model prompt. Those mechanisms may be added separately without changing the provider-neutral rule semantics defined here.
+
+## Normative language
+
+- **MUST** and **MUST NOT** define mandatory behavior.
+- **SHOULD** defines the expected behavior; a deviation requires a concrete repository-specific reason.
+- **MAY** defines permitted optional behavior.
+
+## Review finding classes
+
+Independent review distinguishes three classes of output.
+
+### Policy finding
+
+A `POLICY` finding reports that an applicable repository-owned review rule has the `violation` outcome.
+
+A policy finding MUST contain:
+
+- `type: POLICY`;
+- the rule's stable `rule_id`;
+- the rule's declared `severity`;
+- an affected repository location, or an explicit pull-request-level location when no narrower location exists;
+- concrete evidence from the reviewed change and relevant repository context.
+
+A policy finding MUST NOT infer a requirement that is absent from the referenced rule and canonical source. A blocking policy finding is valid only when all evidence required by the rule is present.
+
+### Uncatalogued correctness finding
+
+A `CORRECTNESS` finding reports a concrete defect introduced or exposed by the pull request for which no current policy rule is the right owner. This path keeps the catalog bounded without preventing the reviewer from reporting genuine defects.
+
+A correctness finding MUST contain:
+
+- `type: CORRECTNESS`;
+- `severity: blocking` or `severity: advisory`;
+- an affected repository location;
+- concrete evidence from the reviewed change and relevant repository context;
+- a causal explanation connecting the change to the defect;
+- the observable incorrect outcome or failure consequence.
+
+A correctness finding MAY block a pull request only when that evidence establishes a real defect and consequence. Suspicion, a hypothetical future requirement, generic risk language, or inability to prove correctness is not a blocking correctness finding.
+
+If the same correctness finding recurs and can be expressed as a stable policy boundary, it SHOULD be considered for a repository rule. If it can be checked deterministically, it follows the deterministic-promotion lifecycle instead.
+
+### Non-blocking opinion
+
+Taste, preference, optional cleanup, unsupported style advice, and hypothetical future architecture are non-blocking opinions. They MUST NOT be presented as policy or correctness violations unless an explicit repository-owned requirement makes them normative and the required evidence is present.
+
+An opinion MAY be reported as `OPINION` when it provides concrete value, but it does not affect the review result and does not require a change.
+
+## Atomic review-rule contract
+
+Each policy rule represents one bounded decision. A rule MUST be stored in the repository, remain provider-neutral, and define all of the following fields:
+
+| Field | Contract |
+| --- | --- |
+| `id` | Stable, unique identifier. It MUST NOT be reassigned to a different decision after removal or replacement. |
+| `title` | Concise description of the single responsibility being checked. |
+| `scope` | Repository paths and/or change kinds the rule can govern, including exclusions needed to avoid ambiguous ownership. |
+| `applies_when` | Observable conditions that make the rule applicable to the reviewed change. |
+| `violation` | Observable conditions that produce the `violation` decision. |
+| `non_violation` | Explicit boundary conditions that are similar or adjacent but MUST NOT be reported as violations. |
+| `severity` | Exactly `blocking` or `advisory`, with the semantics defined below. |
+| `evidence` | Minimum concrete evidence a finding must cite. |
+| `canonical_source` | Existing repository-local path, with a section or rule identifier when needed, that owns the underlying requirement. |
+
+Free-form guidance that cannot populate these fields unambiguously is not a policy rule. One rule MUST NOT combine unrelated requirements merely because they share a source file or repository area.
+
+The canonical source owns the underlying engineering or product requirement. The review rule owns only its review decision boundary. If the rule and its canonical source disagree, the rule MUST be corrected or removed; provider configuration MUST NOT resolve the disagreement through hidden instructions.
+
+Stable IDs survive wording and boundary clarifications when the rule still represents the same responsibility. Splitting a rule or changing it to govern a different responsibility requires new IDs, and retired IDs MUST NOT be reused.
+
+## Decision model
+
+The reviewer evaluates every applicable policy rule with exactly one of these outcomes:
+
+1. `not-applicable` — the change is outside `scope` or does not satisfy `applies_when`;
+2. `violation` — the rule applies, the `violation` condition is satisfied, and all required `evidence` is present;
+3. `no-violation` — the rule applies, but the `violation` condition is not satisfied, including the rule's explicit `non_violation` boundary.
+
+Applicability is decided before violation. A reviewer MUST NOT report `violation` for an out-of-scope change. When the evidence required for a violation is absent, the reviewer MUST NOT create a blocking policy finding from inference or uncertainty.
+
+`not-applicable` and `no-violation` are decision results, not findings. They MAY be recorded for calibration or review-state evidence but do not require a pull-request comment.
+
+## Severity and blocking behavior
+
+Allowed rule severities are:
+
+- `blocking` — a calibrated violation prevents a clean independent-review result and requires resolution before merge;
+- `advisory` — a violation may be reported but does not prevent a clean independent-review result.
+
+A rule may use `blocking` only for a concrete repository requirement with an explicit applicability, violation, non-violation, and evidence boundary. Subjective quality goals and taste-based guidance cannot be blocking.
+
+A blocking policy finding MUST reference a `blocking` rule and satisfy that rule's evidence contract. An advisory rule MUST NOT produce a blocking finding. A `CORRECTNESS` finding may block only under the stricter causal-evidence requirements defined above. `OPINION` never blocks.
+
+A pull request has a clean independent-review result when the reviewed head has no valid blocking `POLICY` or `CORRECTNESS` findings. The provider-specific representation of that state is intentionally outside this contract.
+
+## Deterministic-check ownership
+
+Lint, typecheck, tests, build, E2E, Nx consistency checks, and other deterministic CI remain the owners of behavior they already enforce. When those checks execute normally and are green, the AI reviewer MUST NOT restate their covered failures as policy findings.
+
+The reviewer MAY evaluate a deterministic enforcement mechanism when the pull request changes that mechanism itself, including its rules, configuration, tests, scripts, or workflow. The reviewer MAY also report a concrete correctness defect that deterministic checks do not cover, but green CI alone is not evidence of such a defect.
+
+When an AI finding is repeatedly reducible to a deterministic assertion, ownership SHOULD move to the narrowest appropriate lint rule, type constraint, test, build check, or CI check. The AI rule is then removed under the promotion lifecycle below.
+
+## Calibration contract
+
+Every proposed blocking rule MUST have controlled, repository-versioned calibration cases before it can become active:
+
+- at least one known-violation case whose expected outcome is `violation`;
+- at least one boundary case whose expected outcome is `no-violation` or `not-applicable`.
+
+Each case MUST include the smallest diff and repository context needed to decide the rule and MUST state its expected outcome. Calibration cases test the rule boundary; they are not production examples and MUST NOT require deliberate violations to remain in production code.
+
+Before a blocking rule is relied on by the merge workflow, the intended reviewer MUST classify the known-violation case as `violation` in at least two runs with unchanged rule semantics and context, and MUST classify every boundary case with its declared expected outcome. Contradictory applicability or violation decisions require the rule to be clarified and recalibrated or downgraded to `advisory`.
+
+A semantic change to `scope`, `applies_when`, `violation`, `non_violation`, `severity`, required `evidence`, or the meaning inherited from `canonical_source` invalidates prior calibration and requires the affected cases to be revalidated. Editorial changes that do not change the decision boundary do not require recalibration.
+
+Calibration validates a rule against controlled cases. It does not make model output deterministic and does not belong in normal CI as a permanent LLM invocation.
+
+## Rule lifecycle
+
+### Add
+
+A new rule is introduced through normal pull-request review. The change MUST:
+
+1. identify an existing repository-owned canonical source;
+2. show that deterministic tooling does not already own the same check;
+3. define one atomic rule using every required field;
+4. include the calibration coverage required by its severity;
+5. pass mechanical catalog validation when that validation exists;
+6. complete reviewer calibration before a blocking rule is relied on by the merge workflow.
+
+A provider-local instruction or a finding observed only once is not sufficient to create a rule.
+
+### Change
+
+Rule changes use normal pull-request review. A change MUST preserve the stable ID only while the same responsibility remains. Semantic changes MUST update affected calibration cases and repeat calibration before the changed blocking boundary is relied on.
+
+If a canonical source changes or disappears, dependent rules MUST be reviewed in the same change or a prerequisite change. A rule MUST NOT remain active with a missing or contradictory canonical source.
+
+### Promote to deterministic enforcement
+
+When a repeated AI finding can be checked deterministically:
+
+1. add the check at the narrowest owning boundary;
+2. add evidence that the check fails for the violation and passes for its boundary case;
+3. enable the check in the normal repository verification path;
+4. remove or retire the overlapping AI rule once deterministic enforcement is active;
+5. preserve the underlying requirement in its canonical source.
+
+Temporary overlap is allowed only within the promotion change needed to prove the deterministic replacement. Normal review MUST NOT retain two active owners for the same check.
+
+### Downgrade or remove
+
+A blocking rule MUST be downgraded to `advisory` when its decision boundary cannot be made reliable enough to satisfy calibration. A rule MUST be removed when its underlying requirement is removed, its canonical source no longer supports it, or deterministic enforcement takes ownership.
+
+Removal does not authorize reuse of the stable ID. Repository history remains the record of retired rules and prior findings.
+
+## Reviewer procedure
+
+For the exact pull-request head under review, an independent reviewer MUST:
+
+1. inspect the changed files and the repository context needed to understand them;
+2. select rules by `scope` and decide `applies_when` before evaluating violations;
+3. apply the three-outcome decision model and require each rule's declared evidence;
+4. avoid duplicating normally executing green deterministic checks;
+5. separately evaluate concrete uncatalogued correctness defects;
+6. distinguish optional opinions from findings;
+7. report only evidence-supported policy and correctness findings using the formats above;
+8. produce a clean result only when no blocking finding remains for that head.
+
+The reviewer MUST NOT modify the pull request, invent repository requirements, or turn uncertainty into a blocking result.
+
+## Contract ownership
+
+Changes to this contract and to repository review policy follow the normal task, pull-request, and CI process. Once the independent reviewer is integrated, review-policy changes also require independent review of the current pull-request head. Active rules SHOULD remain a small, current set of high-signal decisions rather than a copy of all repository documentation.
+
+`AGENTS.md` files may route reviewers to this document and applicable canonical sources, but they MUST NOT duplicate this contract or the policy catalog. Provider-specific setup may do the same and MUST NOT become an alternative policy owner.
