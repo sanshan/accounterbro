@@ -263,9 +263,12 @@ export async function validateReviewCatalog(repositoryRoot = defaultRepositoryRo
 if (process.argv[1] === modulePath) {
     try {
         const result = await validateReviewCatalog();
-        console.log(
-            `Review catalog valid: ${result.ruleCount} rules, ${result.blockingRuleCount} blocking, ${result.calibrationCaseCount} calibration cases.`,
-        );
+        const summary = [
+            `Review catalog valid: ${result.ruleCount} rules`,
+            `${result.blockingRuleCount} blocking`,
+            `${result.calibrationCaseCount} calibration cases.`,
+        ].join(', ');
+        console.log(summary);
     } catch (error) {
         console.error(error instanceof Error ? error.message : error);
         process.exitCode = 1;
