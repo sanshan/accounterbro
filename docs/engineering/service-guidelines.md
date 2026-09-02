@@ -83,6 +83,8 @@ Concrete service UseCases are application-level orchestration and use the publis
 
 A concrete service UseCase MUST be a Nest `@Injectable()` provider using the default singleton scope unless a concrete reviewed requirement proves another scope necessary.
 
+Each concrete UseCase MUST expose the explicit stable `readonly name` required by the EDP UseCase contract. Use a bounded semantic identity owned by the application behavior, such as `<entity>.<action>`; MUST NOT derive this identity from `constructor.name` or another implementation/class name that can change during refactoring.
+
 Constructor dependencies are reserved for stable reusable collaborators such as Runner, Reader, storage capabilities, repositories/ports, or other long-lived dependencies. Invocation-specific metadata MUST NOT be stored on the singleton instance or introduced through request-scoped DI merely for convenience.
 
 Each concrete UseCase MUST own a dedicated folder under `application/use-cases/`. Keep its implementation, concrete context and behavioral specification colocated:
