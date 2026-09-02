@@ -1,4 +1,4 @@
-import type { DocumentId } from '@accounterbro/core';
+import { documentName, type DocumentId } from '@accounterbro/core';
 import {
     documentReadNames,
     type GetDocumentRead,
@@ -24,6 +24,8 @@ export type GetDocumentUseCaseResult = GetDocumentResult | GetDocumentNotFoundRe
 export class GetDocumentUseCase
     implements UseCase<GetDocumentUseCaseInput, GetDocumentUseCaseResult, GetDocumentUseCaseContext>
 {
+    public readonly name = `${documentName}.get`;
+
     public constructor(private readonly reader: Reader) {}
 
     public async execute(

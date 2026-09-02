@@ -43,14 +43,14 @@ OpenTelemetry SDK and EDP observer adaptation are owned here; EDP execution sema
 - Runner `attempt.*` / `retry.scheduled` and Reader `read.attempt.*` / `read.retry.scheduled` are the only sources for execution retry telemetry;
 - UseCaseExecutor MUST NOT gain synthetic retry events or metrics;
 - Intent IDs, correlation IDs, attempt IDs/numbers, actor/entity/cache identities, messages, and stacks MUST NOT become metric labels;
-- operation/read names, lifecycle event names, bounded outcomes/scopes/reasons, and retryable booleans are acceptable bounded metric dimensions;
+- stable UseCase/operation/read names, lifecycle event names, bounded outcomes/scopes/reasons, and retryable booleans are acceptable bounded metric dimensions;
 - tenant is not a metric dimension by default;
 - high-cardinality correlation values may be trace attributes where useful;
 - OpenTelemetry `traceId` and EDP `correlationId` are separate identities and MUST NOT be collapsed;
 - observer/exporter failure MUST NOT change Runner/Reader/UseCaseExecutor semantics. EDP `SafeObserver` remains the execution-side failure-isolation owner;
 - EDP metric instruments MUST bind to the current global `MeterProvider` when observations are recorded and rebind if that provider changes, because runtime observer bundles may be constructed before the hosting Nest lifecycle starts the OpenTelemetry SDK.
 
-`createEdpOpenTelemetryObservers()` is the canonical adapter bundle. `@accounterbro/runtime-executions/nest` creates this bundle once for its Runner/Reader/UseCaseExecutor composition; hosting services MUST NOT create service-local EDP observer providers.
+`createEdpOpenTelemetryObservers()` is the canonical adapter bundle. Stable EDP UseCase, Operation, and Read identities map to the shared `edp.name` metric dimension; their boundary-specific identity may also be retained as trace attributes. `@accounterbro/runtime-executions/nest` creates this bundle once for its Runner/Reader/UseCaseExecutor composition; hosting services MUST NOT create service-local EDP observer providers.
 
 ## Nest adapter
 
