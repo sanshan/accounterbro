@@ -4,7 +4,7 @@ This document records provider-specific setup and observed GitHub behavior for T
 
 ## Status
 
-Subscription-backed Codex pull-request review is **blocked as of 2026-09-03 UTC**. The configured GitHub App, Codex Cloud environment, and Code Review preferences did not produce a review. Manual requests were accepted as GitHub comments but the Codex connector answered that the account must be created and connected to GitHub.
+Subscription-backed Codex pull-request review is **blocked as of 2026-09-03 UTC**. The configured GitHub App, Codex Cloud environment, and final Code Review preferences did not produce a review. Manual requests were accepted as GitHub comments but the Codex connector answered that the account must be created and connected to GitHub.
 
 No repository LLM API secret, paid GitHub Action, credits fallback, provider-output parser, or review-state gate was introduced.
 
@@ -14,26 +14,34 @@ The root `AGENTS.md` contains only a routing instruction: for a code-changing pu
 
 ## Setup exercised
 
-The following subscription-backed setup was completed before the authoritative PR-open experiment:
+The following subscription-backed setup was complete before the final PR-open probe:
 
-- the ChatGPT Codex Connector GitHub App was installed for `sanshan/accounterbro`;
+- the ChatGPT Codex Connector GitHub App was installed for `sanshan/accounterbro` only;
+- the app had read access to checks, commit statuses and metadata, and read/write access to actions, code, issues, pull requests and workflows;
 - a Codex Cloud environment named `sanshan/accounterbro` was created for that repository;
 - the environment used the `universal` image, automatic setup, enabled setup caching, no environment variables, no secrets, and no agent internet access;
 - personal Code Review had automatic review enabled with the `on pull-request open` trigger;
-- full code review and credits usage remained disabled;
-- the repository inherited those personal Code Review settings.
+- repository Code Review was set to review the owner's pull requests and to trigger on pull-request open;
+- full code review and credits usage remained disabled.
 
-The intended interaction follows the official Codex GitHub integration rather than the API-key-based Codex GitHub Action: https://developers.openai.com/codex/third-party/github.
+The intended interaction follows the official Codex GitHub integration rather than the API-key-based Codex GitHub Action: https://learn.chatgpt.com/docs/third-party/github.
 
 ## Observed lifecycle
 
 | Probe | Trigger and timing | Pull-request head | Observed GitHub result |
 | --- | --- | --- | --- |
 | Pre-setup control | PR #241 opened at `2026-09-02T19:44:32Z`, before the connector/environment setup was complete. | `8e3484d9a66b0dc998c403d9c72544abffc21364` | No automatic review. Manual requests received the connector setup-error comment. This probe is not evidence about the final automatic setting because setup was incomplete. |
-| Configured automatic review | PR #242 opened at `2026-09-03T06:49:02Z`, after the GitHub App and Codex Cloud environment were configured. | `8e3484d9a66b0dc998c403d9c72544abffc21364` | Through `2026-09-03T06:52:10Z`, GitHub exposed no top-level Codex comment, submitted review, or inline review comment. |
-| Configured manual review | Comment `5521772030` posted `@codex review` on PR #242 at `2026-09-03T06:52:13Z`. | `8e3484d9a66b0dc998c403d9c72544abffc21364` | At `2026-09-03T06:52:22Z`, `chatgpt-codex-connector[bot]` posted top-level issue comment `5521773622`: “To use Codex here, create a Codex account and connect to github.” No review was submitted. |
+| Intermediate setup | PR #242 opened at `2026-09-03T06:49:02Z`, after the GitHub App and Codex Cloud environment existed but before the repository-specific Code Review settings were finalized. | `8e3484d9a66b0dc998c403d9c72544abffc21364`, later `a454e42f6b2aa8657334a4461e3b2503b3eb4f58` | No automatic review was observed. Manual `@codex review` requests received the connector account-association error. This PR is not the authoritative automatic-review probe because its open event preceded the final settings. |
+| Manual review after final settings | Comment `5521997968` posted `@codex review` on PR #242 at `2026-09-03T07:12:24Z`, after the final Code Review settings were in place. | `a454e42f6b2aa8657334a4461e3b2503b3eb4f58` | At `2026-09-03T07:12:31Z`, `chatgpt-codex-connector[bot]` posted top-level issue comment `5521999536`: “To use Codex here, create a Codex account and connect to github.” No review was submitted. |
+| Final configured automatic-review probe | PR #243 opened at `2026-09-03T07:14:17Z`, after the final repository-specific settings were in place. | `a454e42f6b2aa8657334a4461e3b2503b3eb4f58` | Through `2026-09-03T07:19:22Z`, GitHub exposed no top-level Codex comment, submitted review, or inline review comment. This approximately five-minute absence window is evidence for this probe only, not a general provider-latency guarantee. |
 
-PR #242's deterministic CI run `33725009314` completed successfully. CI success did not create or imply an independent-review result.
+PR #243's exact-head deterministic CI run `33727078721` completed successfully at `2026-09-03T07:17:01Z`; its only required job, `Test and build`, and every step in that job succeeded. CI success did not create or imply an independent-review result.
+
+## Provider troubleshooting evidence
+
+The manual error matches open public `openai/codex` bug reports #11881 and #30168. Those reports contain mixed community workarounds, including reconnecting the GitHub connector from ChatGPT rather than only reinstalling the GitHub App. Other reporters still reproduce the error after reconnecting, so no community workaround is treated as a proven repository requirement.
+
+The next account-side diagnostic is therefore to reconnect the GitHub connector from the active ChatGPT/Codex account and retry the existing PR manually. This is an account action, not a repository change. If manual review starts after that action, a fresh PR-open event is still required to re-test the configured automatic-open trigger independently.
 
 ## Stable provider-observable facts
 
@@ -46,8 +54,6 @@ Only these facts were established:
 - it is not an inline review comment;
 - the response body does not expose the reviewed head SHA or another commit association;
 - no clean/finding review artifact was observed, so no reliable current-head, stale-review, or clean-review signal can be inferred.
-
-The absence window for the automatic probe is evidence of this experiment only. It is not a general promise about provider latency.
 
 ## Calibration outcome
 
