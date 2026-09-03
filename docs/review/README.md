@@ -195,6 +195,10 @@ The initial catalog deliberately contains only these high-signal decisions:
 
 The catalog does not reproduce Nx project boundaries, service-layer import restrictions, type checking, build behavior, test execution, E2E behavior, or `nx sync:check`; normal deterministic CI already owns those checks.
 
+## Provider integration evidence
+
+Provider-specific setup and empirically observed GitHub behavior are recorded in [`docs/review/codex-integration.md`](codex-integration.md). That evidence record does not redefine this contract or the provider-neutral rule semantics.
+
 ## Reviewer procedure
 
 For the exact pull-request head under review, an independent reviewer MUST:
