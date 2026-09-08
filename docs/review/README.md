@@ -126,7 +126,7 @@ A rule may use `blocking` only for a concrete repository requirement with an exp
 
 A blocking policy finding MUST reference a `blocking` rule and satisfy that rule's evidence contract. An advisory rule MUST NOT produce a blocking finding. A `CORRECTNESS` finding may block only under the stricter causal-evidence requirements defined above. `OPINION` never blocks.
 
-A pull request has a clean independent-review result when the reviewed head has no valid blocking `POLICY` or `CORRECTNESS` findings. The provider-specific representation of that state is intentionally outside this contract.
+A pull request has a clean independent-review result when the reviewed head has no valid blocking `POLICY` or `CORRECTNESS` findings and no unresolved review-policy integrity error. The provider-specific representation of that state is intentionally outside this contract.
 
 ## Deterministic-check ownership
 
