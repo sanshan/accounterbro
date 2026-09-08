@@ -144,6 +144,24 @@ test('preserves inline-code text when generating heading fragments', async () =>
     await assert.doesNotReject(validateReviewCatalog(root));
 });
 
+test('uses displayed inline-link text when generating heading fragments', async () => {
+    const root = await createFixture({
+        rule: { ...validRule, canonical_source: 'AGENTS.md#change-discipline' },
+        canonicalSourceContent: '# Rules\n\n## [Change discipline](details.md)\n',
+    });
+
+    await assert.doesNotReject(validateReviewCatalog(root));
+});
+
+test('recognizes Setext heading fragments', async () => {
+    const root = await createFixture({
+        rule: { ...validRule, canonical_source: 'AGENTS.md#change-discipline' },
+        canonicalSourceContent: '# Rules\n\nChange Discipline\n-----------------\n',
+    });
+
+    await assert.doesNotReject(validateReviewCatalog(root));
+});
+
 test('ignores heading-like lines inside HTML comments', async () => {
     const root = await createFixture({
         rule: { ...validRule, canonical_source: 'AGENTS.md#phantom' },
