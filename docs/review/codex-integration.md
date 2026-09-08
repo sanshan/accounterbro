@@ -19,7 +19,9 @@ Codex does not expose whether a clean boundary was internally classified as `no-
 
 ## Repository bootstrap
 
-The root `AGENTS.md` contains repository workflow/routing guidance: code-changing pull requests and pull requests that change repository review policy or routing must read the canonical review contract and apply the active repository-owned rules. It does not duplicate the rule catalog or finding contract in provider-local wording.
+The root `AGENTS.md` contains concise routing guidance: code-changing pull requests and pull requests that change repository review policy or routing must read the canonical review contract and apply the active repository-owned rules. It does not duplicate the merge lifecycle, rule catalog, or finding contract.
+
+The normative independent-review merge lifecycle is owned only by [`docs/review/README.md`](README.md#merge-workflow). This provider evidence records how the configured Codex integration behaves; it does not redefine that lifecycle.
 
 ## Setup exercised
 
@@ -113,18 +115,15 @@ As required by the provider-neutral calibration contract, accepted calibration e
 
 All disposable calibration PRs were closed without merge. No intentional calibration violation exists in the Task #237 production branch.
 
-## Workflow conclusion and CI-gate limitation
+## Workflow enforcement consequence
 
-Tasks #237 and #238 establish the following repository process:
+The normative merge lifecycle is defined only by [`docs/review/README.md`](README.md#merge-workflow). The provider evidence above establishes the implementation constraints that affect enforcement:
 
-1. Finding reviews have a strong structured current-head association through review `commit_id` and inline thread state.
-2. The strongest observed clean-head association is a reviewed short SHA in connector-authored natural-language output together with the provider's clean reaction; there is no Codex-owned clean review object, check run, or commit status.
-3. Connector prose cannot be treated as authoritative machine state: PR #272 demonstrated task-style connector output can contain an execution claim not reflected by the actual GitHub head. Parsing clean-looking text, or inferring clean state from reaction/timestamp ordering, would therefore bind repository automation to undocumented presentation rather than a stable machine contract.
-4. Therefore no independent-review CI gate/parser is introduced with the current integration. This is an intentional safety decision, not an omitted implementation step.
-5. Repository workflow still requires implementer self-review, green deterministic CI, and a clean independent review of the exact current PR head before task/Epic merge.
-6. Any relevant new commit invalidates the prior independent-review conclusion. Because automatic review-on-push is not proven, the current workflow explicitly re-triggers with `@codex review` and waits for the completed result for the new head.
-7. Unresolved, non-outdated blocking `POLICY` or `CORRECTNESS` findings prevent a clean conclusion; historical/stale findings do not become current merely because they remain visible in review history.
-8. A machine review-state gate may be added only after the provider exposes a documented or empirically proven structured clean artifact that can be tied to the exact head without parsing arbitrary prose. Until then, no manual attestation may be presented as independently derived reviewer state.
-9. Credits, API-key review calls, and permanent LLM-in-CI fallback remain out of scope.
+- finding state has structured exact-head and thread-state metadata;
+- clean state lacks a Codex-owned structured exact-head review/check/status artifact;
+- automatic review on push has not been demonstrated;
+- connector-authored prose and reaction/timestamp ordering are not stable enough to serve as machine state.
 
-The repository's inability to hard-block merge with a trustworthy review-state CI check under the current Codex surface does not weaken the repository process requirement; it only limits machine enforcement of that requirement.
+Because of those observed constraints, Task #238 does not add an independent-review CI parser/gate. Doing so with the current surface would require unsupported parsing or inference rather than a proven machine contract. The repository process remains governed by the canonical merge workflow even though this part of it cannot yet be safely hard-enforced by CI.
+
+A future machine gate is appropriate only after the provider exposes a documented or empirically proven structured clean artifact tied to the exact head. Credits, API-key review calls, permanent LLM-in-CI fallback, and manual attestation presented as independently derived reviewer state remain outside the observed integration design.
