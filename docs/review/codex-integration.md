@@ -4,13 +4,15 @@ This document records provider-specific setup and observed GitHub behavior for T
 
 ## Status
 
-Subscription-backed Codex pull-request review is **temporarily blocked by the account's Codex code-review usage limit as of 2026-09-03 UTC**. Reconnecting the GitHub connector from the active ChatGPT/Codex account repaired the previous account-association failure: a subsequent `@codex review` request was recognized by the connector and rejected specifically because the code-review usage limit had been reached.
+Subscription-backed Codex pull-request review is **operational again as of 2026-09-08 UTC** after the account's code-review usage capacity reset. A manual `@codex review` request on PR #243 completed successfully through the ChatGPT/Codex GitHub integration and produced a GitHub pull-request review plus an inline review comment.
 
-No actual review has yet been submitted, so calibration and review-state semantics remain unproven. No repository LLM API secret, paid GitHub Action, credits fallback, provider-output parser, or review-state gate was introduced.
+Credits usage remains disabled. No repository LLM API secret, paid GitHub Action, credits fallback, provider-output parser, or review-state gate has been introduced.
+
+A clean review result has not yet been observed. The committed `PRR-001` through `PRR-006` calibration cases also remain pending; real policy findings observed on intermediate PR heads are recorded below but are not substituted for the committed calibration cases.
 
 ## Repository bootstrap
 
-The root `AGENTS.md` contains only a routing instruction: for a code-changing pull request, read the canonical review contract and apply the active repository-owned rules. It does not duplicate the rule catalog or the finding contract in provider-local wording.
+The root `AGENTS.md` contains only routing guidance: code-changing pull requests and changes to repository review policy or its routing must read the canonical review contract and apply the active repository-owned rules. It does not duplicate the rule catalog or finding contract in provider-local wording.
 
 ## Setup exercised
 
@@ -36,48 +38,56 @@ The intended interaction follows the official Codex GitHub integration rather th
 | Final configured automatic-review probe | PR #243 opened at `2026-09-03T07:14:17Z`, after the final repository-specific settings were in place. | `a454e42f6b2aa8657334a4461e3b2503b3eb4f58` | Through `2026-09-03T07:19:22Z`, GitHub exposed no top-level Codex comment, submitted review, or inline review comment. This approximately five-minute absence window is evidence for this probe only, not a general provider-latency guarantee. |
 | Connector re-authentication | The GitHub connector was disconnected and re-authorized from the active ChatGPT/Codex account on `2026-09-03`, while retaining the existing GitHub App installation and repository environment. | n/a | ChatGPT showed GitHub connected to `sanshan` after authorization. This repaired the prior account-association error path. |
 | Manual review after connector re-authentication | Comment `5523535547` posted `@codex review` on PR #243 at `2026-09-03T09:22:49Z`. | `62d9b887997de487d56de3448121d9282d66ea88` | At `2026-09-03T09:22:57Z`, `chatgpt-codex-connector[bot]` posted top-level issue comment `5523537347` stating that the Codex usage limit for code reviews had been reached. The earlier account-connection error did not recur. No review was submitted. |
+| First completed review after quota reset | Comment `5582837758` posted `@codex review` on PR #243 at `2026-09-08T09:37:48Z`. | `c51d8877dabef5bf4abfacdfc943818e06495990` | Review `5140049712` was submitted by `chatgpt-codex-connector[bot]` at `2026-09-08T09:42:17Z` with state `COMMENTED` and REST `commit_id` equal to the exact head. Inline comment `3956514295` found that review-policy-only PRs were not routed to the contract. |
+| Finding fix and re-review | The routing finding was fixed in a new head and comment `5583571583` requested another review at `2026-09-08T10:17:15Z`. | `0e65209db63c4fe4cb61ad55ba135eb2d3cc0fb9` | Review `5140467809` was submitted at `2026-09-08T10:21:53Z`, state `COMMENTED`, with exact matching `commit_id`. The prior inline thread became `is_outdated=true`. This intermediate head accidentally replaced unrelated root `AGENTS.md` content and Codex reported inline comment `3956843100` as a blocking `PRR-002` duplicate-guidance violation. That change was not a committed calibration case and was removed immediately. |
+| Minimal-diff restoration and re-review | The branch restored the exact prior `AGENTS.md` and retained only the routing fix; comment `5583652281` requested review at `2026-09-08T10:23:18Z`. | `d42f04d4ca1e8252c7861716cd342f3bf7b2bc0b` | Review `5140512718` was submitted at `2026-09-08T10:26:23Z`, state `COMMENTED`, with exact matching `commit_id`. Both earlier finding threads were now outdated. Inline comment `3956884172` correctly identified that this evidence document still claimed no successful review had occurred; this document update addresses that finding. |
 
-PR #243's deterministic CI run `33727547470` completed successfully for head `62d9b887997de487d56de3448121d9282d66ea88`; its only required job, `Test and build`, and every step in that job succeeded. CI success did not create or imply an independent-review result.
+PR #243 deterministic CI run `34215167102` completed successfully for head `d42f04d4ca1e8252c7861716cd342f3bf7b2bc0b`. Its single required `Test and build` job completed all steps successfully, including review-catalog validation, lint, typecheck, tests, builds, E2E, and artifact startup checks. CI success is independent of Codex review state.
 
 ## Provider troubleshooting evidence
 
 The earlier manual error matched open public `openai/codex` bug reports #11881 and #30168. Those reports contained mixed community workarounds, including reconnecting the GitHub connector from ChatGPT rather than only reinstalling the GitHub App.
 
-For this repository/account, reconnecting the connector changed the observed failure mode from “create a Codex account and connect to github” to an explicit code-review usage-limit response. That is concrete evidence that the account association is now recognized by the review trigger. It is not evidence that a review can complete successfully until quota is available and an actual review artifact is observed.
+For this repository/account, reconnecting the connector changed the observed failure mode from “create a Codex account and connect to github” to an explicit code-review usage-limit response. After subscription-backed capacity reset, the same manual trigger completed reviews without enabling credits, confirming that the repaired account association can execute code review.
 
-Because Task #237 explicitly excludes credits fallback, the repository does not enable credits to bypass the temporary quota. The next review experiment must wait until subscription-backed code-review capacity is available.
+Because Task #237 explicitly excludes credits fallback, credits remain disabled throughout these probes.
 
 ## Stable provider-observable facts
 
-The following facts are now established:
+The following facts are now established from PR #243:
 
-- failed manual triggers are represented as top-level pull-request issue comments from `chatgpt-codex-connector[bot]`;
-- after connector re-authentication, the manual trigger recognizes the connected account and reports a code-review usage-limit failure rather than an account-association failure;
-- the failure response exposes a comment ID and timestamps;
-- it is not a pull-request review and has no review state;
-- it is not an inline review comment;
-- the response body does not expose the reviewed head SHA or another commit association;
-- no clean/finding review artifact has been observed, so no reliable current-head, stale-review, or clean-review signal can yet be inferred.
+- failed manual triggers are top-level pull-request issue comments from `chatgpt-codex-connector[bot]`; they are not pull-request reviews and expose no reviewed commit association;
+- a successful finding run creates a pull-request review from `chatgpt-codex-connector[bot]` with state `COMMENTED`;
+- the GitHub REST review object exposes an exact `commit_id`, and the standard review body also includes the reviewed commit as a short SHA;
+- findings are emitted as inline pull-request review comments inside review threads, with path/line evidence available through GitHub;
+- while a manual review is processing, the connector has twice exposed a transient `eyes` reaction on the pull request; that reaction disappeared when the review completed, so it is not a completion signal;
+- after a new head is pushed, prior Codex review submissions remain in history with their original `commit_id`, while their inline finding threads become `is_outdated=true` when the referenced diff is no longer current;
+- therefore a historical Codex review cannot be treated as review of the current head merely because it exists on the pull request; exact head association must be checked;
+- no automatic review-on-push behavior has been established because the observed new-head reviews were manually requested;
+- no clean-result artifact has yet been observed, so the exact GitHub representation and current-head association of a clean result remain unproven.
 
 ## Calibration outcome
 
-No `PRR-001` through `PRR-006` case has received a reviewer classification because the review mechanism has not yet completed a review. Therefore:
+No committed `docs/review/calibration/PRR-001.json` through `PRR-006.json` case has yet received an explicit reviewer classification. The completed reviews above prove that the subscription-backed reviewer can consume repository guidance and emit evidence-based policy findings, but they do not replace controlled-case calibration.
 
-- there is no observed `violation`, `no-violation`, or `not-applicable` result to record for any initial rule;
-- repeated known-violation evaluation is still pending;
-- the temporary duplicated guidance used to expose an initial finding was removed from the final diff;
-- the blocking rules remain mechanically valid but are not eligible for a CI review-state signal until real-provider calibration succeeds.
+One real blocking `PRR-002` finding was observed on the accidental intermediate head `0e65209db63c4fe4cb61ad55ba135eb2d3cc0fb9`. It is intentionally **not** counted as the committed `copied-service-configuration-rules` known-violation case because the reviewed diff and context were different from that committed calibration input.
+
+Therefore:
+
+- every committed boundary case still requires one matching `no-violation` or `not-applicable` classification;
+- every committed known-violation case still requires two `violation` classifications with unchanged rule semantics and case context;
+- no deliberate calibration violation exists in the current production diff;
+- the blocking rules remain mechanically valid but are not eligible for Task #238 review-state enforcement until controlled calibration succeeds.
 
 ## Required continuation before Task #238
 
 Before any review-state automation is added:
 
-1. wait for subscription-backed Codex code-review capacity to become available; do not enable credits as a fallback for this baseline task;
-2. confirm a manual review can actually complete after capacity is restored;
-3. create a fresh PR-open event to re-test the automatic-open trigger after the repaired account association;
-4. repeat every boundary calibration once and every known-violation calibration twice with unchanged semantics/context;
-5. observe a policy finding on a real pull-request head;
-6. fix that violation, create a new head, and obtain a clean re-review;
-7. record the actual review/comment fields and current-head behavior, replacing blocker-only evidence where new facts are proven.
+1. obtain a review of the current head after this evidence correction and observe the first clean-result representation if no blocking finding remains;
+2. use the subscription-backed `@codex review` mechanism with explicit calibration guidance to classify the committed `PRR-001` through `PRR-006` case files against their matching active rules, without copying policy into provider settings;
+3. run every committed boundary case at least once and every known-violation case at least twice with unchanged rule semantics and case context; clarify or downgrade any rule whose repeated classification contradicts its declared boundary;
+4. create a fresh pull-request-open event after the repaired account association and restored subscription capacity to test the configured automatic `on pull-request open` trigger;
+5. record the calibration outcomes, clean-result artifact, automatic-open result, and any additional current-head semantics that are actually observed;
+6. after the final evidence update, obtain a clean independent review of that final task head before merge.
 
-Task #238 must not infer a gate from setup-error comments, quota-error comments, or the absence of a review.
+Task #238 must not infer a gate from setup-error comments, quota-error comments, transient `eyes` reactions, stale review submissions, or the absence of a review.
