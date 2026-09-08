@@ -144,6 +144,18 @@ test('preserves inline-code text when generating heading fragments', async () =>
     await assert.doesNotReject(validateReviewCatalog(root));
 });
 
+test('ignores heading-like lines inside HTML comments', async () => {
+    const root = await createFixture({
+        rule: { ...validRule, canonical_source: 'AGENTS.md#phantom' },
+        canonicalSourceContent: '# Rules\n\n<!--\n# Phantom\n-->\n\n## Change Discipline\n',
+    });
+
+    await assert.rejects(
+        validateReviewCatalog(root),
+        /missing Markdown heading fragment: phantom/,
+    );
+});
+
 test('rejects malformed JSON', async () => {
     const root = await createFixture();
     await writeFile(resolve(root, 'docs/review/rules/PRR-001.json'), '{', 'utf8');
