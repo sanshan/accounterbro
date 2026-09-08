@@ -1,3 +1,3 @@
-export interface ServiceGeneratorSchema {
+export interface Schema {
     name: string;
 }
