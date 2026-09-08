@@ -18,7 +18,9 @@ const caseFields = ['id', 'expected', 'context', 'diff'];
 const severities = new Set(['blocking', 'advisory']);
 const decisions = new Set(['not-applicable', 'violation', 'no-violation']);
 const ruleIdPattern = /^PRR-\d{3}$/;
-const unsupportedCanonicalHeadingMarkupPattern = /(?:`|\[|\]|<|>|\*|_|~|\\)/u;
+const unsupportedCanonicalHeadingMarkupPattern = /(?:`|\[|\]|<|>|\*|~|\\)/u;
+const unsupportedCanonicalHeadingUnderscorePattern =
+    /(?:^|[^\p{L}\p{N}])_|_(?:$|[^\p{L}\p{N}])/u;
 const modulePath = fileURLToPath(import.meta.url);
 const defaultRepositoryRoot = resolve(dirname(modulePath), '../..');
 
@@ -182,7 +184,10 @@ function collectCanonicalHeadingFragments(source, label) {
 
         const headingText = heading[2].replace(/[ \t]+#+[ \t]*$/, '').trim();
 
-        if (unsupportedCanonicalHeadingMarkupPattern.test(headingText)) {
+        if (
+            unsupportedCanonicalHeadingMarkupPattern.test(headingText) ||
+            unsupportedCanonicalHeadingUnderscorePattern.test(headingText)
+        ) {
             fail(`${label} contains unsupported inline Markdown in canonical heading: ${headingText}`);
         }
 
