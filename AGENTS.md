@@ -299,3 +299,6 @@ MUST NOT declare work complete with known failing relevant tests, type/build err
 
 If a required check cannot be run, state exactly which check was not run and why.
 
+## Code Review Rules
+
+For code-changing pull requests and pull requests that change repository review policy or review routing anywhere in the repository, read `docs/review/README.md` and follow its reviewer procedure using the applicable active rules under `docs/review/rules/`.

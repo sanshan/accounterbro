@@ -1,0 +1,11 @@
+{
+    "id": "PRR-006",
+    "title": "Do not invent Documents file type or size restrictions",
+    "scope": "Changes to the Documents registration HTTP presenter or RegisterDocumentUseCase input path that validate or reject an uploaded file by metadata, content, type, or size.",
+    "applies_when": "The reviewed change adds or changes a condition that can reject a supplied Documents registration file before the current registration behavior executes.",
+    "violation": "The change rejects a file because of its media type, extension, binary signature, or size while the canonical Register Document specification still defines no file type or size restriction.",
+    "non_violation": "Requiring the file field to exist and exposing its binary content to the UseCase are not type or size restrictions; a changed approved specification must update or retire this rule before such restrictions become active.",
+    "severity": "blocking",
+    "evidence": "Cite the rejecting validator or branch and the unchanged specification statement showing that the rejected type or size remains unrestricted.",
+    "canonical_source": "specs/documents/register-document.md#input"
+}

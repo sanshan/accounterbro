@@ -1,0 +1,17 @@
+{
+    "rule_id": "PRR-006",
+    "cases": [
+        {
+            "id": "invented-upload-size-limit",
+            "expected": "violation",
+            "context": "specs/documents/register-document.md remains unchanged and explicitly defines no file type or size restrictions.",
+            "diff": "diff --git a/apps/services/documents/src/app/presenters/http/documents/documents.controller.ts b/apps/services/documents/src/app/presenters/http/documents/documents.controller.ts\n-@UploadedFile(new ParseFilePipeBuilder().build({ fileIsRequired: true }))\n+@UploadedFile(new ParseFilePipeBuilder()\n+    .addMaxSizeValidator({ maxSize: 5_000_000 })\n+    .build({ fileIsRequired: true }))"
+        },
+        {
+            "id": "required-file-without-content-restriction",
+            "expected": "no-violation",
+            "context": "The registration input requires a file, while its type and size remain unrestricted exactly as the specification states.",
+            "diff": "diff --git a/apps/services/documents/src/app/presenters/http/documents/documents.controller.ts b/apps/services/documents/src/app/presenters/http/documents/documents.controller.ts\n+@UploadedFile(new ParseFilePipeBuilder().build({ fileIsRequired: true }))\n+file: UploadedDocumentFile"
+        }
+    ]
+}
