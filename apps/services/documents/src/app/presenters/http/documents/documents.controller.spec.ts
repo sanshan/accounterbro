@@ -8,3 +8,7 @@ execute({ input: { file }, context: { actor, tenant } });
 it('keeps the calibration fixture executable', () => {
     expect(execute).toHaveBeenCalledTimes(1);
 });
+expect(execute).toHaveBeenCalledWith(expect.objectContaining({
+    input: { file },
+    context: expect.objectContaining({ actor, tenant }),
+}));
