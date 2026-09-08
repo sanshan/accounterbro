@@ -8,5 +8,6 @@ export const DocumentsEnvSchema = z.object({
     DOCUMENTS_DB_PASSWORD: z.string(),
     DOCUMENTS_DB_NAME: z.string(),
     DOCUMENTS_STORAGE_DRIVER: z.literal('local-folder'),
+    DOCUMENTS_STORAGE_BUCKET: z.string().min(1),
     DOCUMENTS_STORAGE_LOCAL_FOLDER_ROOT: z.string().min(1),
 });
