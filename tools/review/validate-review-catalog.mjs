@@ -96,17 +96,34 @@ async function listJsonFiles(directory, label) {
 
 function collectMarkdownHeadingFragments(source) {
     const fragments = new Set();
-    const occurrences = new Map();
+    let fence = null;
 
     for (const line of source.split(/\r?\n/)) {
-        const heading = /^(#{1,6})[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*$/.exec(line);
+        if (fence) {
+            const closingFence = new RegExp(`^ {0,3}${fence.marker}{${fence.length},}[ \t]*$`);
+
+            if (closingFence.test(line)) {
+                fence = null;
+            }
+
+            continue;
+        }
+
+        const openingFence = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
+
+        if (openingFence) {
+            fence = { marker: openingFence[1][0], length: openingFence[1].length };
+            continue;
+        }
+
+        const heading = /^ {0,3}(#{1,6})(?:[ \t]+|$)(.*)$/.exec(line);
 
         if (!heading) {
             continue;
         }
 
-        const baseFragment = heading[2]
-            .trim()
+        const headingText = heading[2].replace(/[ \t]+#+[ \t]*$/, '').trim();
+        const baseFragment = headingText
             .toLowerCase()
             .replace(/<[^>]*>/g, '')
             .replace(/[^\p{L}\p{N}\p{M}\s_-]/gu, '')
@@ -116,9 +133,15 @@ function collectMarkdownHeadingFragments(source) {
             continue;
         }
 
-        const occurrence = occurrences.get(baseFragment) ?? 0;
-        fragments.add(occurrence === 0 ? baseFragment : `${baseFragment}-${occurrence}`);
-        occurrences.set(baseFragment, occurrence + 1);
+        let fragment = baseFragment;
+        let suffix = 0;
+
+        while (fragments.has(fragment)) {
+            suffix += 1;
+            fragment = `${baseFragment}-${suffix}`;
+        }
+
+        fragments.add(fragment);
     }
 
     return fragments;
