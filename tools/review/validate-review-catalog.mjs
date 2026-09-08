@@ -18,6 +18,7 @@ const caseFields = ['id', 'expected', 'context', 'diff'];
 const severities = new Set(['blocking', 'advisory']);
 const decisions = new Set(['not-applicable', 'violation', 'no-violation']);
 const ruleIdPattern = /^PRR-\d{3}$/;
+const canonicalHeadingTextPattern = /^[\p{L}\p{N}\p{M} ._-]+$/u;
 const modulePath = fileURLToPath(import.meta.url);
 const defaultRepositoryRoot = resolve(dirname(modulePath), '../..');
 
@@ -94,31 +95,12 @@ async function listJsonFiles(directory, label) {
     return entries.map((entry) => resolve(directory, entry.name)).sort();
 }
 
-function renderMarkdownHeadingText(markdown) {
-    const codeSpans = [];
-    const protectedMarkdown = markdown.replace(/(`+)(.*?)\1/g, (_, __, content) => {
-        const normalizedContent = content.replace(/\s+/g, ' ');
-        const code =
-            normalizedContent.startsWith(' ') &&
-            normalizedContent.endsWith(' ') &&
-            normalizedContent.trim().length > 0
-                ? normalizedContent.slice(1, -1)
-                : normalizedContent;
-        const token = `\u0000${codeSpans.length}\u0000`;
-        codeSpans.push(code);
-        return token;
-    });
+function addCanonicalHeadingFragment(headingText, fragments) {
+    if (!canonicalHeadingTextPattern.test(headingText)) {
+        return;
+    }
 
-    const withoutLinks = protectedMarkdown
-        .replace(/!?\[([^\]]+)\]\((?:\\.|[^)])*\)/g, '$1')
-        .replace(/!?\[([^\]]+)\]\[[^\]]*\]/g, '$1');
-    const withoutHtml = withoutLinks.replace(/<[^>]*>/g, '');
-
-    return withoutHtml.replace(/\u0000(\d+)\u0000/g, (_, index) => codeSpans[Number(index)]);
-}
-
-function addMarkdownHeadingFragment(headingText, fragments) {
-    const baseFragment = renderMarkdownHeadingText(headingText)
+    const baseFragment = headingText
         .toLowerCase()
         .replace(/[^\p{L}\p{N}\p{M}\s_-]/gu, '')
         .replace(/\s+/g, '-');
@@ -142,7 +124,6 @@ function collectMarkdownHeadingFragments(source) {
     const fragments = new Set();
     let fence = null;
     let htmlComment = false;
-    let setextCandidate = null;
 
     for (const line of source.split(/\r?\n/)) {
         if (fence) {
@@ -152,7 +133,6 @@ function collectMarkdownHeadingFragments(source) {
                 fence = null;
             }
 
-            setextCandidate = null;
             continue;
         }
 
@@ -161,7 +141,6 @@ function collectMarkdownHeadingFragments(source) {
                 htmlComment = false;
             }
 
-            setextCandidate = null;
             continue;
         }
 
@@ -169,34 +148,22 @@ function collectMarkdownHeadingFragments(source) {
 
         if (openingFence) {
             fence = { marker: openingFence[1][0], length: openingFence[1].length };
-            setextCandidate = null;
             continue;
         }
 
         if (/^ {0,3}<!--/.test(line)) {
             htmlComment = !line.includes('-->');
-            setextCandidate = null;
-            continue;
-        }
-
-        const setextUnderline = /^ {0,3}(?:=+|-+)[ \t]*$/.test(line);
-
-        if (setextUnderline && setextCandidate !== null) {
-            addMarkdownHeadingFragment(setextCandidate, fragments);
-            setextCandidate = null;
             continue;
         }
 
         const heading = /^ {0,3}(#{1,6})(?:[ \t]+|$)(.*)$/.exec(line);
 
-        if (heading) {
-            const headingText = heading[2].replace(/[ \t]+#+[ \t]*$/, '').trim();
-            addMarkdownHeadingFragment(headingText, fragments);
-            setextCandidate = null;
+        if (!heading) {
             continue;
         }
 
-        setextCandidate = line.trim().length > 0 ? line.trim() : null;
+        const headingText = heading[2].replace(/[ \t]+#+[ \t]*$/, '').trim();
+        addCanonicalHeadingFragment(headingText, fragments);
     }
 
     return fragments;
@@ -263,7 +230,7 @@ async function assertCanonicalSource(repositoryRoot, canonicalSource, label) {
     const fragments = collectMarkdownHeadingFragments(source);
 
     if (!fragments.has(fragment)) {
-        fail(`${label} points to a missing Markdown heading fragment: ${fragment}`);
+        fail(`${label} points to a missing supported Markdown heading fragment: ${fragment}`);
     }
 }
 
