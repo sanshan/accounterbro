@@ -112,6 +112,15 @@ test('accepts ordinary punctuation in plain-text ATX headings', async () => {
     await assert.doesNotReject(validateReviewCatalog(root));
 });
 
+test('accepts identifier-style underscores in plain-text ATX headings', async () => {
+    const root = await createFixture({
+        rule: { ...validRule, canonical_source: 'AGENTS.md#when-to-use-nx_docs' },
+        canonicalSourceContent: '# Rules\n\n### When to use nx_docs\n',
+    });
+
+    await assert.doesNotReject(validateReviewCatalog(root));
+});
+
 test('rejects missing supported Markdown heading fragments', async () => {
     const root = await createFixture({
         rule: { ...validRule, canonical_source: 'AGENTS.md#does-not-exist' },
@@ -172,6 +181,18 @@ test('rejects inline-code headings in fragment-owned canonical documents', async
     const root = await createFixture({
         rule: { ...validRule, canonical_source: 'AGENTS.md#service-envschemats' },
         canonicalSourceContent: '# Rules\n\n### `<service>-env.schema.ts`\n',
+    });
+
+    await assert.rejects(
+        validateReviewCatalog(root),
+        /unsupported inline Markdown in canonical heading/,
+    );
+});
+
+test('rejects emphasis-style underscores in fragment-owned canonical documents', async () => {
+    const root = await createFixture({
+        rule: { ...validRule, canonical_source: 'AGENTS.md#change-discipline' },
+        canonicalSourceContent: '# Rules\n\n## _Change Discipline_\n',
     });
 
     await assert.rejects(
