@@ -123,13 +123,15 @@ Every proposed blocking rule MUST have controlled, repository-versioned calibrat
 
 Each case MUST include the smallest diff and repository context needed to decide the rule and MUST state its expected outcome. Calibration cases test the rule boundary; they are not production examples and MUST NOT require deliberate violations to remain in production code.
 
-Before a blocking rule is relied on by the merge workflow, the intended reviewer MUST classify the known-violation case as `violation` in at least two **independent evaluator trials** with unchanged rule semantics and case context, and MUST classify every boundary case with its declared expected outcome.
+Before a blocking rule is relied on by the merge workflow, the intended reviewer MUST classify the known-violation case as `violation` in at least two **independent evaluator trials** with unchanged rule semantics and case context. Every committed boundary case MUST also be reviewed as its exact controlled case and MUST produce a clean independent-review result with no valid blocking `POLICY` or `CORRECTNESS` finding for that reviewed head.
+
+The case's declared `expected` value remains part of the provider-neutral three-outcome decision model. When the provider exposes an explicit `not-applicable` or `no-violation` classification for a clean boundary trial, that classification MUST match the declared expected outcome. When the provider exposes only a clean result and does not publish the clean subtype, the clean result is sufficient evidence that the boundary does not produce a blocking finding, but it MUST NOT be recorded as proof of an unobserved internal `not-applicable` or `no-violation` decision. Provider-specific evidence MUST state this limitation explicitly.
 
 An independent evaluator trial MUST start from a review context that does not expose a prior classification or finding for that calibration case when those artifacts could influence, suppress, or deduplicate the next evaluation. When an integration retains prior review history inside the evaluator's context, repeated trials MUST use fresh isolated review contexts. Provider- or infrastructure-only identifiers such as pull-request number or commit SHA MAY differ between trials, but the rule version, base repository revision, declared task context, and calibration diff semantics MUST remain equivalent.
 
 Re-triggering a reviewer inside the same already-annotated context does not count as an independent calibration repeat unless the integration has demonstrated that prior findings and classifications cannot influence or suppress the new evaluation. Such re-reviews MAY still be used as provider-lifecycle evidence.
 
-Contradictory applicability or violation decisions across independent evaluator trials require the rule to be clarified and recalibrated or downgraded to `advisory`.
+Contradictory explicit applicability or violation decisions across independent evaluator trials require the rule to be clarified and recalibrated or downgraded to `advisory`. A blocking finding produced for a committed boundary case also contradicts that rule's declared boundary and requires clarification/recalibration or downgrade.
 
 A semantic change to `scope`, `applies_when`, `violation`, `non_violation`, `severity`, required `evidence`, or the meaning inherited from `canonical_source` invalidates prior calibration and requires the affected cases to be revalidated. Editorial changes that do not change the decision boundary do not require recalibration.
 
