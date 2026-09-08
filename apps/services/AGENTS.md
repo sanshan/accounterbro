@@ -33,6 +33,7 @@ apps/services/<name> -> @accounterbro/<name>-service
 The service generator MUST preserve the stable service shell above. MUST NOT create a new internal service by invoking `@nx/nest:application`, `@nx/node:application`, or another low-level application generator directly. The repository generator owns normalization to the proven non-bundled service shell.
 
 ## Configuration
+Configuration changes MUST follow docs/engineering/service-configuration-guidelines.md.
 
 Use `apps/api` as the proven configuration reference. Do not introduce a parallel configuration or env-loading mechanism.
 
