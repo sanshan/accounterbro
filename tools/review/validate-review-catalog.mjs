@@ -109,15 +109,40 @@ function renderMarkdownHeadingText(markdown) {
         return token;
     });
 
-    const withoutHtml = protectedMarkdown.replace(/<[^>]*>/g, '');
+    const withoutLinks = protectedMarkdown
+        .replace(/!?\[([^\]]+)\]\((?:\\.|[^)])*\)/g, '$1')
+        .replace(/!?\[([^\]]+)\]\[[^\]]*\]/g, '$1');
+    const withoutHtml = withoutLinks.replace(/<[^>]*>/g, '');
 
     return withoutHtml.replace(/\u0000(\d+)\u0000/g, (_, index) => codeSpans[Number(index)]);
+}
+
+function addMarkdownHeadingFragment(headingText, fragments) {
+    const baseFragment = renderMarkdownHeadingText(headingText)
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}\p{M}\s_-]/gu, '')
+        .replace(/\s+/g, '-');
+
+    if (!baseFragment) {
+        return;
+    }
+
+    let fragment = baseFragment;
+    let suffix = 0;
+
+    while (fragments.has(fragment)) {
+        suffix += 1;
+        fragment = `${baseFragment}-${suffix}`;
+    }
+
+    fragments.add(fragment);
 }
 
 function collectMarkdownHeadingFragments(source) {
     const fragments = new Set();
     let fence = null;
     let htmlComment = false;
+    let setextCandidate = null;
 
     for (const line of source.split(/\r?\n/)) {
         if (fence) {
@@ -127,6 +152,7 @@ function collectMarkdownHeadingFragments(source) {
                 fence = null;
             }
 
+            setextCandidate = null;
             continue;
         }
 
@@ -135,6 +161,7 @@ function collectMarkdownHeadingFragments(source) {
                 htmlComment = false;
             }
 
+            setextCandidate = null;
             continue;
         }
 
@@ -142,39 +169,34 @@ function collectMarkdownHeadingFragments(source) {
 
         if (openingFence) {
             fence = { marker: openingFence[1][0], length: openingFence[1].length };
+            setextCandidate = null;
             continue;
         }
 
         if (/^ {0,3}<!--/.test(line)) {
             htmlComment = !line.includes('-->');
+            setextCandidate = null;
+            continue;
+        }
+
+        const setextUnderline = /^ {0,3}(?:=+|-+)[ \t]*$/.test(line);
+
+        if (setextUnderline && setextCandidate !== null) {
+            addMarkdownHeadingFragment(setextCandidate, fragments);
+            setextCandidate = null;
             continue;
         }
 
         const heading = /^ {0,3}(#{1,6})(?:[ \t]+|$)(.*)$/.exec(line);
 
-        if (!heading) {
+        if (heading) {
+            const headingText = heading[2].replace(/[ \t]+#+[ \t]*$/, '').trim();
+            addMarkdownHeadingFragment(headingText, fragments);
+            setextCandidate = null;
             continue;
         }
 
-        const headingText = heading[2].replace(/[ \t]+#+[ \t]*$/, '').trim();
-        const baseFragment = renderMarkdownHeadingText(headingText)
-            .toLowerCase()
-            .replace(/[^\p{L}\p{N}\p{M}\s_-]/gu, '')
-            .replace(/\s+/g, '-');
-
-        if (!baseFragment) {
-            continue;
-        }
-
-        let fragment = baseFragment;
-        let suffix = 0;
-
-        while (fragments.has(fragment)) {
-            suffix += 1;
-            fragment = `${baseFragment}-${suffix}`;
-        }
-
-        fragments.add(fragment);
+        setextCandidate = line.trim().length > 0 ? line.trim() : null;
     }
 
     return fragments;
