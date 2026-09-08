@@ -52,6 +52,7 @@ async function createFixture({
     ruleFilename = 'PRR-001.json',
     calibrationFilename = 'PRR-001.json',
     extraRules = [],
+    canonicalSourceContent = '# Rules\n\n## Change Discipline\n',
 } = {}) {
     const root = await mkdtemp(resolve(tmpdir(), 'accounterbro-review-catalog-'));
     temporaryDirectories.push(root);
@@ -60,7 +61,7 @@ async function createFixture({
     const calibrationDirectory = resolve(root, 'docs/review/calibration');
     await mkdir(rulesDirectory, { recursive: true });
     await mkdir(calibrationDirectory, { recursive: true });
-    await writeFile(resolve(root, 'AGENTS.md'), '# Rules\n', 'utf8');
+    await writeFile(resolve(root, 'AGENTS.md'), canonicalSourceContent, 'utf8');
     await writeFile(resolve(rulesDirectory, ruleFilename), JSON.stringify(rule), 'utf8');
     await writeFile(
         resolve(calibrationDirectory, calibrationFilename),
@@ -83,6 +84,34 @@ test('accepts a valid blocking rule with violation and boundary calibration', as
     const root = await createFixture();
 
     await assert.doesNotReject(validateReviewCatalog(root));
+});
+
+test('accepts canonical source files without fragments', async () => {
+    const root = await createFixture({
+        rule: { ...validRule, canonical_source: 'AGENTS.md' },
+    });
+
+    await assert.doesNotReject(validateReviewCatalog(root));
+});
+
+test('accepts GitHub-style numbered Markdown heading fragments', async () => {
+    const root = await createFixture({
+        rule: { ...validRule, canonical_source: 'AGENTS.md#12-change-discipline' },
+        canonicalSourceContent: '# Rules\n\n## 12. Change Discipline\n',
+    });
+
+    await assert.doesNotReject(validateReviewCatalog(root));
+});
+
+test('rejects missing Markdown heading fragments', async () => {
+    const root = await createFixture({
+        rule: { ...validRule, canonical_source: 'AGENTS.md#does-not-exist' },
+    });
+
+    await assert.rejects(
+        validateReviewCatalog(root),
+        /missing Markdown heading fragment: does-not-exist/,
+    );
 });
 
 test('rejects malformed JSON', async () => {
