@@ -9,3 +9,7 @@ const runner = {
         operationHandler.execute();
     },
 };
+it('retries a failed Operation three times', async () => {
+    await runner.run(command);
+    expect(operationHandler.execute).toHaveBeenCalledTimes(3);
+});
