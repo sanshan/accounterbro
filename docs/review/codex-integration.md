@@ -1,6 +1,6 @@
 # Codex Pull-Request Review Integration Evidence
 
-This document records provider-specific setup and empirically observed GitHub behavior for Task #237. The provider-neutral contract and active policy rules remain owned by [`docs/review/README.md`](README.md) and [`docs/review/rules/`](rules/).
+This document records provider-specific setup and empirically observed GitHub behavior for Tasks #237 and #238. The provider-neutral contract and active policy rules remain owned by [`docs/review/README.md`](README.md) and [`docs/review/rules/`](rules/).
 
 ## Status
 
@@ -19,7 +19,7 @@ Codex does not expose whether a clean boundary was internally classified as `no-
 
 ## Repository bootstrap
 
-The root `AGENTS.md` contains only routing guidance: code-changing pull requests and pull requests that change repository review policy or routing must read the canonical review contract and apply the active repository-owned rules. It does not duplicate the rule catalog or finding contract in provider-local wording.
+The root `AGENTS.md` contains repository workflow/routing guidance: code-changing pull requests and pull requests that change repository review policy or routing must read the canonical review contract and apply the active repository-owned rules. It does not duplicate the rule catalog or finding contract in provider-local wording.
 
 ## Setup exercised
 
@@ -46,7 +46,10 @@ The repository uses the official Codex GitHub integration rather than an API-key
 | PR #244 fresh open | Automatic review `5140648979` produced blocking `PRR-001` finding `3957010219` without a manual trigger, proving automatic review on fresh PR open. |
 | Same-head re-trigger on PR #244 | A later clean-looking top-level result did not remove the original unresolved, non-outdated current-head blocking thread. “Latest Codex text wins” is therefore invalid. |
 | Prompt-only hypothetical calibration on PR #243 | Codex performed an ordinary review rather than returning requested hypothetical case classifications. Prompt-only classification is not calibration evidence. |
-| Final-head review of PR #243 at `d44ac621...` | Review `5142546697` correctly found two P1 evidence defects: clean boundaries had been described as explicit subtypes not exposed by the provider, and the rewritten committed PRR-004 boundary had not itself been rerun. Both findings were addressed: the calibration contract now distinguishes provider-neutral expected decisions from observable clean evidence, and current PRR-004 boundary probe #270 was executed successfully. |
+| Review of PR #243 at `d44ac621...` | Review `5142546697` correctly found two P1 evidence defects: clean boundaries had been described as explicit subtypes not exposed by the provider, and the rewritten committed PRR-004 boundary had not itself been rerun. Both were corrected. |
+| Current PRR-004 boundary probe #270 | Exact current boundary case at head `439dd229...` produced clean `+1` `494475119`; CI #362 / run `34236390003` was green; probe closed without merge. |
+| Later PR #243 reviews | Codex found and drove fixes for incomplete nested review-routing coverage and misplaced normative fixture guidance. Each new finding was fixed on a new head and re-reviewed. |
+| Final Task #237 head `97475aa07d...` | Connector clean comment `5586779348` reported no major issues for reviewed short SHA `97475aa07d`; deterministic CI #366 was green. PR #243 then merged into `epic-ai-pr-review` as `4b7d071f...`. |
 
 ## Stable provider-observable facts
 
@@ -104,21 +107,22 @@ Calibration evidence deliberately excludes runs that were not independent or who
 - probes #266-#267 are excluded because direct EDP type imports expanded the Documents service dependency surface and failed typecheck;
 - after the committed PRR-004 boundary case was rewritten to the production-shaped variable rename, the older boundary evidence was retired and the exact current case was rerun as PR #270.
 
-A controlled calibration fixture must be executable, respect normal repository dependency/convention boundaries except for the single deliberate semantic violation being tested, and remain orthogonal to deterministic checks. Legitimate lint/typecheck/test failures must be fixed in the fixture rather than disabled or weakened.
+As required by the provider-neutral calibration contract, accepted calibration evidence must isolate the semantic rule boundary; unrelated deterministic lint/typecheck/test/dependency failures invalidate that evidence until the fixture is corrected. Task #237 applied that rule rather than weakening deterministic checks.
 
 All disposable calibration PRs were closed without merge. No intentional calibration violation exists in the Task #237 production branch.
 
-## Constraints carried into Task #238
+## Workflow conclusion and CI-gate limitation
 
-Task #238 must use only provider behavior established above. In particular:
+Tasks #237 and #238 establish the following repository process:
 
 1. Finding reviews have a strong structured current-head association through review `commit_id` and inline thread state.
-2. The strongest observed clean-head association is a reviewed short SHA in a connector top-level clean comment together with the provider's PR-level clean reaction; there is no Codex-owned clean review object, check run, or commit status.
-3. Current review state is an aggregate over current-head findings and staleness/resolution, not the latest connector text.
-4. A new relevant head requires a new independent-review conclusion; historical reviews alone are insufficient.
-5. No automatic review-on-push behavior has been established, so Task #238 must not assume it.
-6. Clean provider output does not expose `no-violation` versus `not-applicable`; Task #238 only needs the proven blocking/clean state and must not infer hidden subtypes.
-7. A brittle natural-language parser must not be introduced merely to manufacture a machine-readable clean gate. If the observed provider surface is insufficient for reliable enforcement, the Epic/task design must be revised rather than guessed.
-8. Credits, API-key review calls, and permanent LLM-in-CI fallback remain out of scope.
+2. The strongest observed clean-head association is a reviewed short SHA in connector-authored natural-language output together with the provider's clean reaction; there is no Codex-owned clean review object, check run, or commit status.
+3. Parsing that comment text, or inferring clean state from reaction/timestamp ordering, would make repository automation depend on undocumented provider presentation rather than a stable machine contract.
+4. Therefore no independent-review CI gate/parser is introduced with the current integration. This is an intentional safety decision, not an omitted implementation step.
+5. Repository workflow still requires implementer self-review, green deterministic CI, and a clean independent review of the exact current PR head before task/Epic merge.
+6. Any relevant new commit invalidates the prior independent-review conclusion. Because automatic review-on-push is not proven, the current workflow explicitly re-triggers with `@codex review` and waits for the completed result for the new head.
+7. Unresolved, non-outdated blocking `POLICY` or `CORRECTNESS` findings prevent a clean conclusion; historical/stale findings do not become current merely because they remain visible in review history.
+8. A machine review-state gate may be added only after the provider exposes a documented or empirically proven structured clean artifact that can be tied to the exact head without parsing arbitrary prose. Until then, no manual attestation may be presented as independently derived reviewer state.
+9. Credits, API-key review calls, and permanent LLM-in-CI fallback remain out of scope.
 
-Before Task #237 merges, the final Task head requires green deterministic CI and a clean Codex review after this evidence correction.
+The repository's inability to hard-block merge with a trustworthy review-state CI check under the current Codex surface does not weaken the repository process requirement; it only limits machine enforcement of that requirement.
