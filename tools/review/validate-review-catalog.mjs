@@ -21,6 +21,7 @@ const ruleIdPattern = /^PRR-\d{3}$/;
 const unsupportedCanonicalHeadingMarkupPattern = /(?:`|\[|\]|<|>|\*|~|\\)/u;
 const unsupportedCanonicalHeadingUnderscorePattern =
     /(?:^|[^\p{L}\p{N}])_|_(?:$|[^\p{L}\p{N}])/u;
+const rawHtmlBlockStartPattern = /^ {0,3}<\/?[A-Za-z][A-Za-z0-9-]*(?:[ \t]|\/?>)/;
 const modulePath = fileURLToPath(import.meta.url);
 const defaultRepositoryRoot = resolve(dirname(modulePath), '../..');
 
@@ -157,6 +158,10 @@ function collectCanonicalHeadingFragments(source, label) {
             htmlComment = !line.includes('-->');
             setextCandidate = false;
             continue;
+        }
+
+        if (rawHtmlBlockStartPattern.test(line)) {
+            fail(`${label} contains unsupported raw HTML block syntax`);
         }
 
         if (line.trim().length === 0) {
