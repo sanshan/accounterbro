@@ -18,7 +18,7 @@ const caseFields = ['id', 'expected', 'context', 'diff'];
 const severities = new Set(['blocking', 'advisory']);
 const decisions = new Set(['not-applicable', 'violation', 'no-violation']);
 const ruleIdPattern = /^PRR-\d{3}$/;
-const canonicalHeadingTextPattern = /^[\p{L}\p{N}\p{M} ._-]+$/u;
+const unsupportedCanonicalHeadingMarkupPattern = /(?:`|\[|\]|<|>|\*|_|~|\\)/u;
 const modulePath = fileURLToPath(import.meta.url);
 const defaultRepositoryRoot = resolve(dirname(modulePath), '../..');
 
@@ -96,10 +96,6 @@ async function listJsonFiles(directory, label) {
 }
 
 function addCanonicalHeadingFragment(headingText, fragments) {
-    if (!canonicalHeadingTextPattern.test(headingText)) {
-        return;
-    }
-
     const baseFragment = headingText
         .toLowerCase()
         .replace(/[^\p{L}\p{N}\p{M}\s_-]/gu, '')
@@ -120,10 +116,11 @@ function addCanonicalHeadingFragment(headingText, fragments) {
     fragments.add(fragment);
 }
 
-function collectMarkdownHeadingFragments(source) {
+function collectCanonicalHeadingFragments(source, label) {
     const fragments = new Set();
     let fence = null;
     let htmlComment = false;
+    let setextCandidate = false;
 
     for (const line of source.split(/\r?\n/)) {
         if (fence) {
@@ -133,6 +130,7 @@ function collectMarkdownHeadingFragments(source) {
                 fence = null;
             }
 
+            setextCandidate = false;
             continue;
         }
 
@@ -141,6 +139,7 @@ function collectMarkdownHeadingFragments(source) {
                 htmlComment = false;
             }
 
+            setextCandidate = false;
             continue;
         }
 
@@ -148,22 +147,47 @@ function collectMarkdownHeadingFragments(source) {
 
         if (openingFence) {
             fence = { marker: openingFence[1][0], length: openingFence[1].length };
+            setextCandidate = false;
             continue;
         }
 
         if (/^ {0,3}<!--/.test(line)) {
             htmlComment = !line.includes('-->');
+            setextCandidate = false;
+            continue;
+        }
+
+        if (line.trim().length === 0) {
+            setextCandidate = false;
+            continue;
+        }
+
+        const setextUnderline = /^ {0,3}(?:=+|-+)[ \t]*$/.test(line);
+
+        if (setextUnderline) {
+            if (setextCandidate) {
+                fail(`${label} contains unsupported Setext heading syntax`);
+            }
+
+            setextCandidate = false;
             continue;
         }
 
         const heading = /^ {0,3}(#{1,6})(?:[ \t]+|$)(.*)$/.exec(line);
 
         if (!heading) {
+            setextCandidate = true;
             continue;
         }
 
         const headingText = heading[2].replace(/[ \t]+#+[ \t]*$/, '').trim();
+
+        if (unsupportedCanonicalHeadingMarkupPattern.test(headingText)) {
+            fail(`${label} contains unsupported inline Markdown in canonical heading: ${headingText}`);
+        }
+
         addCanonicalHeadingFragment(headingText, fragments);
+        setextCandidate = false;
     }
 
     return fragments;
@@ -227,7 +251,7 @@ async function assertCanonicalSource(repositoryRoot, canonicalSource, label) {
         fail(`${label} cannot read canonical source file: ${error.message}`);
     }
 
-    const fragments = collectMarkdownHeadingFragments(source);
+    const fragments = collectCanonicalHeadingFragments(source, label);
 
     if (!fragments.has(fragment)) {
         fail(`${label} points to a missing supported Markdown heading fragment: ${fragment}`);
