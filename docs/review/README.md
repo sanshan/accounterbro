@@ -57,7 +57,7 @@ A `CORRECTNESS` finding reports a concrete defect introduced or exposed by the p
 A correctness finding MUST contain:
 
 - `type: CORRECTNESS`;
-- `severity: blocking` or `advisory`;
+- `severity: blocking` or `severity: advisory`;
 - an affected repository location;
 - concrete evidence from the reviewed change and relevant repository context;
 - a causal explanation connecting the change to the defect;
