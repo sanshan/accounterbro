@@ -1,141 +1,262 @@
-# Repository Agent Instructions
+<!-- nx configuration start-->
+<!-- Leave the start & end comments to automatically receive updates. -->
 
-## Workspace Agent Rules
+## General Guidelines for working with Nx
 
-This repository uses scoped agent instructions.
+- For navigating/exploring the workspace, invoke the `nx-workspace` skill first - it has patterns for querying projects,
+  targets, and dependencies
+- When running tasks (for example build, lint, test, e2e, etc.), always prefer running the task through `nx` (i.e.
+  `nx run`, `nx run-many`, `nx affected`) instead of using the underlying tooling directly
+- Prefix nx commands with the workspace's package manager (e.g., `pnpm nx build`, `npm exec nx test`) - avoids using
+  globally installed CLI
+- You have access to the Nx MCP server and its tools, use them to help the user
+- For Nx plugin best practices, check `node_modules/@nx/<plugin>/PLUGIN.md`. Not all plugins have this file - proceed
+  without it if unavailable.
+- NEVER guess CLI flags - always check nx_docs or `--help` first when unsure
 
-- Read this root `AGENTS.md` before making repository changes.
-- Before changing a file, read the nearest nested `AGENTS.md` in that file's directory tree.
-- Nested `AGENTS.md` files add or narrow rules for their subtree and take precedence over this file when they conflict.
-- Keep reusable engineering guidance with one owner. Nested agent files should prefer routing to canonical documentation over copying reusable rules.
+## Scaffolding & Generators
 
-## 1. Repository Purpose
+- For scaffolding tasks (creating apps, libs, project structure, setup), ALWAYS invoke the `nx-generate` skill FIRST
+  before exploring or calling MCP tools
 
-AccounterBro is a monorepo for the AccounterBro platform. It contains frontend applications, backend services, shared packages, generators, specifications, engineering documentation, and supporting tooling.
+## When to use nx_docs
 
-The repository uses Nx and pnpm. Treat Nx project configuration and repository-owned documentation as the source of truth for project boundaries, commands, and conventions.
+- USE for: advanced config options, unfamiliar flags, migration guides, plugin configuration, edge cases
+- DON'T USE for: basic generator syntax (`nx g @nx/react:app`), standard commands, things you already know
+- The `nx-generate` skill handles generator discovery internally - don't call nx_docs just to look up generator syntax
 
-## 2. Required Discovery Before Changes
+<!-- nx configuration end-->
 
-Before planning or implementing a change:
+# Workspace Agent Rules
 
-1. inspect the relevant current repository state;
-2. read this file and every applicable nested `AGENTS.md`;
-3. inspect the closest existing implementation for the same responsibility;
-4. inspect canonical engineering or feature documentation for the affected area;
-5. prefer the proven repository pattern over introducing a new abstraction.
+These rules apply to the entire repository. Reusable engineering architecture belongs under `docs/engineering/`; nested `AGENTS.md` files add project- or subtree-local routing and constraints.
 
-Do not rely on stale chat history when the repository contains the authoritative state.
+## 1. Instruction Precedence
 
-## 3. Workspace Commands
+Before modifying a file, inspect its directory and ancestor directories for applicable `AGENTS.md` files.
 
-Use pnpm from the repository root.
+Rules are cumulative:
 
-Common commands:
+- this root file defines workspace-wide conventions;
+- nested files define project- or directory-specific conventions;
+- the nearest applicable nested instructions take precedence when rules differ.
+
+MUST NOT modify a project using only root instructions when a nested `AGENTS.md` exists for that project.
+
+Work under `packages/` MUST follow `packages/AGENTS.md`. `docs/engineering/package-guidelines.md` applies to business packages and business-package integration contracts; technical capability packages follow their nearest package instructions and the engineering guide for the responsibility being changed.
+
+## 2. Repository Purpose
+
+AccounterBro is a product repository. It contains production-oriented baseline implementation and conventions that future developers and coding agents should inspect before introducing new patterns.
+
+Existing implementation is not placeholder/demo code to be replaced casually. Inspect it first and reuse established conventions where they apply.
+
+MUST NOT introduce placeholder CRUD features, speculative abstractions, or parallel tooling merely to make the repository look more complete.
+
+When agent assumptions conflict with the repository, the repository is the source of truth.
+
+## 3. Canonical Development Workflow
+
+When asked to plan or implement new behavior:
+
+1. Read this file and every applicable nested `AGENTS.md`.
+2. Identify the owning Nx project or projects.
+3. Inspect the closest existing implementation with similar responsibilities.
+4. Identify which existing architectural boundaries actually apply.
+5. Prepare an implementation plan before modifying code when planning is requested.
+6. Reuse established conventions instead of introducing a parallel pattern.
+7. Add abstractions only when current requested behavior requires them.
+8. Add tests at the architectural boundary that owns the behavior.
+9. Run the smallest relevant Nx verification targets.
+10. Avoid unrelated refactoring.
+
+Reference implementations are architectural guidance, not templates that must be copied mechanically.
+
+### UseCase implementation task readiness
+
+Before finalizing an implementation issue for a concrete service UseCase, perform the UseCase preflight required by `docs/engineering/service-guidelines.md` together with every applicable local service `AGENTS.md`.
+
+The issue MUST contain a `## Do not` section populated with concrete behaviors already owned by EDP runtime, called Operations/Reads, handlers, or persistence/DB semantics discovered during that preflight. Generic statements such as "do not duplicate existing mechanisms" are insufficient when the investigation can name the existing owner or mechanism.
+
+MUST NOT start UseCase implementation from assumptions about idempotency, deduplication, recovery, retry, transactions, concurrency, or read/write behavior that can be verified in the current runtime and called boundaries.
+
+## 4. Repository Navigation
+
+Before adding code, inspect the owning project and, when relevant:
+
+- its `project.json` or inferred Nx configuration;
+- its `package.json`;
+- its nearest `AGENTS.md`;
+- the closest implementation serving the same responsibility.
+
+Use the Nx project name reported by Nx. Do not infer project names solely from directory names or package manifests.
+
+## 5. Workspace Tooling
+
+This is an Nx monorepo managed with pnpm.
+
+MUST:
+
+- use `pnpm` for package management;
+- use Nx targets for workspace tasks when a target exists;
+- prefix Nx commands with `pnpm`;
+- preserve existing project boundaries and workspace layout;
+- inspect project configuration before changing build/test/serve behavior.
+
+MUST NOT:
+
+- use npm or Yarn for dependency installation;
+- create another lockfile;
+- bypass Nx with ad-hoc commands when an equivalent Nx target exists;
+- introduce a second build, lint, or test system without a concrete requirement.
+
+Prefer:
 
 ```bash
-pnpm install
-pnpm nx show projects
-pnpm nx graph
-pnpm nx affected -t lint typecheck test build
+pnpm nx <command>
+pnpm nx run <project>:<target>
+pnpm nx run-many -t <target>
+pnpm nx affected -t <target>
 ```
 
-Use project-specific Nx targets when only one project is affected.
+## 6. Package Management
 
-Do not bypass Nx by inventing parallel ad-hoc scripts when an existing target owns the operation.
+Install dependencies at the narrowest correct scope.
 
-## 4. Nx Project Creation
+Workspace-wide development tooling belongs at the root:
 
-When a task requires creating a new Nx app, library, or package, use the existing repository generator or the appropriate Nx generator.
+```bash
+pnpm add -Dw <package>
+```
 
-Do not manually reproduce generator output.
+A dependency used by one application/package belongs to that project's package:
 
-After generation:
+```bash
+pnpm --filter <project-package-name> add <package>
+pnpm --filter <project-package-name> add -D <package>
+```
 
-1. inspect the generated project configuration;
-2. run the relevant Nx checks;
-3. keep generated changes scoped to the task;
-4. update canonical documentation only when the generated project establishes a reusable repository pattern.
+MUST:
 
-## 5. Repository Boundaries
+- classify runtime vs development dependencies correctly;
+- reuse workspace catalog versions where the workspace already manages that dependency through the pnpm catalog;
+- keep project package manifests minimal;
+- update `pnpm-lock.yaml` whenever dependency resolution changes;
+- check whether the repository already provides the required capability before adding a package.
 
-Respect established project and dependency boundaries.
+MUST NOT:
 
-- Applications compose packages; packages must not depend on application internals.
-- Service/domain/application layers must follow the boundaries documented for their subtree.
-- Shared runtime behavior belongs in shared packages rather than being reconstructed independently inside services.
-- Generated or platform-owned contracts must be consumed through their published boundaries.
-- Do not introduce cross-project imports merely to avoid adding an explicit public contract.
+- add project-specific runtime dependencies to the workspace root for convenience;
+- duplicate dependencies without need;
+- manually edit resolved versions in the lockfile;
+- introduce a library solely because a generic framework guide recommends it.
 
-If an Nx boundary rule or canonical engineering guide already owns a restriction, follow it instead of duplicating the rule elsewhere.
+## 7. Nx Projects and Boundaries
 
-## 6. Packages and Public APIs
+Every application or library must remain an explicit Nx project.
 
-Packages own reusable contracts and implementation intended for multiple consumers.
+Every project MUST declare one repository architecture tag:
 
-- Import through package public entrypoints when one exists.
-- Do not depend on private source paths across package boundaries.
-- Keep package exports intentional and minimal.
-- Avoid broad barrel exports that expose implementation details without a consumer requirement.
-- Preserve the repository's current build/runtime pattern for packages unless a task explicitly changes it.
+- `type:core` for framework-free shared primitives;
+- `type:business` for business packages;
+- `type:runtime` for reusable technical capabilities and adapters;
+- `type:app` for deployable applications and services;
+- `type:e2e` for black-box test projects;
+- `type:tooling` for repository generators and other development tooling.
 
-## 7. Services
+The dependency directions for these tags are enforced in the root ESLint configuration. Service-local
+layer imports are enforced there as well: the composition chain is `App -> Presenters -> Application ->
+Infrastructure`, domain code cannot depend on outer layers or frameworks, and only
+`application.module.ts` may cross from application into infrastructure for composition.
 
-Service code must follow the nearest service-specific `AGENTS.md` and canonical service engineering guides.
+When necessary, inspect project configuration with:
 
-As a general rule:
+```bash
+pnpm nx show project <project>
+```
 
-- presenters adapt external transport into application contracts;
-- application/use-case code coordinates business work;
-- domain code owns domain behavior and must not depend on infrastructure;
-- infrastructure implements ports and external integration details;
-- persistence remains tenant-aware wherever the model is tenant-owned;
-- shared EDP/runtime execution behavior is consumed rather than reconstructed locally.
+MUST NOT:
 
-Do not mechanically propagate context such as tenant identity into every API. Determine whether the operation is tenant-scoped from the model and contract first.
+- create hidden cross-project dependencies through private relative imports;
+- reach into another application's private source tree;
+- weaken boundaries merely to make an import compile;
+- create a shared library before there is a real cross-project consumer.
 
-## 8. Tests
+If code genuinely has multiple project consumers, extract an appropriate workspace library rather than importing private application internals.
 
-Tests should prove behavior at the boundary that owns it.
+## 8. Nx-Managed Configuration and Generators
 
-- Unit tests belong with the implementation whose semantics they own.
-- Service tests should prove service-owned wiring, mapping, configuration, integration, or observable behavior.
-- Do not duplicate lower-level package/runtime behavior in service tests merely because it is easy to mock and assert.
-- E2E tests should focus on externally observable contracts and meaningful integration boundaries.
-- Prefer a small number of high-value tests over exhaustive duplication across layers.
+Prefer official Nx generators for Nx-managed applications, libraries, and integrations. Inspect unfamiliar generator options and use dry-run when output may touch multiple files.
 
-When behavior is already deterministically enforced by lint, types, generation checks, or another owner, do not add redundant tests without a concrete gap.
+New business packages under `packages/` MUST be created with `pnpm nx g @accounterbro/generators:package <name>`. MUST NOT invoke `@nx/js:lib` directly for a new business package.
 
-## 9. Documentation Ownership
+New internal services under `apps/services/` MUST be created with `pnpm nx g @accounterbro/generators:service <name>`. MUST NOT invoke a low-level Nx/Nest/Node application generator directly for a new internal service.
 
-Repository documentation has explicit ownership.
+The section between:
 
-- `AGENTS.md` files: scoped agent routing and local constraints.
-- `docs/engineering/`: reusable engineering guidance and canonical implementation patterns.
-- `specs/`: product/feature behavior and approved external contracts.
-- package/service READMEs: local usage and implementation documentation.
-- generator README: generator commands and generated-output contract.
+```text
+<!-- nx configuration start-->
+<!-- nx configuration end-->
+```
 
-Keep one canonical owner for reusable guidance. Prefer links from scoped files over copied paragraphs.
+is managed by Nx tooling.
 
-When implementation establishes a reusable canonical pattern, update the appropriate owner and reference the working implementation.
+MUST NOT manually modify, reorder, duplicate, or customize content inside that managed section. Repository-specific instructions belong outside it so Nx can update the managed block independently.
 
-## 10. Dependency and Tooling Changes
+Generated code is a starting point, not an architectural authority. Review generated changes and adapt them to existing repository conventions.
 
-Dependency changes must have a concrete task requirement.
+## 9. TypeScript and Source Conventions
 
-- Prefer existing dependencies and tooling.
-- Do not add a package for functionality already provided by the platform, standard library, or repository tooling.
-- Keep lockfile changes consistent with manifest changes.
-- Do not upgrade unrelated dependencies as incidental cleanup.
-- For breaking dependency upgrades, fix affected code and tests in the same task unless the task explicitly stages the migration.
+Use TypeScript for application source unless existing tooling requires otherwise.
 
-## 11. Local Development and Infrastructure
+MUST:
 
-Use repository-owned Docker Compose, Nx targets, scripts, and documented local infrastructure paths.
+- preserve strict TypeScript settings;
+- use explicit types at architectural/public boundaries;
+- use `import type` for type-only imports where appropriate;
+- follow existing naming and directory conventions;
+- keep files focused on one clear responsibility.
 
-Do not:
+MUST NOT:
 
+- weaken global TypeScript settings to solve a local problem;
+- use `any` as a shortcut around a known type;
+- disable lint/type checks globally for one change;
+- reformat unrelated files.
+
+Fix errors at their source.
+
+## 10. Testing Strategy
+
+Tests belong to the project and architectural boundary that owns the behavior. Nested project instructions define more specific placement and coverage rules.
+
+MUST:
+
+- use configured Nx test/E2E targets;
+- add or update tests when behavior changes;
+- keep deterministic default tests independent from public network availability;
+- preserve API and browser E2E harnesses as integration boundaries rather than substitutes for lower-level tests.
+
+MUST NOT:
+
+- delete, skip, or weaken a failing test solely to make CI green;
+- use empty-suite support as justification for omitting tests for implemented behavior.
+
+## 11. Configuration and Environment
+
+Use the repository's established configuration mechanisms.
+
+MUST:
+
+- keep secrets out of source control;
+- document newly required environment variables;
+- keep environment-specific values outside application source;
+- ensure documented commands work from the repository root unless explicitly stated otherwise.
+
+MUST NOT:
+
+- commit credentials, tokens, passwords, or private keys;
+- hardcode machine-specific absolute paths;
 - assume globally installed tools, usernames, or local port ownership.
 
 ## 12. Change Discipline
