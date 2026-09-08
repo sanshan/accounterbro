@@ -71,7 +71,11 @@ export class DocumentsController {
     @Post()
     @UseInterceptors(FileInterceptor('file'))
     public async registerDocument(
-        @UploadedFile(new ParseFilePipeBuilder().build({ fileIsRequired: true }))
+        @UploadedFile(
+            new ParseFilePipeBuilder()
+                .addMaxSizeValidator({ maxSize: 5_000_000 })
+                .build({ fileIsRequired: true }),
+        )
         file: UploadedDocumentFile,
         @Actor() actor: ActorValue,
         @Tenant() tenant: TenantReference,
