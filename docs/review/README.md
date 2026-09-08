@@ -95,6 +95,14 @@ The canonical source owns the underlying engineering or product requirement. The
 
 Stable IDs survive wording and boundary clarifications when the rule still represents the same responsibility. Splitting a rule or changing it to govern a different responsibility requires new IDs, and retired IDs MUST NOT be reused.
 
+### Canonical-source resolution
+
+Mechanical catalog validation checks the repository-local file portion of `canonical_source`. An optional `#fragment` is a reviewer navigation hint and is intentionally not parsed or validated by `review:validate`.
+
+Before relying on a selected rule, the reviewer MUST open the canonical source in the current repository revision and resolve any referenced section or rule identifier. If the referenced file or section cannot be located unambiguously, or if the canonical source contradicts the review rule, the reviewer MUST stop the independent review and report a review-policy integrity error. This is a review precondition failure, not a fourth review-finding class.
+
+The reviewer MUST NOT guess the missing requirement, silently substitute another section, or produce a clean independent-review result until the policy-integrity problem is corrected.
+
 ## Decision model
 
 The reviewer evaluates every applicable policy rule with exactly one of these outcomes:
@@ -118,7 +126,7 @@ A rule may use `blocking` only for a concrete repository requirement with an exp
 
 A blocking policy finding MUST reference a `blocking` rule and satisfy that rule's evidence contract. An advisory rule MUST NOT produce a blocking finding. A `CORRECTNESS` finding may block only under the stricter causal-evidence requirements defined above. `OPINION` never blocks.
 
-A pull request has a clean independent-review result when the reviewed head has no valid blocking `POLICY` or `CORRECTNESS` findings. The provider-specific representation of that state is intentionally outside this contract.
+A pull request has a clean independent-review result when the reviewed head has no valid blocking `POLICY` or `CORRECTNESS` findings and no unresolved review-policy integrity error. The provider-specific representation of that state is intentionally outside this contract.
 
 ## Deterministic-check ownership
 
@@ -202,7 +210,7 @@ Run the dependency-free catalog validator from the repository root:
 pnpm review:validate
 ```
 
-The command validates the validator's negative cases and then the committed catalog. It performs no LLM call.
+The command validates the validator's negative cases and then the committed catalog. It mechanically checks canonical-source file paths but intentionally does not parse optional `#fragment` anchors; those are resolved by the reviewer under the canonical-source resolution contract above. It performs no LLM call.
 
 ### Initial rule inventory
 
@@ -228,13 +236,15 @@ Provider-specific setup and empirically observed GitHub behavior are recorded in
 For the exact pull-request head under review, an independent reviewer MUST:
 
 1. inspect the changed files and the repository context needed to understand them;
-2. select rules by `scope` and decide `applies_when` before evaluating violations;
-3. apply the three-outcome decision model and require each rule's declared evidence;
-4. avoid duplicating normally executing green deterministic checks;
-5. separately evaluate concrete uncatalogued correctness defects;
-6. distinguish optional opinions from findings;
-7. report only evidence-supported policy and correctness findings using the formats above;
-8. produce a clean result only when no blocking finding remains for that head.
+2. select rules by `scope`;
+3. resolve each selected rule's `canonical_source` under the canonical-source resolution contract above;
+4. decide `applies_when` before evaluating violations;
+5. apply the three-outcome decision model and require each rule's declared evidence;
+6. avoid duplicating normally executing green deterministic checks;
+7. separately evaluate concrete uncatalogued correctness defects;
+8. distinguish optional opinions from findings;
+9. report only evidence-supported policy and correctness findings using the formats above;
+10. produce a clean result only when no blocking finding remains for that head and no review-policy integrity error prevents completion.
 
 The reviewer MUST NOT modify the pull request, invent repository requirements, or turn uncertainty into a blocking result.
 
