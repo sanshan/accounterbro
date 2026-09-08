@@ -50,10 +50,11 @@ The repository uses the official Codex GitHub integration rather than an API-key
 | Current PRR-004 boundary probe #270 | Exact current boundary case at head `439dd229...` produced clean `+1` `494475119`; CI #362 / run `34236390003` was green; probe closed without merge. |
 | Later PR #243 reviews | Codex found and drove fixes for incomplete nested review-routing coverage and misplaced normative fixture guidance. Each new finding was fixed on a new head and re-reviewed. |
 | Final Task #237 head `97475aa07d...` | Connector clean comment `5586779348` reported no major issues for reviewed short SHA `97475aa07d`; deterministic CI #366 was green. PR #243 then merged into `epic-ai-pr-review` as `4b7d071f...`. |
+| Task #238 PR #272 automatic-open output at head `114bb7b9...` | Connector comment `5587421913` emitted a task-style summary with a “View task” link and claimed it had committed `a5f1272`, but GitHub PR head remained `114bb7b9...`, the PR still contained two commits, and no clean review object or `+1` was produced. This connector-authored prose is not review-state evidence. |
 
 ## Stable provider-observable facts
 
-The following behaviors are established by PR #243 and the controlled calibration probes:
+The following behaviors are established by PR #243, PR #272, and the controlled calibration probes:
 
 - the reviewer actor is `chatgpt-codex-connector[bot]`;
 - a finding run creates a pull-request review with state `COMMENTED` and an exact `commit_id` for the reviewed head;
@@ -63,10 +64,11 @@ The following behaviors are established by PR #243 and the controlled calibratio
 - automatic review on a fresh pull-request-open event is proven; automatic review on push is not proven;
 - the observed clean representation is a connector top-level comment containing a reviewed short SHA and/or a PR-level `+1` reaction depending on the run;
 - the observed clean representation does not create a Codex review object with exact REST `commit_id`, a Codex-owned check run, or a Codex commit status;
+- connector-authored top-level prose is not inherently review-state evidence: PR #272 produced task-style prose with an execution claim that was not reflected in the actual GitHub branch/head state;
 - a clean result does not expose whether the reviewer internally decided `no-violation` or `not-applicable`;
 - a later same-head clean-looking response does not erase an existing unresolved, non-outdated current-head blocking finding;
 - repeated review inside an already-annotated PR cannot be assumed to be an independent evaluator trial; fresh isolated PR contexts are used for repeated known-violation calibration;
-- failed setup/quota comments, transient reactions, stale review submissions, same-context duplicate suppression, or absence of a review cannot be treated as a clean gate signal.
+- failed setup/quota comments, task-style connector output, transient reactions, stale review submissions, same-context duplicate suppression, or absence of a review cannot be treated as a clean gate signal.
 
 ## Calibration outcome
 
@@ -117,7 +119,7 @@ Tasks #237 and #238 establish the following repository process:
 
 1. Finding reviews have a strong structured current-head association through review `commit_id` and inline thread state.
 2. The strongest observed clean-head association is a reviewed short SHA in connector-authored natural-language output together with the provider's clean reaction; there is no Codex-owned clean review object, check run, or commit status.
-3. Parsing that comment text, or inferring clean state from reaction/timestamp ordering, would make repository automation depend on undocumented provider presentation rather than a stable machine contract.
+3. Connector prose cannot be treated as authoritative machine state: PR #272 demonstrated task-style connector output can contain an execution claim not reflected by the actual GitHub head. Parsing clean-looking text, or inferring clean state from reaction/timestamp ordering, would therefore bind repository automation to undocumented presentation rather than a stable machine contract.
 4. Therefore no independent-review CI gate/parser is introduced with the current integration. This is an intentional safety decision, not an omitted implementation step.
 5. Repository workflow still requires implementer self-review, green deterministic CI, and a clean independent review of the exact current PR head before task/Epic merge.
 6. Any relevant new commit invalidates the prior independent-review conclusion. Because automatic review-on-push is not proven, the current workflow explicitly re-triggers with `@codex review` and waits for the completed result for the new head.
