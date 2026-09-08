@@ -2,7 +2,7 @@
 
 This document is the canonical owner of the provider-neutral contract for independent AI pull-request review in AccounterBro. It defines how review policy is represented, evaluated, reported, calibrated, and maintained.
 
-Repository architecture, implementation, and workflow requirements remain owned by the applicable root or nested `AGENTS.md`, `docs/engineering/`, specifications, and other repository-local sources. Review rules point to those sources; they do not replace them. Provider settings may only route a reviewer to this repository-owned contract and must not contain a second policy catalog.
+Repository architecture, implementation, and workflow requirements outside the independent-review lifecycle remain owned by the applicable root or nested `AGENTS.md`, `docs/engineering/`, specifications, and other repository-local sources. Review rules point to those sources; they do not replace them. The independent-review merge lifecycle is owned by this document. Provider settings may only route a reviewer to this repository-owned contract and must not contain a second policy catalog.
 
 ## Scope
 
@@ -11,6 +11,18 @@ Independent review applies to every code-changing pull request. It is performed 
 A review conclusion is valid only for the exact pull-request head revision that was reviewed. A new relevant commit requires a new review conclusion for the new head.
 
 This contract does not define a provider integration, GitHub event or comment representation, CI gate, initial rule catalog, or model prompt. Those mechanisms may be added separately without changing the provider-neutral rule semantics defined here.
+
+## Merge workflow
+
+Before a task or Epic pull request is merged:
+
+- the implementation agent MUST complete its own self-review; self-review does not satisfy the independent-review requirement;
+- deterministic repository CI MUST be green independently of AI review;
+- the exact current pull-request head MUST have a clean independent-review result under this contract;
+- an unresolved, non-outdated blocking `POLICY` or `CORRECTNESS` finding prevents a clean result and therefore prevents merge;
+- any relevant new commit invalidates the prior independent-review conclusion and requires a new review conclusion for the new head.
+
+Provider-specific evidence owns only the proven mechanism for obtaining and recognizing that conclusion. When the configured provider has not demonstrated automatic re-review after a new commit, the merge workflow MUST explicitly request a new review using the proven provider mechanism and wait for the completed current-head result. A missing machine-enforced review-state gate does not waive these requirements.
 
 ## Normative language
 
