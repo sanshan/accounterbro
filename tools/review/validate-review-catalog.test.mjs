@@ -114,6 +114,27 @@ test('rejects missing Markdown heading fragments', async () => {
     );
 });
 
+test('accepts GitHub-style heading fragments after slug collisions', async () => {
+    const root = await createFixture({
+        rule: { ...validRule, canonical_source: 'AGENTS.md#foo-2' },
+        canonicalSourceContent: '# Foo\n\n# Foo-1\n\n# Foo\n',
+    });
+
+    await assert.doesNotReject(validateReviewCatalog(root));
+});
+
+test('ignores heading-like lines inside fenced code blocks', async () => {
+    const root = await createFixture({
+        rule: { ...validRule, canonical_source: 'AGENTS.md#phantom' },
+        canonicalSourceContent: '# Rules\n\n```md\n# Phantom\n```\n\n## Change Discipline\n',
+    });
+
+    await assert.rejects(
+        validateReviewCatalog(root),
+        /missing Markdown heading fragment: phantom/,
+    );
+});
+
 test('rejects malformed JSON', async () => {
     const root = await createFixture();
     await writeFile(resolve(root, 'docs/review/rules/PRR-001.json'), '{', 'utf8');
