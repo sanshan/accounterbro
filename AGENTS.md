@@ -302,3 +302,14 @@ If a required check cannot be run, state exactly which check was not run and why
 ## Code Review Rules
 
 For code-changing pull requests and pull requests that change repository review policy or review routing anywhere in the repository, read `docs/review/README.md` and follow its reviewer procedure using the applicable active rules under `docs/review/rules/`.
+
+Before a task or Epic pull request is merged:
+
+- the implementation agent MUST complete its own self-review; self-review does not satisfy the independent-review requirement;
+- deterministic repository CI MUST be green independently of AI review;
+- the exact current pull-request head MUST have a clean independent review under `docs/review/README.md`;
+- an unresolved, non-outdated blocking `POLICY` or `CORRECTNESS` finding prevents merge;
+- any relevant new commit invalidates the prior independent-review conclusion and requires a new review of the new head;
+- while automatic review-on-push is not proven for the configured provider, explicitly request the new review with `@codex review` and wait for its completed current-head result before merge.
+
+The current Codex GitHub integration does not expose a sufficiently structured machine-readable clean result for a safe CI review-state gate. The absence of such a gate does not waive the process requirements above. Provider-specific evidence and limitations are recorded in `docs/review/codex-integration.md`; MUST NOT replace them with parsing of undocumented provider prose, reaction timing, or manual attestation presented as independent reviewer state.
