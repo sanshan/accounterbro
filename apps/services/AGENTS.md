@@ -39,6 +39,10 @@ When creating or changing internal service configuration, MUST follow:
 - `docs/engineering/environment-guidelines.md` for raw environment ownership/loading/naming;
 - `docs/engineering/service-configuration-guidelines.md` for typed Nest service configuration.
 
+Every service MUST create a registerAs configuration factory.
+Every service MUST inject configuration through the factory KEY and ConfigType.
+Application and domain code MUST NOT inject service configuration.
+
 Use `apps/api` as the proven configuration reference. Do not introduce a parallel configuration or env-loading mechanism.
 
 ## Shared observability and ordinary HTTP errors
