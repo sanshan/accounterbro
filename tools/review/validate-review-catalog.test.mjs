@@ -103,6 +103,15 @@ test('accepts numbered plain-text ATX heading fragments', async () => {
     await assert.doesNotReject(validateReviewCatalog(root));
 });
 
+test('accepts ordinary punctuation in plain-text ATX headings', async () => {
+    const root = await createFixture({
+        rule: { ...validRule, canonical_source: 'AGENTS.md#doc-reg-001-register-a-new-file' },
+        canonicalSourceContent: '# Rules\n\n### DOC-REG-001 — Register a new file\n',
+    });
+
+    await assert.doesNotReject(validateReviewCatalog(root));
+});
+
 test('rejects missing supported Markdown heading fragments', async () => {
     const root = await createFixture({
         rule: { ...validRule, canonical_source: 'AGENTS.md#does-not-exist' },
@@ -147,7 +156,7 @@ test('ignores heading-like lines inside HTML comments', async () => {
     );
 });
 
-test('rejects inline-Markdown headings as canonical targets', async () => {
+test('rejects inline-Markdown headings in fragment-owned canonical documents', async () => {
     const root = await createFixture({
         rule: { ...validRule, canonical_source: 'AGENTS.md#change-discipline' },
         canonicalSourceContent: '# Rules\n\n## [Change Discipline](details.md)\n',
@@ -155,11 +164,11 @@ test('rejects inline-Markdown headings as canonical targets', async () => {
 
     await assert.rejects(
         validateReviewCatalog(root),
-        /missing supported Markdown heading fragment: change-discipline/,
+        /unsupported inline Markdown in canonical heading/,
     );
 });
 
-test('rejects inline-code headings as canonical targets', async () => {
+test('rejects inline-code headings in fragment-owned canonical documents', async () => {
     const root = await createFixture({
         rule: { ...validRule, canonical_source: 'AGENTS.md#service-envschemats' },
         canonicalSourceContent: '# Rules\n\n### `<service>-env.schema.ts`\n',
@@ -167,20 +176,29 @@ test('rejects inline-code headings as canonical targets', async () => {
 
     await assert.rejects(
         validateReviewCatalog(root),
-        /missing supported Markdown heading fragment: service-envschemats/,
+        /unsupported inline Markdown in canonical heading/,
     );
 });
 
-test('rejects Setext headings as canonical targets', async () => {
+test('rejects unsupported headings before supported collision targets', async () => {
+    const root = await createFixture({
+        rule: { ...validRule, canonical_source: 'AGENTS.md#foo-1' },
+        canonicalSourceContent: '# [Foo](details.md)\n\n# Foo\n',
+    });
+
+    await assert.rejects(
+        validateReviewCatalog(root),
+        /unsupported inline Markdown in canonical heading/,
+    );
+});
+
+test('rejects Setext headings in fragment-owned canonical documents', async () => {
     const root = await createFixture({
         rule: { ...validRule, canonical_source: 'AGENTS.md#change-discipline' },
         canonicalSourceContent: '# Rules\n\nChange Discipline\n-----------------\n',
     });
 
-    await assert.rejects(
-        validateReviewCatalog(root),
-        /missing supported Markdown heading fragment: change-discipline/,
-    );
+    await assert.rejects(validateReviewCatalog(root), /unsupported Setext heading syntax/);
 });
 
 test('rejects malformed JSON', async () => {
