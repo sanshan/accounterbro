@@ -8,13 +8,15 @@ Repository architecture, implementation, and workflow requirements outside the i
 
 Independent review applies to every code-changing pull request. It is performed by a reviewer separate from the implementation agent and does not replace implementer self-review or deterministic CI.
 
+Independent review also applies to pull requests that change repository review policy or review routing, even when they do not change executable code.
+
 A review conclusion is valid only for the exact pull-request head revision that was reviewed. A new relevant commit requires a new review conclusion for the new head.
 
 This contract does not define a provider integration, GitHub event or comment representation, CI gate, initial rule catalog, or model prompt. Those mechanisms may be added separately without changing the provider-neutral rule semantics defined here.
 
 ## Merge workflow
 
-Before a task or Epic pull request is merged:
+Before any pull request subject to independent review under this contract is merged:
 
 - the implementation agent MUST complete its own self-review; self-review does not satisfy the independent-review requirement;
 - deterministic repository CI MUST be green independently of AI review;
