@@ -71,7 +71,7 @@ export class DocumentsController {
     @Post()
     @UseInterceptors(FileInterceptor('file'))
     public async registerDocument(
-        @UploadedFile(new ParseFilePipeBuilder().build({ fileIsRequired: true }))
+        @UploadedFile()
         file: UploadedDocumentFile,
         @Actor() actor: ActorValue,
         @Tenant() tenant: TenantReference,
