@@ -34,11 +34,6 @@ The service generator MUST preserve the stable service shell above. MUST NOT cre
 
 ## Configuration
 
-When creating or changing internal service configuration, MUST follow:
-
-- `docs/engineering/environment-guidelines.md` for raw environment ownership/loading/naming;
-- `docs/engineering/service-configuration-guidelines.md` for typed Nest service configuration.
-
 Use `apps/api` as the proven configuration reference. Do not introduce a parallel configuration or env-loading mechanism.
 
 ## Shared observability and ordinary HTTP errors
