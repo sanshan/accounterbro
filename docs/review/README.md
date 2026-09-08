@@ -123,7 +123,13 @@ Every proposed blocking rule MUST have controlled, repository-versioned calibrat
 
 Each case MUST include the smallest diff and repository context needed to decide the rule and MUST state its expected outcome. Calibration cases test the rule boundary; they are not production examples and MUST NOT require deliberate violations to remain in production code.
 
-Before a blocking rule is relied on by the merge workflow, the intended reviewer MUST classify the known-violation case as `violation` in at least two runs with unchanged rule semantics and context, and MUST classify every boundary case with its declared expected outcome. Contradictory applicability or violation decisions require the rule to be clarified and recalibrated or downgraded to `advisory`.
+Before a blocking rule is relied on by the merge workflow, the intended reviewer MUST classify the known-violation case as `violation` in at least two **independent evaluator trials** with unchanged rule semantics and case context, and MUST classify every boundary case with its declared expected outcome.
+
+An independent evaluator trial MUST start from a review context that does not expose a prior classification or finding for that calibration case when those artifacts could influence, suppress, or deduplicate the next evaluation. When an integration retains prior review history inside the evaluator's context, repeated trials MUST use fresh isolated review contexts. Provider- or infrastructure-only identifiers such as pull-request number or commit SHA MAY differ between trials, but the rule version, base repository revision, declared task context, and calibration diff semantics MUST remain equivalent.
+
+Re-triggering a reviewer inside the same already-annotated context does not count as an independent calibration repeat unless the integration has demonstrated that prior findings and classifications cannot influence or suppress the new evaluation. Such re-reviews MAY still be used as provider-lifecycle evidence.
+
+Contradictory applicability or violation decisions across independent evaluator trials require the rule to be clarified and recalibrated or downgraded to `advisory`.
 
 A semantic change to `scope`, `applies_when`, `violation`, `non_violation`, `severity`, required `evidence`, or the meaning inherited from `canonical_source` invalidates prior calibration and requires the affected cases to be revalidated. Editorial changes that do not change the decision boundary do not require recalibration.
 
