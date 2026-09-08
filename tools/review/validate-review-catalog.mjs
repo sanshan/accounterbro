@@ -117,6 +117,7 @@ function renderMarkdownHeadingText(markdown) {
 function collectMarkdownHeadingFragments(source) {
     const fragments = new Set();
     let fence = null;
+    let htmlComment = false;
 
     for (const line of source.split(/\r?\n/)) {
         if (fence) {
@@ -129,10 +130,23 @@ function collectMarkdownHeadingFragments(source) {
             continue;
         }
 
+        if (htmlComment) {
+            if (line.includes('-->')) {
+                htmlComment = false;
+            }
+
+            continue;
+        }
+
         const openingFence = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
 
         if (openingFence) {
             fence = { marker: openingFence[1][0], length: openingFence[1].length };
+            continue;
+        }
+
+        if (/^ {0,3}<!--/.test(line)) {
+            htmlComment = !line.includes('-->');
             continue;
         }
 
