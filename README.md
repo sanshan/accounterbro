@@ -20,6 +20,8 @@ docker compose up -d database
 
 The copied environment contains the safe local database, service-port, and Documents storage values. The PostgreSQL container creates the API database from those values.
 
+The local Documents storage bucket is configured by DOCUMENTS_STORAGE_BUCKET.
+
 The Documents service owns a separate logical database. Create it once in the existing PostgreSQL container:
 
 ```bash
