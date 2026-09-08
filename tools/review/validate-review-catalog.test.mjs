@@ -85,6 +85,17 @@ test('accepts a valid blocking rule with violation and boundary calibration', as
     await assert.doesNotReject(validateReviewCatalog(root));
 });
 
+test('does not mechanically resolve canonical-source fragments', async () => {
+    const root = await createFixture({
+        rule: {
+            ...validRule,
+            canonical_source: 'AGENTS.md#section-that-does-not-exist',
+        },
+    });
+
+    await assert.doesNotReject(validateReviewCatalog(root));
+});
+
 test('rejects malformed JSON', async () => {
     const root = await createFixture();
     await writeFile(resolve(root, 'docs/review/rules/PRR-001.json'), '{', 'utf8');
