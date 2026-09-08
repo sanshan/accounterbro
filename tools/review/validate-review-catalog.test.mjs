@@ -135,6 +135,15 @@ test('ignores heading-like lines inside fenced code blocks', async () => {
     );
 });
 
+test('preserves inline-code text when generating heading fragments', async () => {
+    const root = await createFixture({
+        rule: { ...validRule, canonical_source: 'AGENTS.md#service-envschemats' },
+        canonicalSourceContent: '# Rules\n\n### `<service>-env.schema.ts`\n',
+    });
+
+    await assert.doesNotReject(validateReviewCatalog(root));
+});
+
 test('rejects malformed JSON', async () => {
     const root = await createFixture();
     await writeFile(resolve(root, 'docs/review/rules/PRR-001.json'), '{', 'utf8');
