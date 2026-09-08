@@ -94,11 +94,53 @@ async function listJsonFiles(directory, label) {
     return entries.map((entry) => resolve(directory, entry.name)).sort();
 }
 
+function collectMarkdownHeadingFragments(source) {
+    const fragments = new Set();
+    const occurrences = new Map();
+
+    for (const line of source.split(/\r?\n/)) {
+        const heading = /^(#{1,6})[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*$/.exec(line);
+
+        if (!heading) {
+            continue;
+        }
+
+        const baseFragment = heading[2]
+            .trim()
+            .toLowerCase()
+            .replace(/<[^>]*>/g, '')
+            .replace(/[^\p{L}\p{N}\p{M}\s_-]/gu, '')
+            .replace(/\s+/g, '-');
+
+        if (!baseFragment) {
+            continue;
+        }
+
+        const occurrence = occurrences.get(baseFragment) ?? 0;
+        fragments.add(occurrence === 0 ? baseFragment : `${baseFragment}-${occurrence}`);
+        occurrences.set(baseFragment, occurrence + 1);
+    }
+
+    return fragments;
+}
+
 async function assertCanonicalSource(repositoryRoot, canonicalSource, label) {
-    const [sourcePath] = canonicalSource.split('#', 1);
+    const fragmentSeparatorIndex = canonicalSource.indexOf('#');
+    const sourcePath =
+        fragmentSeparatorIndex === -1
+            ? canonicalSource
+            : canonicalSource.slice(0, fragmentSeparatorIndex);
+    const fragment =
+        fragmentSeparatorIndex === -1
+            ? null
+            : canonicalSource.slice(fragmentSeparatorIndex + 1);
 
     if (!sourcePath || isAbsolute(sourcePath)) {
         fail(`${label} must reference a repository-relative file path`);
+    }
+
+    if (fragment === '') {
+        fail(`${label} must not contain an empty fragment`);
     }
 
     const resolvedSource = resolve(repositoryRoot, sourcePath);
@@ -122,6 +164,28 @@ async function assertCanonicalSource(repositoryRoot, canonicalSource, label) {
 
     if (!sourceStat.isFile()) {
         fail(`${label} must point to a repository file: ${sourcePath}`);
+    }
+
+    if (fragment === null) {
+        return;
+    }
+
+    if (extname(sourcePath).toLowerCase() !== '.md') {
+        fail(`${label} fragments are only supported for Markdown files`);
+    }
+
+    let source;
+
+    try {
+        source = await readFile(resolvedSource, 'utf8');
+    } catch (error) {
+        fail(`${label} cannot read canonical source file: ${error.message}`);
+    }
+
+    const fragments = collectMarkdownHeadingFragments(source);
+
+    if (!fragments.has(fragment)) {
+        fail(`${label} points to a missing Markdown heading fragment: ${fragment}`);
     }
 }
 
