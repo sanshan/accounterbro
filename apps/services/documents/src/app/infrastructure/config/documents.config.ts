@@ -17,6 +17,7 @@ export function createDocumentsConfig() {
         },
         storage: {
             driver: env.DOCUMENTS_STORAGE_DRIVER,
+            bucket: env.DOCUMENTS_STORAGE_BUCKET,
             localFolder: {
                 rootDirectory: env.DOCUMENTS_STORAGE_LOCAL_FOLDER_ROOT,
             },
