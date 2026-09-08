@@ -94,6 +94,26 @@ async function listJsonFiles(directory, label) {
     return entries.map((entry) => resolve(directory, entry.name)).sort();
 }
 
+function renderMarkdownHeadingText(markdown) {
+    const codeSpans = [];
+    const protectedMarkdown = markdown.replace(/(`+)(.*?)\1/g, (_, __, content) => {
+        const normalizedContent = content.replace(/\s+/g, ' ');
+        const code =
+            normalizedContent.startsWith(' ') &&
+            normalizedContent.endsWith(' ') &&
+            normalizedContent.trim().length > 0
+                ? normalizedContent.slice(1, -1)
+                : normalizedContent;
+        const token = `\u0000${codeSpans.length}\u0000`;
+        codeSpans.push(code);
+        return token;
+    });
+
+    const withoutHtml = protectedMarkdown.replace(/<[^>]*>/g, '');
+
+    return withoutHtml.replace(/\u0000(\d+)\u0000/g, (_, index) => codeSpans[Number(index)]);
+}
+
 function collectMarkdownHeadingFragments(source) {
     const fragments = new Set();
     let fence = null;
@@ -123,9 +143,8 @@ function collectMarkdownHeadingFragments(source) {
         }
 
         const headingText = heading[2].replace(/[ \t]+#+[ \t]*$/, '').trim();
-        const baseFragment = headingText
+        const baseFragment = renderMarkdownHeadingText(headingText)
             .toLowerCase()
-            .replace(/<[^>]*>/g, '')
             .replace(/[^\p{L}\p{N}\p{M}\s_-]/gu, '')
             .replace(/\s+/g, '-');
 
