@@ -1,5 +1,3 @@
-import convertHeic from 'heic-convert';
-
 import type { DocumentExtractionResult } from '../document-extractor.js';
 import type {
     DetectedDocumentRepresentation,
@@ -11,30 +9,15 @@ export class PhotoOcrContentExtractor implements DetectedContentExtractor {
     public constructor(private readonly ocrEngine: OcrEngine) {}
 
     public supports(representation: DetectedDocumentRepresentation): boolean {
-        return representation === 'jpeg' || representation === 'heif';
+        return representation === 'jpeg';
     }
 
     public async extract(
         content: Uint8Array,
-        representation: DetectedDocumentRepresentation,
+        _representation: DetectedDocumentRepresentation,
     ): Promise<DocumentExtractionResult> {
-        const normalizedContent = await normalizeForOcr(content, representation);
-        const text = await this.ocrEngine.recognize(normalizedContent);
+        const text = await this.ocrEngine.recognize(content);
 
         return { text };
     }
-}
-
-async function normalizeForOcr(
-    content: Uint8Array,
-    representation: DetectedDocumentRepresentation,
-): Promise<Uint8Array> {
-    if (representation === 'jpeg') {
-        return content;
-    }
-
-    return convertHeic({
-        buffer: content,
-        format: 'PNG',
-    });
 }
