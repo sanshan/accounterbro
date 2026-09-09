@@ -8,6 +8,10 @@ import { DocumentExtractionError } from '../document-extraction-error.js';
 import { createPhotoOcrDocumentExtractor } from './create-photo-ocr-document-extractor.js';
 
 const expectedMarkers = ['ACCOUNTER BRO', 'AB-305', '42.50 EUR'] as const;
+const fixturesDirectory = resolve(
+    process.cwd(),
+    'src/lib/photo-ocr/fixtures',
+);
 
 describe('createPhotoOcrDocumentExtractor', () => {
     const extractor = createPhotoOcrDocumentExtractor();
@@ -19,11 +23,7 @@ describe('createPhotoOcrDocumentExtractor', () => {
         'extracts readable text from a representative %s phone photo',
         async (_format, fixture) => {
             const storedFixture = await readFile(
-                resolve(
-                    process.cwd(),
-                    'src/lib/photo-ocr/fixtures',
-                    fixture,
-                ),
+                resolve(fixturesDirectory, fixture),
             );
             const content = fixture.endsWith('.gz')
                 ? gunzipSync(storedFixture)
@@ -33,6 +33,20 @@ describe('createPhotoOcrDocumentExtractor', () => {
             for (const marker of expectedMarkers) {
                 expect(result.text).toContain(marker);
             }
+        },
+        60_000,
+    );
+
+    it(
+        'extracts substantial text from a real phone photograph with perspective and background',
+        async () => {
+            const content = await readFile(
+                resolve(fixturesDirectory, 'real-phone-page.jpg'),
+            );
+            const result = await extractor.extract(content);
+
+            expect(result.text.length).toBeGreaterThan(200);
+            expect(result.text.split(/\s+/u).length).toBeGreaterThan(30);
         },
         60_000,
     );
