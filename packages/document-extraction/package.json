@@ -21,10 +21,6 @@
     },
     "dependencies": {
         "@tesseract.js-data/eng": "1.0.0",
-        "heic-convert": "2.1.0",
         "tesseract.js": "7.0.0"
-    },
-    "devDependencies": {
-        "@types/heic-convert": "2.1.1"
     }
 }
