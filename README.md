@@ -2,7 +2,7 @@
 
 # AccounterBro
 
-**A production-oriented accounting platform built as an explicit, testable distributed system.**
+**Your accounting bro. Makes the hard stuff easy.**
 
 [![CI](https://github.com/sanshan/accounterbro/actions/workflows/ci.yml/badge.svg)](https://github.com/sanshan/accounterbro/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -10,7 +10,11 @@
 
 </div>
 
-AccounterBro is an accounting product under active development. The repository is built around production-oriented service boundaries, explicit execution contracts, service-owned persistence, reusable runtime capabilities, and automated verification rather than demo-oriented shortcuts.
+AccounterBro is an accounting product under active development. Its goal is simple: take repetitive, confusing accounting work off your plate and turn it into clear, manageable workflows.
+
+The product experience is intentionally friendly and straightforward: more like a capable bro next door who handles the hard parts with you than a traditional piece of accounting software.
+
+Under the hood, AccounterBro is engineered as a production-oriented distributed system with explicit service boundaries, event-driven execution contracts, service-owned persistence, reusable runtime capabilities, and automated verification.
 
 The codebase is also the executable reference for the engineering rules used to evolve the product: when a pattern becomes proven by implementation, the repository documents it so future developers and coding agents can follow the same boundaries consistently.
 
