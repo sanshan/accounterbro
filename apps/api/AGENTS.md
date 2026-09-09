@@ -30,14 +30,6 @@ API configuration references are:
 
 The current service-owned TypeORM lifecycle/CLI reference is `src/app/infrastructure/persistence/typeorm/`.
 
-## API-local compatibility
-
-The historical migration identity `CreateDatabaseHealthProbes1787040000000` is owned by the shared health package and must remain the same logical migration for existing API databases.
-
-## API E2E ownership
-
-`apps/api-e2e` owns running-API evidence specific to this host, including the `/api/health/live` and `/api/health/ready` prefix integration and the ordinary unknown-route HTTP behavior. Shared health, error, and telemetry semantics remain owned by their runtime packages.
-
 ## Verification
 
 For API changes, run the relevant subset of the existing Nx targets:
