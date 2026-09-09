@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 
 import { describe, expect, it } from 'vitest';
@@ -18,7 +19,11 @@ describe('createPhotoOcrDocumentExtractor', () => {
         'extracts readable text from a representative %s phone photo',
         async (_format, fixture) => {
             const storedFixture = await readFile(
-                new URL(`./fixtures/${fixture}`, import.meta.url),
+                resolve(
+                    process.cwd(),
+                    'src/lib/photo-ocr/fixtures',
+                    fixture,
+                ),
             );
             const content = fixture.endsWith('.gz')
                 ? gunzipSync(storedFixture)
