@@ -3,7 +3,7 @@ import { gunzipSync } from 'node:zlib';
 
 import { describe, expect, it } from 'vitest';
 
-import { DocumentExtractionError } from '../../document-extraction-error.js';
+import { DocumentExtractionError } from '../document-extraction-error.js';
 import { createPhotoOcrDocumentExtractor } from './create-photo-ocr-document-extractor.js';
 
 const expectedMarkers = ['ACCOUNTER BRO', 'AB-305', '42.50 EUR'] as const;
