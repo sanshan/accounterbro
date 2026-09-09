@@ -165,6 +165,52 @@ describe('TypeOrmDocumentProcessingPersistence', () => {
         );
     });
 
+    it('allows only one concurrent terminal update from pending state', async () => {
+        const persistence = createDocumentProcessingPersistence(dataSource);
+        const id = processingId(250);
+        const sourceDocumentId = documentId(250);
+        await persistence.createOrGetExisting(
+            tenantA,
+            DocumentProcessing.pending(id, tenantA, sourceDocumentId),
+        );
+
+        const [completionCandidate, failureCandidate] = await Promise.all([
+            persistence.findById(tenantA, id),
+            persistence.findById(tenantA, id),
+        ]);
+        expect(completionCandidate).not.toBeNull();
+        expect(failureCandidate).not.toBeNull();
+        if (!completionCandidate || !failureCandidate) {
+            throw new Error('Expected two independently restored pending processing aggregates.');
+        }
+
+        completionCandidate.complete('winning extracted text');
+        failureCandidate.fail('competing failure');
+
+        const updates = await Promise.allSettled([
+            persistence.update(tenantA, completionCandidate),
+            persistence.update(tenantA, failureCandidate),
+        ]);
+
+        expect(updates.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+        expect(updates.filter((result) => result.status === 'rejected')).toHaveLength(1);
+
+        const persisted = await persistence.findById(tenantA, id);
+        expect(persisted).not.toBeNull();
+        if (!persisted) {
+            throw new Error('Expected the winning terminal state to remain persisted.');
+        }
+
+        if (persisted.status === DocumentProcessingStatus.Completed) {
+            expect(persisted.extractedText).toBe('winning extracted text');
+            expect(persisted.failureReason).toBeUndefined();
+        } else {
+            expect(persisted.status).toBe(DocumentProcessingStatus.Failed);
+            expect(persisted.extractedText).toBeUndefined();
+            expect(persisted.failureReason).toBe('competing failure');
+        }
+    });
+
     it('returns absence for cross-tenant lookups by processing and source document identity', async () => {
         const persistence = createDocumentProcessingPersistence(dataSource);
         const processing = DocumentProcessing.pending(processingId(301), tenantA, documentId(301));
@@ -218,7 +264,7 @@ describe('TypeOrmDocumentProcessingPersistence', () => {
         });
 
         await expect(persistence.update(tenantA, forgedTenantAProcessing)).rejects.toThrow(
-            'Document processing does not exist in the requested tenant scope.',
+            'Document processing is not pending in the requested tenant scope.',
         );
 
         const unchanged = await persistence.findById(tenantB, id);

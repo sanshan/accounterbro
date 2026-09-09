@@ -6,6 +6,7 @@ import type {
 import type { Repository } from 'typeorm';
 
 import type { DocumentProcessing } from '../../document-processing/document-processing.aggregate.js';
+import { DocumentProcessingStatus } from '../../document-processing/document-processing-status.js';
 import type {
     CreateDocumentProcessingResult,
     DocumentProcessingPersistence,
@@ -72,7 +73,11 @@ export class TypeOrmDocumentProcessingPersistence implements DocumentProcessingP
 
         const entity = DocumentProcessingMapper.toPersistence(processing);
         const result = await this.repository.update(
-            { tenantId, id: processing.id },
+            {
+                tenantId,
+                id: processing.id,
+                status: DocumentProcessingStatus.Pending,
+            },
             {
                 status: entity.status,
                 extractedText: entity.extractedText,
@@ -81,7 +86,7 @@ export class TypeOrmDocumentProcessingPersistence implements DocumentProcessingP
         );
 
         if (result.affected !== 1) {
-            throw new Error('Document processing does not exist in the requested tenant scope.');
+            throw new Error('Document processing is not pending in the requested tenant scope.');
         }
     }
 
