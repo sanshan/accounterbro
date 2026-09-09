@@ -2,7 +2,7 @@
 
 These rules define the canonical consumer-facing PostgreSQL and TypeORM integration for internal Nest services in AccounterBro.
 
-This guide owns service database lifecycle, schema ownership, TypeORM composition, migration, and shared-runtime persistence **consumption**. Detailed algorithms and implementation invariants inside `@accounterbro/runtime-executions` are owned by `packages/runtime-executions/AGENTS.md`.
+This guide owns service database lifecycle, schema ownership, TypeORM composition, migration, and shared-runtime persistence **consumption**. Business-package TypeORM producer contracts are owned by `docs/engineering/package-guidelines.md`. Detailed algorithms and implementation invariants inside `@accounterbro/runtime-executions` are owned by `packages/runtime-executions/AGENTS.md`.
 
 The pattern follows the official NestJS `@nestjs/typeorm` and TypeORM APIs instead of introducing a repository-owned database lifecycle abstraction.
 
@@ -36,34 +36,15 @@ A service MUST NOT import another service's entities, repositories, migrations, 
 
 Service-specific database environment variables follow `docs/engineering/environment-guidelines.md`. Their typed Nest mapping follows `docs/engineering/service-configuration-guidelines.md`.
 
-## Business-package TypeORM contributions
+## Consuming business-package TypeORM contributions
 
-A TypeORM-backed business package exposes a dedicated Nest-agnostic integration entrypoint such as:
+The producer contract for a TypeORM-backed business package is owned by `docs/engineering/package-guidelines.md`. A hosting service consumes that package through its public integration contracts; it does not redefine how the package exposes entities, migrations, persistence ports, adapter factories, or its runtime manifest.
 
-```text
-@accounterbro/<package>/typeorm
-```
+For the standard execution path, register the package's `@accounterbro/<package>/runtime` manifest through `@accounterbro/runtime-executions/nest`. The shared Nest adapter composes the manifested package schema and persistence providers around the service-owned `DataSource`, including the transaction-aware `DataSource` where required.
 
-That entrypoint owns public composition contracts for the package's ORM artifacts, for example:
+The service MUST NOT deep-import package entity, migration, mapper, repository, handler, or concrete persistence implementation files, move package-owned schema into the service, or recreate package-grouped persistence provider wrappers. The real `DataSource` lifecycle and migration execution remain service-owned.
 
-```ts
-export const DOCUMENTS_TYPEORM_ENTITIES = [DocumentEntity] as const;
-export const DOCUMENTS_TYPEORM_MIGRATIONS = [CreateDocumentsMigration] as const;
-```
-
-The hosting service MUST consume those public contracts. It MUST NOT deep-import package entity/migration implementation files or move those artifacts into the service merely to satisfy Nest or the TypeORM CLI.
-
-The package TypeORM entrypoint may depend on TypeORM but remains Nest-agnostic. The package does not create or manage the service `DataSource`.
-
-Persistence ports used as service DI tokens are exposed from the package `/typeorm` entrypoint as runtime values, normally `abstract class` contracts. The package exposes a factory for each such port and keeps construction of its concrete TypeORM adapter private.
-
-The factory accepts the normal TypeORM `DataSource` contract and contains no Nest-specific provider types. This keeps the package unaware of service transaction propagation while allowing the hosting runtime to supply the compatible `DataSource` boundary required by the execution path.
-
-The package `/typeorm` entrypoint remains the owner of framework-agnostic entities, migrations, persistence ports, and adapter factories. Its `@accounterbro/<package>/runtime` manifest aggregates the TypeORM contribution for standard hosting.
-
-`@accounterbro/runtime-executions/nest` owns the standard Nest provider wiring: it registers manifested package entities, binds manifested persistence factories, and supplies the transaction-aware `DataSource` where required. The service MUST NOT add package-grouped provider wrapper files for this standard path. The real `DataSource` itself remains service-owned.
-
-Business-package implementation rules for `/typeorm` contracts are owned by `docs/engineering/package-guidelines.md`.
+When the service-local TypeORM CLI needs the hosted business-package schema, derive it from the same hosted manifest list with `collectRuntimePackageTypeOrmSchema(hostedPackages)` where practical. Use the owning package's public integration contracts for other capabilities that are not part of that hosted manifest list.
 
 ## Canonical service structure
 
