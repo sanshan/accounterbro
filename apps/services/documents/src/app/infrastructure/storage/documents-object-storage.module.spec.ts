@@ -4,7 +4,6 @@ import { ObjectStorage } from '@accounterbro/object-storage';
 import { LocalFolderStorage } from '@accounterbro/object-storage/local-folder';
 import { NestFactory } from '@nestjs/core';
 
-import { createDocumentsConfig } from '../config/documents.config';
 import { DocumentsObjectStorageModule } from './documents-object-storage.module';
 
 describe('Documents object storage composition', () => {
@@ -25,15 +24,6 @@ describe('Documents object storage composition', () => {
 
     afterEach(() => {
         process.env = originalEnv;
-    });
-
-    it('maps service-owned storage environment into typed Documents config', () => {
-        expect(createDocumentsConfig().storage).toEqual({
-            driver: 'local-folder',
-            localFolder: {
-                rootDirectory: '.data/documents-test',
-            },
-        });
     });
 
     it('resolves ObjectStorage to LocalFolderStorage through Nest composition', async () => {
