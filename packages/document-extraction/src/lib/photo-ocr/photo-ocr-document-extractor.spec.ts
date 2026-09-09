@@ -19,9 +19,12 @@ describe('createPhotoOcrDocumentExtractor', () => {
             const content = await readFile(fixturePath);
             const result = await extractor.extract(content);
             const text = result.text.trim();
+            const normalizedText = text.toLowerCase();
 
             expect(text.length).toBeGreaterThan(300);
             expect(text.split(/\s+/u).length).toBeGreaterThan(40);
+            expect(normalizedText).toContain('командир');
+            expect(normalizedText).toContain('батальона');
         },
         60_000,
     );
