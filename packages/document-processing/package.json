@@ -17,6 +17,16 @@
             "types": "./dist/execution.d.ts",
             "import": "./dist/execution.js",
             "default": "./dist/execution.js"
+        },
+        "./typeorm": {
+            "types": "./dist/typeorm.d.ts",
+            "import": "./dist/typeorm.js",
+            "default": "./dist/typeorm.js"
+        },
+        "./runtime": {
+            "types": "./dist/runtime.d.ts",
+            "import": "./dist/runtime.js",
+            "default": "./dist/runtime.js"
         }
     },
     "dependencies": {
@@ -30,6 +40,10 @@
         "@event-driven-platform/operation-result": "^0.1.7",
         "@event-driven-platform/read": "^0.0.8",
         "@event-driven-platform/read-handler": "^0.0.7",
-        "@event-driven-platform/subject": "^0.1.7"
+        "@event-driven-platform/subject": "^0.1.7",
+        "typeorm": "catalog:"
+    },
+    "devDependencies": {
+        "pg": "catalog:"
     }
 }
