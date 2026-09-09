@@ -50,11 +50,7 @@ export default [
                         },
                         {
                             sourceTag: 'type:app',
-                            onlyDependOnLibsWithTags: [
-                                'type:core',
-                                'type:business',
-                                'type:runtime',
-                            ],
+                            onlyDependOnLibsWithTags: ['type:core', 'type:business', 'type:runtime'],
                         },
                         {
                             sourceTag: 'type:e2e',
@@ -142,12 +138,7 @@ export default [
             'no-restricted-imports': [
                 'error',
                 {
-                    patterns: [
-                        restrictedLocalLayers(
-                            ['presenters'],
-                            'Infrastructure must not depend on presenters.',
-                        ),
-                    ],
+                    patterns: [restrictedLocalLayers(['presenters'], 'Infrastructure must not depend on presenters.')],
                 },
             ],
         },
@@ -186,4 +177,3 @@ export default [
         },
     },
 ];
-
