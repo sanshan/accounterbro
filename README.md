@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/assets/brand/logo-mark.png" alt="AccounterBro logo" width="180" />
+
 # AccounterBro
 
 **Your accounting bro. Makes the hard stuff easy.**
