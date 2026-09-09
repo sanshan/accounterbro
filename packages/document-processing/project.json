@@ -1,0 +1,7 @@
+{
+    "name": "@accounterbro/document-processing",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "packages/document-processing/src",
+    "projectType": "library",
+    "tags": ["type:business"]
+}

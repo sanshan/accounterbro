@@ -44,6 +44,9 @@
         },
         {
             "path": "./apps/services/documents-e2e"
+        },
+        {
+            "path": "./packages/document-processing"
         }
     ]
 }
