@@ -10,6 +10,9 @@
     "include": ["src/**/*.ts"],
     "references": [
         {
+            "path": "../runtime-executions/tsconfig.lib.json"
+        },
+        {
             "path": "../core/tsconfig.lib.json"
         }
     ],
