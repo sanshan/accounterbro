@@ -4,7 +4,7 @@
 
 The package currently:
 
-- validates `API_PORT`, `DOCUMENTS_PORT`, and `WEB_PORT` from the already-populated process environment;
+- validates `API_PORT`, `DOCUMENTS_PORT`, `DOCUMENT_PROCESSING_PORT`, and `WEB_PORT` from the already-populated process environment;
 - applies the repository defaults for those ports;
 - exports the immutable `runtimeConfig` object used by runtime and tooling consumers;
 - exports `PortSchema` for service-owned configuration that needs the same port primitive.

@@ -1,13 +1,46 @@
+import { documentProcessing } from '@accounterbro/document-processing/runtime';
+import {
+    RUNTIME_HEALTH_TYPEORM_ENTITIES,
+    RUNTIME_HEALTH_TYPEORM_MIGRATIONS,
+} from '@accounterbro/runtime-health/typeorm';
+import { collectRuntimePackageTypeOrmSchema } from '@accounterbro/runtime-executions';
+import {
+    EXECUTION_LOG_TYPEORM_ENTITIES,
+    EXECUTION_LOG_TYPEORM_MIGRATIONS,
+} from '@accounterbro/runtime-executions/execution-log/typeorm';
+import {
+    OUTBOX_TYPEORM_ENTITIES,
+    OUTBOX_TYPEORM_MIGRATIONS,
+} from '@accounterbro/runtime-executions/outbox/typeorm';
+import {
+    USE_CASE_EXECUTION_TYPEORM_ENTITIES,
+    USE_CASE_EXECUTION_TYPEORM_MIGRATIONS,
+} from '@accounterbro/runtime-executions/use-case-execution/typeorm';
 import { DataSource } from 'typeorm';
 
 import { createDocumentProcessingConfig } from '../../config/document-processing.config';
 import { createDocumentProcessingTypeOrmOptions } from './typeorm-options';
 
 const config = createDocumentProcessingConfig();
+const hostedPackages = [documentProcessing] as const;
+const packageSchema = collectRuntimePackageTypeOrmSchema(hostedPackages);
 
 export const AppDataSource = new DataSource({
     ...createDocumentProcessingTypeOrmOptions(config.database),
-    entities: [`${__dirname}/entities/*{.ts,.js}`],
-    migrations: [`${__dirname}/migrations/*{.ts,.js}`],
+    entities: [
+        ...packageSchema.entities,
+        ...RUNTIME_HEALTH_TYPEORM_ENTITIES,
+        ...EXECUTION_LOG_TYPEORM_ENTITIES,
+        ...OUTBOX_TYPEORM_ENTITIES,
+        ...USE_CASE_EXECUTION_TYPEORM_ENTITIES,
+    ],
+    migrations: [
+        ...packageSchema.migrations,
+        ...RUNTIME_HEALTH_TYPEORM_MIGRATIONS,
+        ...EXECUTION_LOG_TYPEORM_MIGRATIONS,
+        ...OUTBOX_TYPEORM_MIGRATIONS,
+        ...USE_CASE_EXECUTION_TYPEORM_MIGRATIONS,
+        `${__dirname}/migrations/*{.ts,.js}`,
+    ],
     migrationsRun: false,
 });

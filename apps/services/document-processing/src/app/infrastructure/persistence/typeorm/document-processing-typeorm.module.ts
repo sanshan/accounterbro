@@ -1,3 +1,4 @@
+import { RUNTIME_HEALTH_TYPEORM_ENTITIES } from '@accounterbro/runtime-health/typeorm';
 import { Module } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -16,6 +17,7 @@ import { createDocumentProcessingTypeOrmOptions } from './typeorm-options';
                 autoLoadEntities: true,
             }),
         }),
+        TypeOrmModule.forFeature([...RUNTIME_HEALTH_TYPEORM_ENTITIES]),
     ],
     exports: [TypeOrmModule],
 })

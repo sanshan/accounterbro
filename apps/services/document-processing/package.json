@@ -10,10 +10,16 @@
         "migration:show": "ts-node -P ./tsconfig.app.json ./node_modules/typeorm/cli.js migration:show -d ./src/app/infrastructure/persistence/typeorm/data-source.ts"
     },
     "dependencies": {
+        "@accounterbro/document-processing": "workspace:*",
         "@accounterbro/runtime-config": "workspace:*",
+        "@accounterbro/runtime-executions": "workspace:*",
+        "@accounterbro/runtime-health": "workspace:*",
+        "@accounterbro/runtime-observability": "workspace:*",
+        "@accounterbro/runtime-presenters": "workspace:*",
         "@nestjs/common": "^11.0.0",
         "@nestjs/config": "^4.0.4",
         "@nestjs/core": "^11.0.0",
+        "@nestjs/platform-express": "^11.0.0",
         "@nestjs/typeorm": "^11.0.3",
         "pg": "catalog:",
         "reflect-metadata": "^0.2.0",
