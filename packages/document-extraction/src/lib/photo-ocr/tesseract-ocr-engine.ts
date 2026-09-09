@@ -13,16 +13,16 @@ interface OcrEngine {
 }
 
 const require = createRequire(import.meta.url);
-const englishLanguageData = require('@tesseract.js-data/eng') as TesseractLanguageData;
+const russianLanguageData = require('@tesseract.js-data/rus') as TesseractLanguageData;
 
 export class TesseractOcrEngine implements OcrEngine {
     public async recognize(content: Uint8Array): Promise<string> {
         const worker = await Tesseract.createWorker(
-            englishLanguageData.code,
+            russianLanguageData.code,
             Tesseract.OEM.LSTM_ONLY,
             {
-                gzip: englishLanguageData.gzip,
-                langPath: englishLanguageData.langPath,
+                gzip: russianLanguageData.gzip,
+                langPath: russianLanguageData.langPath,
             },
         );
 
