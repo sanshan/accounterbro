@@ -12,9 +12,24 @@
             "types": "./dist/index.d.ts",
             "import": "./dist/index.js",
             "default": "./dist/index.js"
+        },
+        "./execution": {
+            "types": "./dist/execution.d.ts",
+            "import": "./dist/execution.js",
+            "default": "./dist/execution.js"
         }
     },
     "dependencies": {
-        "@accounterbro/core": "workspace:*"
+        "@accounterbro/core": "workspace:*",
+        "@accounterbro/runtime-executions": "workspace:*",
+        "@event-driven-platform/actor": "^0.1.7",
+        "@event-driven-platform/event": "^0.1.7",
+        "@event-driven-platform/intent": "^0.2.4",
+        "@event-driven-platform/operation": "^0.1.8",
+        "@event-driven-platform/operation-handler": "^0.0.9",
+        "@event-driven-platform/operation-result": "^0.1.7",
+        "@event-driven-platform/read": "^0.0.8",
+        "@event-driven-platform/read-handler": "^0.0.7",
+        "@event-driven-platform/subject": "^0.1.7"
     }
 }
