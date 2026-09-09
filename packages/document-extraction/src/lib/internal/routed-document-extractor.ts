@@ -3,9 +3,9 @@ import {
     DocumentExtractor,
     type DocumentExtractionResult,
 } from '../document-extractor.js';
-import {
+import type {
     DocumentContentDetector,
-    type DetectedDocumentRepresentation,
+    DetectedDocumentRepresentation,
 } from './document-content-detector.js';
 
 export interface DetectedContentExtractor {
