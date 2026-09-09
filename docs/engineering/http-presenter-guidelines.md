@@ -4,6 +4,8 @@ These rules define the reusable HTTP presentation boundary for internal Nest ser
 
 Apply them when a service exposes `presenters/http`. They complement `docs/engineering/service-guidelines.md` and `docs/engineering/observability-and-http-errors.md`; they do not make HTTP mandatory for every internal service.
 
+This guide is the canonical engineering owner for ordinary HTTP failure presentation, Problem Details usage, endpoint OpenAPI error contracts, and the separation between ordinary errors and the health HTTP contract. `docs/engineering/observability-and-http-errors.md` owns failure classification, retry ownership, logging, and telemetry rather than HTTP status or presentation policy.
+
 ## Canonical implemented references
 
 Use the closest proven implementation for the responsibility being changed:
@@ -158,13 +160,15 @@ Do not introduce generic mapper interfaces/base classes until repeated implement
 
 Ordinary application/framework failures use the canonical RFC 9457-compatible `application/problem+json` contract from `@accounterbro/runtime-presenters/http/errors`; Nest installs the shared filter through `/http/errors/nest`.
 
-The canonical flow is defined in `docs/engineering/observability-and-http-errors.md`. At the HTTP boundary:
+Failure classification itself remains owned by EDP and the concrete adapters described in `docs/engineering/observability-and-http-errors.md`. At the HTTP boundary, presentation is owned here and follows this canonical flow:
 
 - classified `ExecutionFailureError` maps by `executionFailure.code` only;
 - an expected application/business result remains a normal result below the presenter and is explicitly selected as a canonical `HttpProblemDefinition` by the presenter when the public HTTP contract is non-2xx;
 - ordinary Nest `HttpException` status maps to the canonical problem family;
 - unknown thrown values become the safe internal problem without exposing internal diagnostics;
 - an active OpenTelemetry `traceId` may appear as a safe support reference.
+
+HTTP mapping MUST NOT inspect an execution failure message or `retryable` to decide status. Do not throw an EDP failure merely to represent an expected application result that the presenter exposes as a non-2xx public contract.
 
 Do not create service-local Problem Details DTOs, exception filters, failure-code tables, or retryability/message-to-status mappings while the shared runtime owns them. Expected business/client problems are not automatically terminal server-error logs.
 
