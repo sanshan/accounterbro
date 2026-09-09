@@ -7,7 +7,7 @@ import { createPhotoOcrDocumentExtractor } from './create-photo-ocr-document-ext
 
 const fixturePath = resolve(
     process.cwd(),
-    'src/lib/photo-ocr/fixtures/real-phone-photo.jpg',
+    'src/lib/photo-ocr/fixtures/IMG_0711.jpeg',
 );
 
 describe('createPhotoOcrDocumentExtractor', () => {
