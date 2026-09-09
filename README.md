@@ -1,14 +1,116 @@
+<div align="center">
+
 # AccounterBro
 
-AccounterBro is an Nx monorepo containing a NestJS API, an internal Documents service, a React web application, and PostgreSQL persistence. The current Web application includes the Documents upload flow backed by the Documents service.
+**A production-oriented accounting platform built as an explicit, testable distributed system.**
 
-## Prerequisites
+[![CI](https://github.com/sanshan/accounterbro/actions/workflows/ci.yml/badge.svg)](https://github.com/sanshan/accounterbro/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+
+</div>
+
+AccounterBro is an accounting product under active development. The repository is built around production-oriented service boundaries, explicit execution contracts, service-owned persistence, reusable runtime capabilities, and automated verification rather than demo-oriented shortcuts.
+
+The codebase is also the executable reference for the engineering rules used to evolve the product: when a pattern becomes proven by implementation, the repository documents it so future developers and coding agents can follow the same boundaries consistently.
+
+> **Project status:** active development. The current end-to-end web slice covers document upload backed by the Documents service. Additional accounting and document-processing capabilities are being built incrementally.
+
+## What exists today
+
+- **React web application** with the current document-upload flow.
+- **Documents service** implemented as a NestJS business service with explicit presenter, application, and infrastructure boundaries.
+- **Document Processing service foundation** with its business package and standard service shell, ready for incremental feature implementation.
+- **Business packages** that own domain/execution behavior independently from service hosting concerns.
+- **Shared runtime packages** for configuration, execution composition, health, observability, HTTP presentation, and object storage.
+- **Service-owned PostgreSQL persistence** with explicit TypeORM lifecycle and migrations.
+- **Tenant-aware execution boundaries** for tenant-owned resources.
+- **Unit, E2E, CI, and performance-test infrastructure** around the implemented slices.
+- **Repository-native engineering and review rules** intended to be consumed by both humans and coding agents.
+
+## Architecture
+
+AccounterBro separates product behavior from service/runtime composition. Business packages own business execution contracts and persistence integration surfaces; deployable services compose those packages with transport and infrastructure concerns.
+
+```mermaid
+flowchart LR
+    Web[React Web] --> DocumentsService[Documents Service]
+
+    subgraph Services
+        API[API]
+        DocumentsService
+        ProcessingService[Document Processing Service]
+    end
+
+    DocumentsService --> DocumentsPackage[@accounterbro/documents]
+    ProcessingService --> ProcessingPackage[@accounterbro/document-processing]
+
+    Runtime[Shared runtime packages] -. compose .-> API
+    Runtime -. compose .-> DocumentsService
+    Runtime -. compose .-> ProcessingService
+
+    DocumentsService --> PostgreSQL[(PostgreSQL)]
+    ProcessingService --> PostgreSQL
+    API --> PostgreSQL
+    DocumentsService --> Storage[Object storage]
+
+    EDP[Event-driven execution contracts] -. used by .-> DocumentsPackage
+    EDP -. used by .-> ProcessingPackage
+```
+
+Inside an internal service, the stable composition direction is:
+
+```text
+Presenters -> Application -> Infrastructure
+```
+
+Domain code is introduced only where the service genuinely owns domain behavior; business behavior already owned by a hosted package remains in that package.
+
+### Engineering principles
+
+- **Explicit boundaries over convenience coupling.** Nx and ESLint enforce project and layer dependency direction.
+- **Business behavior belongs to business packages.** Services host and orchestrate capabilities rather than duplicating package-owned behavior.
+- **Tenant scope is explicit.** Tenant identity flows through typed use-case and execution contracts for tenant-owned resources.
+- **Runtime concerns are reusable.** Health, observability, configuration, execution composition, presenters, and storage are shared capabilities instead of copy-pasted service code.
+- **Persistence is service-owned.** Database lifecycle and migrations remain explicit at the owning service boundary.
+- **Tests live at the boundary that owns the behavior.** Unit, specification, integration, E2E, and load tests have distinct responsibilities.
+- **Architecture is documented from proven implementation.** Existing working references are preferred over speculative abstractions.
+
+## Repository layout
+
+| Path | Responsibility |
+| --- | --- |
+| `apps/web` | React/Vite product UI |
+| `apps/api` | NestJS API host |
+| `apps/services/documents` | Documents business-service host |
+| `apps/services/document-processing` | Document Processing service host |
+| `packages/documents` | Documents business package |
+| `packages/document-processing` | Document Processing business package |
+| `packages/core` | Framework-free shared primitives |
+| `packages/runtime-*` | Reusable technical/runtime capabilities |
+| `packages/object-storage` | Object-storage capability |
+| `docs/engineering` | Canonical engineering guidance |
+| `docs/review` | Deterministic repository review rules |
+
+## Technology
+
+| Area | Stack |
+| --- | --- |
+| Language | TypeScript 5.9 |
+| Workspace | Nx 23, pnpm 10 |
+| Backend | NestJS 11 |
+| Frontend | React 19, Vite 8 |
+| Persistence | PostgreSQL, TypeORM |
+| Testing | Jest, Vitest, E2E projects, load-test tooling |
+| Architecture | Event-driven execution contracts, layered service composition |
+
+## Getting started
+
+### Prerequisites
 
 - Node.js 24
 - pnpm 10
 - Docker with Docker Compose
-
-## Local setup
 
 From the repository root:
 
@@ -18,34 +120,40 @@ cp .env.example .env
 docker compose up -d database
 ```
 
-The copied environment contains the safe local database, service-port, and Documents storage values. The PostgreSQL container creates the API database from those values.
-
-The Documents service owns a separate logical database. Create it once in the existing PostgreSQL container:
+The local PostgreSQL container starts with the API database. The internal services own separate logical databases; create them once in the same local PostgreSQL instance:
 
 ```bash
 docker compose exec database createdb -U postgres accounterbro_documents
+docker compose exec database createdb -U postgres accounterbro_document_processing
 ```
 
-If the database already exists, skip that creation command.
+If either database already exists, skip its creation command.
 
-Apply both service migrations:
+Apply the service migrations:
 
 ```bash
 pnpm nx run @accounterbro/api:migration:run
 pnpm nx run @accounterbro/documents-service:migration:run
+pnpm nx run @accounterbro/document-processing-service:migration:run
 ```
 
-Start the API, Documents service, and Web application in separate terminals:
+Start the applications in separate terminals as needed:
 
 ```bash
 pnpm nx run @accounterbro/api:serve
 pnpm nx run @accounterbro/documents-service:serve
+pnpm nx run @accounterbro/document-processing-service:serve
 pnpm nx run @accounterbro/web:serve
 ```
 
-With the default local configuration, the API runs on port `3000`, the Documents service on port `3001`, and the Web application on port `4200`.
+With the default local configuration:
 
-For local development, the Vite server proxies `/documents` requests to the Documents service and supplies the repository's development request-identity headers used by the upload UI.
+- API: `http://localhost:3000`
+- Documents service: `http://localhost:3001`
+- Document Processing service: `http://localhost:3002`
+- Web: `http://localhost:4200`
+
+For local development, Vite proxies `/documents` requests to the Documents service and supplies the repository's development request-identity headers used by the current upload UI.
 
 Stop PostgreSQL with:
 
@@ -55,19 +163,35 @@ docker compose down
 
 ## Verification
 
-Run the repository checks from the root:
+Run the repository checks from the root through Nx:
 
 ```bash
 pnpm nx run-many -t lint
 pnpm nx run-many -t typecheck
-pnpm nx run @accounterbro/api:migration:run
-pnpm nx run @accounterbro/documents-service:migration:run
 pnpm nx run-many -t test
 pnpm nx run-many -t build
 pnpm nx run @accounterbro/api-e2e:e2e
 pnpm nx run @accounterbro/documents-service-e2e:e2e
 ```
 
-The E2E targets require their normal runtime dependencies.
+The E2E targets require their normal runtime dependencies. GitHub Actions runs the repository CI and verifies the relevant built applications can start successfully.
 
-GitHub Actions also verifies that the built API and Web artifacts can start successfully.
+## Engineering documentation
+
+The repository documentation is part of the implementation contract, not a separate aspirational architecture document.
+
+Start with:
+
+- [Service engineering guidelines](docs/engineering/service-guidelines.md)
+- [Business package guidelines](docs/engineering/package-guidelines.md)
+- [Database guidelines](docs/engineering/database-guidelines.md)
+- [HTTP presenter guidelines](docs/engineering/http-presenter-guidelines.md)
+- [Observability and HTTP errors](docs/engineering/observability-and-http-errors.md)
+- [Environment guidelines](docs/engineering/environment-guidelines.md)
+- [Service configuration guidelines](docs/engineering/service-configuration-guidelines.md)
+- [Review rules](docs/review/README.md)
+- [Repository agent instructions](AGENTS.md)
+
+## License
+
+AccounterBro is available under the [MIT License](LICENSE).
