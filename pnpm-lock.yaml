@@ -421,6 +421,13 @@ importers:
       '@event-driven-platform/subject':
         specifier: ^0.1.7
         version: 0.1.7
+      typeorm:
+        specifier: 'catalog:'
+        version: 1.1.0(babel-plugin-macros@3.1.0)(pg@8.23.0)(ts-node@10.9.1(@swc/core@1.15.47(@swc/helpers@0.5.23))(@types/node@22.20.1)(typescript@5.9.3))
+    devDependencies:
+      pg:
+        specifier: 'catalog:'
+        version: 8.23.0
 
   packages/documents:
     dependencies:
@@ -12507,7 +12514,7 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.9
       estree-walker: 2.0.2
-      picomatch: 4.0.4
+      picomatch: 4.0.7
 
   '@rspack/binding-darwin-arm64@1.6.8':
     optional: true
@@ -15116,10 +15123,6 @@ snapshots:
   fb-watchman@2.0.2:
     dependencies:
       bser: 2.1.1
-
-  fdir@6.5.0(picomatch@4.0.4):
-    optionalDependencies:
-      picomatch: 4.0.4
 
   fdir@6.5.0(picomatch@4.0.7):
     optionalDependencies:
@@ -18771,8 +18774,8 @@ snapshots:
 
   tinyglobby@0.2.17:
     dependencies:
-      fdir: 6.5.0(picomatch@4.0.4)
-      picomatch: 4.0.4
+      fdir: 6.5.0(picomatch@4.0.7)
+      picomatch: 4.0.7
 
   tinyrainbow@3.1.1: {}
 
