@@ -132,25 +132,37 @@ describe('TypeOrmDocumentProcessingPersistence', () => {
         ).toBe(2);
     });
 
-    it('round-trips every valid aggregate state through tenant-scoped lookups', async () => {
+    it('round-trips pending, completed and failed states through their normal persistence paths', async () => {
         const persistence = createDocumentProcessingPersistence(dataSource);
+
         const pending = DocumentProcessing.pending(processingId(201), tenantA, documentId(201));
+        await persistence.createOrGetExisting(tenantA, pending);
+        await expect(persistence.findById(tenantA, pending.id)).resolves.toEqual(pending);
+        await expect(persistence.findByDocumentId(tenantA, pending.documentId)).resolves.toEqual(
+            pending,
+        );
+
         const completed = DocumentProcessing.pending(
             processingId(202),
             tenantA,
             documentId(202),
         );
+        await persistence.createOrGetExisting(tenantA, completed);
         completed.complete('extracted document text');
-        const failed = DocumentProcessing.pending(processingId(203), tenantA, documentId(203));
-        failed.fail('extractor unavailable');
+        await persistence.update(tenantA, completed);
+        await expect(persistence.findById(tenantA, completed.id)).resolves.toEqual(completed);
+        await expect(
+            persistence.findByDocumentId(tenantA, completed.documentId),
+        ).resolves.toEqual(completed);
 
-        for (const processing of [pending, completed, failed]) {
-            await persistence.createOrGetExisting(tenantA, processing);
-            await expect(persistence.findById(tenantA, processing.id)).resolves.toEqual(processing);
-            await expect(
-                persistence.findByDocumentId(tenantA, processing.documentId),
-            ).resolves.toEqual(processing);
-        }
+        const failed = DocumentProcessing.pending(processingId(203), tenantA, documentId(203));
+        await persistence.createOrGetExisting(tenantA, failed);
+        failed.fail('extractor unavailable');
+        await persistence.update(tenantA, failed);
+        await expect(persistence.findById(tenantA, failed.id)).resolves.toEqual(failed);
+        await expect(persistence.findByDocumentId(tenantA, failed.documentId)).resolves.toEqual(
+            failed,
+        );
     });
 
     it('returns absence for cross-tenant lookups by processing and source document identity', async () => {
@@ -178,6 +190,15 @@ describe('TypeOrmDocumentProcessingPersistence', () => {
         const persistence = createDocumentProcessingPersistence(dataSource);
         await expect(persistence.findById(tenantA, processing.id)).rejects.toThrow(
             'COMPLETED DocumentProcessing must contain only extracted text.',
+        );
+    });
+
+    it('rejects a write whose aggregate owner contradicts the requested tenant scope', async () => {
+        const persistence = createDocumentProcessingPersistence(dataSource);
+        const processing = DocumentProcessing.pending(processingId(450), tenantB, documentId(450));
+
+        await expect(persistence.createOrGetExisting(tenantA, processing)).rejects.toThrow(
+            'Document processing tenant does not match the requested persistence scope.',
         );
     });
 
