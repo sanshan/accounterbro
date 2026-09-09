@@ -50,6 +50,9 @@
         },
         {
             "path": "./apps/services/document-processing"
+        },
+        {
+            "path": "./packages/document-extraction"
         }
     ]
 }

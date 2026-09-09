@@ -1,0 +1,26 @@
+{
+    "name": "@accounterbro/document-extraction",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
+        "./photo-ocr": {
+            "types": "./dist/photo-ocr.d.ts",
+            "import": "./dist/photo-ocr.js",
+            "default": "./dist/photo-ocr.js"
+        }
+    },
+    "dependencies": {
+        "@tesseract.js-data/rus": "1.0.0",
+        "tesseract.js": "7.0.0"
+    }
+}
