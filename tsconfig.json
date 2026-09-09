@@ -47,6 +47,9 @@
         },
         {
             "path": "./packages/document-processing"
+        },
+        {
+            "path": "./apps/services/document-processing"
         }
     ]
 }

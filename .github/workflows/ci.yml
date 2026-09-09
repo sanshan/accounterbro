@@ -52,6 +52,12 @@ jobs:
       DOCUMENTS_PORT: 3101
       DOCUMENTS_STORAGE_DRIVER: local-folder
       DOCUMENTS_STORAGE_LOCAL_FOLDER_ROOT: /tmp/accounterbro-documents-e2e
+      DOCUMENT_PROCESSING_DB_HOST: 127.0.0.1
+      DOCUMENT_PROCESSING_DB_PORT: 5432
+      DOCUMENT_PROCESSING_DB_USERNAME: postgres
+      DOCUMENT_PROCESSING_DB_PASSWORD: postgres
+      DOCUMENT_PROCESSING_DB_NAME: accounterbro_document_processing_e2e
+      DOCUMENT_PROCESSING_PORT: 3102
       WEB_PORT: 4300
 
     steps:
@@ -100,6 +106,13 @@ jobs:
             --dbname=postgres \
             --set=ON_ERROR_STOP=1 \
             --command="CREATE DATABASE $DOCUMENTS_DB_NAME;"
+          psql \
+            --host="$DOCUMENT_PROCESSING_DB_HOST" \
+            --port="$DOCUMENT_PROCESSING_DB_PORT" \
+            --username="$DOCUMENT_PROCESSING_DB_USERNAME" \
+            --dbname=postgres \
+            --set=ON_ERROR_STOP=1 \
+            --command="CREATE DATABASE $DOCUMENT_PROCESSING_DB_NAME;"
 
       - name: Run lint
         run: pnpm nx run-many -t lint
@@ -111,6 +124,7 @@ jobs:
         run: |
           pnpm nx run @accounterbro/api:migration:run
           pnpm nx run @accounterbro/documents-service:migration:run
+          pnpm nx run @accounterbro/document-processing-service:migration:run
 
       - name: Run unit and integration tests
         run: pnpm nx affected -t test
@@ -140,6 +154,28 @@ jobs:
             sleep 1
           done
           cat /tmp/api.log
+          exit 1
+
+      - name: Verify Document Processing artifact startup
+        shell: bash
+        run: |
+          pnpm nx run @accounterbro/document-processing-service:start > /tmp/document-processing.log 2>&1 &
+          pid=$!
+          cleanup() {
+            kill "$pid" 2>/dev/null || true
+            wait "$pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent --output /dev/null "http://127.0.0.1:${DOCUMENT_PROCESSING_PORT}/health/live" && \
+               curl --fail --silent --output /dev/null "http://127.0.0.1:${DOCUMENT_PROCESSING_PORT}/health/ready"; then
+              cleanup
+              trap - EXIT
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/document-processing.log
           exit 1
 
       - name: Verify Web artifact startup
