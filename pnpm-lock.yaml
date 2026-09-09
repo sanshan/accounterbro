@@ -391,6 +391,36 @@ importers:
       '@accounterbro/core':
         specifier: workspace:*
         version: link:../core
+      '@accounterbro/runtime-executions':
+        specifier: workspace:*
+        version: link:../runtime-executions
+      '@event-driven-platform/actor':
+        specifier: ^0.1.7
+        version: 0.1.7
+      '@event-driven-platform/event':
+        specifier: ^0.1.7
+        version: 0.1.7
+      '@event-driven-platform/intent':
+        specifier: ^0.2.4
+        version: 0.2.4
+      '@event-driven-platform/operation':
+        specifier: ^0.1.8
+        version: 0.1.8
+      '@event-driven-platform/operation-handler':
+        specifier: ^0.0.9
+        version: 0.0.9
+      '@event-driven-platform/operation-result':
+        specifier: ^0.1.7
+        version: 0.1.7
+      '@event-driven-platform/read':
+        specifier: ^0.0.8
+        version: 0.0.8
+      '@event-driven-platform/read-handler':
+        specifier: ^0.0.7
+        version: 0.0.7
+      '@event-driven-platform/subject':
+        specifier: ^0.1.7
+        version: 0.1.7
 
   packages/documents:
     dependencies:
