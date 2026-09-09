@@ -12,6 +12,11 @@
             "types": "./dist/index.d.ts",
             "import": "./dist/index.js",
             "default": "./dist/index.js"
+        },
+        "./photo-ocr": {
+            "types": "./dist/photo-ocr.d.ts",
+            "import": "./dist/photo-ocr.js",
+            "default": "./dist/photo-ocr.js"
         }
     }
 }
