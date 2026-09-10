@@ -20,6 +20,8 @@
         "@accounterbro/runtime-observability": "workspace:*",
         "@accounterbro/runtime-presenters": "workspace:*",
         "@event-driven-platform/actor": "^0.1.7",
+        "@event-driven-platform/execution": "^0.0.8",
+        "@event-driven-platform/intent": "^0.2.4",
         "@event-driven-platform/use-case": "^0.1.0",
         "@nestjs/common": "^11.0.0",
         "@nestjs/config": "^4.0.4",

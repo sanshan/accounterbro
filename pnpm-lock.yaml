@@ -279,6 +279,12 @@ importers:
       '@event-driven-platform/actor':
         specifier: ^0.1.7
         version: 0.1.7
+      '@event-driven-platform/execution':
+        specifier: ^0.0.8
+        version: 0.0.8
+      '@event-driven-platform/intent':
+        specifier: ^0.2.4
+        version: 0.2.4
       '@event-driven-platform/use-case':
         specifier: ^0.1.0
         version: 0.1.0
