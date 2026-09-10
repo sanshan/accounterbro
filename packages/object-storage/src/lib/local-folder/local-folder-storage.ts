@@ -1,8 +1,10 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, relative, resolve, sep, win32 } from 'node:path';
 
 import {
     ObjectStorage,
+    type ObjectStorageGetRequest,
+    type ObjectStorageGetResult,
     type ObjectStoragePutRequest,
     type ObjectStoragePutResult,
 } from '../ports/object-storage.js';
@@ -32,6 +34,14 @@ export class LocalFolderStorage extends ObjectStorage {
 
         return {
             reference: request.key,
+        };
+    }
+
+    public async get(request: ObjectStorageGetRequest): Promise<ObjectStorageGetResult> {
+        const targetPath = this.resolveTargetPath(request.reference);
+
+        return {
+            content: await readFile(targetPath),
         };
     }
 
