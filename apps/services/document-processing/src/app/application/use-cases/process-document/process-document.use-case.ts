@@ -116,7 +116,7 @@ export class ProcessDocumentUseCase
             }
 
             const failureReason = error.message.length > 0 ? error.message : error.code;
-            const finished = await this.finishProcessing(
+            await this.finishProcessing(
                 processingReference,
                 {
                     outcome: 'failed',
@@ -125,15 +125,10 @@ export class ProcessDocumentUseCase
                 context,
             );
 
-            return {
-                id: finished.id,
-                documentId: input.documentId,
-                status: finished.status,
-                failureReason,
-            };
+            return this.readProcessing(input.documentId, context);
         }
 
-        const finished = await this.finishProcessing(
+        await this.finishProcessing(
             processingReference,
             {
                 outcome: 'completed',
@@ -142,18 +137,30 @@ export class ProcessDocumentUseCase
             context,
         );
 
-        return {
-            id: finished.id,
-            documentId: input.documentId,
-            status: finished.status,
-            extractedText,
-        };
+        return this.readProcessing(input.documentId, context);
     }
 
     private async resolveExistingProcessing(
         documentId: DocumentId,
         context: ProcessDocumentUseCaseContext,
     ): Promise<ProcessDocumentUseCaseResult> {
+        const current = await this.readProcessing(documentId, context);
+
+        if (current.status === DocumentProcessingStatus.Pending) {
+            throw new ExecutionFailureError({
+                code: 'document-processing-in-progress',
+                message: 'Document processing is already in progress.',
+                retryable: true,
+            });
+        }
+
+        return current;
+    }
+
+    private async readProcessing(
+        documentId: DocumentId,
+        context: ProcessDocumentUseCaseContext,
+    ): Promise<GetDocumentProcessingResult> {
         const read: GetDocumentProcessingRead = {
             name: documentProcessingReadNames.getDocumentProcessing,
             actor: context.actor,
@@ -172,14 +179,6 @@ export class ProcessDocumentUseCase
 
         if (!current) {
             throw new Error('Existing Document Processing could not be read in the current tenant.');
-        }
-
-        if (current.status === DocumentProcessingStatus.Pending) {
-            throw new ExecutionFailureError({
-                code: 'document-processing-in-progress',
-                message: 'Document processing is already in progress.',
-                retryable: true,
-            });
         }
 
         return current;
