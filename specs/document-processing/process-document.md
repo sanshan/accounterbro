@@ -6,7 +6,14 @@ Allow a registered Document to be processed into extracted text and return the r
 
 ## Input
 
-The request contains a Document identifier and executes in the calling tenant context. Tenant identity is invocation metadata rather than a request-body field.
+The request contains:
+
+- the Document identifier;
+- the opaque storage reference for the registered Document's original content.
+
+The UseCase executes in the calling tenant context. Tenant identity is invocation metadata rather than a request-body field.
+
+The storage reference is supplied by the invocation boundary and is used as-is to obtain the original Document bytes. Process Document does not derive or reconstruct a storage key from tenant or Document identity.
 
 ## Document Processing statuses
 
@@ -33,7 +40,7 @@ then exactly one new Document Processing has been created and the request succee
 }
 ```
 
-The processing first enters `PENDING`. The UseCase then obtains the original Document content, passes its bytes to the configured document extractor, and records the successful outcome before returning.
+The processing first enters `PENDING`. The UseCase then obtains the original Document content using the supplied storage reference, passes its bytes to the configured document extractor, and records the successful outcome before returning.
 
 A completed processing stores the extracted text and does not expose a failure reason.
 
@@ -93,7 +100,7 @@ This specification does not define:
 - retry count, backoff, or other retry policy;
 - a separate manual retry UseCase for an already `FAILED` processing;
 - document extraction technology or implementation details;
-- the storage technology or mechanism used to obtain the original Document bytes;
+- the storage technology or physical key/path represented by the supplied storage reference;
 - transport, consumers, asynchronous delivery, broker behavior, or presenter behavior;
 - internal execution-claim, replay, idempotency, transaction, Outbox, or concurrency implementation details;
 - standalone product behavior for Prepare Document Processing or Finish Document Processing Operations;
