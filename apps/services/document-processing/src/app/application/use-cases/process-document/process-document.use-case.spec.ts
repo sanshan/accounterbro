@@ -130,6 +130,12 @@ describe('ProcessDocumentUseCase', () => {
     }
 
     it('DPROC-PROC-001 processes a new Document and returns COMPLETED extracted text', async () => {
+        const completed = {
+            id: processingId,
+            documentId,
+            status: DocumentProcessingStatus.Completed,
+            extractedText: 'Extracted text',
+        } satisfies GetDocumentProcessingResult;
         const runnerExecute = jest
             .fn()
             .mockResolvedValueOnce({
@@ -148,26 +154,31 @@ describe('ProcessDocumentUseCase', () => {
                     status: DocumentProcessingStatus.Completed,
                 },
             });
+        const readerExecute = jest.fn(async () => completed);
         const storageGet = jest.fn(async () => ({ content }));
         const extract = jest.fn(async () => ({ text: 'Extracted text' }));
-        const { useCase, readerExecute } = createUseCase({
+        const { useCase } = createUseCase({
             runnerExecute,
+            readerExecute,
             storageGet,
             extract,
         });
 
         await expect(
             useCase.execute({ documentId, storageReference }, context),
-        ).resolves.toEqual({
-            id: processingId,
-            documentId,
-            status: DocumentProcessingStatus.Completed,
-            extractedText: 'Extracted text',
-        });
+        ).resolves.toEqual(completed);
 
         expect(storageGet).toHaveBeenCalledWith({ reference: storageReference });
         expect(extract).toHaveBeenCalledWith(content);
-        expect(readerExecute).not.toHaveBeenCalled();
+        expect(readerExecute).toHaveBeenCalledWith({
+            read: {
+                name: documentProcessingReadNames.getDocumentProcessing,
+                actor,
+                tenant,
+                parameters: { documentId },
+            },
+            context: { correlationId: context.correlationId },
+        });
         expect(runnerExecute).toHaveBeenNthCalledWith(
             1,
             expect.objectContaining({
@@ -203,6 +214,12 @@ describe('ProcessDocumentUseCase', () => {
     ] as const)(
         'DPROC-PROC-002 records %s as terminal FAILED processing',
         async (code, failureReason) => {
+            const failed = {
+                id: processingId,
+                documentId,
+                status: DocumentProcessingStatus.Failed,
+                failureReason,
+            } satisfies GetDocumentProcessingResult;
             const runnerExecute = jest
                 .fn()
                 .mockResolvedValueOnce({
@@ -221,21 +238,31 @@ describe('ProcessDocumentUseCase', () => {
                         status: DocumentProcessingStatus.Failed,
                     },
                 });
+            const readerExecute = jest.fn(async () => failed);
             const storageGet = jest.fn(async () => ({ content }));
             const extract = jest.fn(async () => {
                 throw new DocumentExtractionError(code, failureReason);
             });
-            const { useCase } = createUseCase({ runnerExecute, storageGet, extract });
+            const { useCase } = createUseCase({
+                runnerExecute,
+                readerExecute,
+                storageGet,
+                extract,
+            });
 
             await expect(
                 useCase.execute({ documentId, storageReference }, context),
-            ).resolves.toEqual({
-                id: processingId,
-                documentId,
-                status: DocumentProcessingStatus.Failed,
-                failureReason,
-            });
+            ).resolves.toEqual(failed);
 
+            expect(readerExecute).toHaveBeenCalledWith({
+                read: {
+                    name: documentProcessingReadNames.getDocumentProcessing,
+                    actor,
+                    tenant,
+                    parameters: { documentId },
+                },
+                context: { correlationId: context.correlationId },
+            });
             expect(runnerExecute).toHaveBeenNthCalledWith(
                 2,
                 expect.objectContaining({
