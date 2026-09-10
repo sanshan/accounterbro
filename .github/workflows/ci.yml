@@ -58,6 +58,8 @@ jobs:
       DOCUMENT_PROCESSING_DB_PASSWORD: postgres
       DOCUMENT_PROCESSING_DB_NAME: accounterbro_document_processing_e2e
       DOCUMENT_PROCESSING_PORT: 3102
+      DOCUMENT_PROCESSING_STORAGE_DRIVER: local-folder
+      DOCUMENT_PROCESSING_STORAGE_LOCAL_FOLDER_ROOT: /tmp/accounterbro-documents-e2e
       WEB_PORT: 4300
 
     steps:
