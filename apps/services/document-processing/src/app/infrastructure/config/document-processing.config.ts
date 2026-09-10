@@ -15,6 +15,12 @@ export function createDocumentProcessingConfig() {
             password: env.DOCUMENT_PROCESSING_DB_PASSWORD,
             name: env.DOCUMENT_PROCESSING_DB_NAME,
         },
+        storage: {
+            driver: env.DOCUMENT_PROCESSING_STORAGE_DRIVER,
+            localFolder: {
+                rootDirectory: env.DOCUMENT_PROCESSING_STORAGE_LOCAL_FOLDER_ROOT,
+            },
+        },
     };
 }
 
