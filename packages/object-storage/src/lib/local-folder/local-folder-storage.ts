@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, realpath, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, relative, resolve, sep, win32 } from 'node:path';
 
 import {
@@ -39,26 +39,45 @@ export class LocalFolderStorage extends ObjectStorage {
 
     public async get(request: ObjectStorageGetRequest): Promise<ObjectStorageGetResult> {
         const targetPath = this.resolveTargetPath(request.reference);
+        const [resolvedRootDirectory, resolvedTargetPath] = await Promise.all([
+            realpath(this.rootDirectory),
+            realpath(targetPath),
+        ]);
+
+        this.assertWithinRoot(
+            resolvedRootDirectory,
+            resolvedTargetPath,
+            'Object storage reference must stay within the configured root directory',
+        );
 
         return {
-            content: await readFile(targetPath),
+            content: await readFile(resolvedTargetPath),
         };
     }
 
     private resolveTargetPath(key: string): string {
         const segments = this.parseKey(key);
         const targetPath = resolve(this.rootDirectory, ...segments);
-        const relativePath = relative(this.rootDirectory, targetPath);
+
+        this.assertWithinRoot(
+            this.rootDirectory,
+            targetPath,
+            'Object storage key must stay within the configured root directory',
+        );
+
+        return targetPath;
+    }
+
+    private assertWithinRoot(rootDirectory: string, targetPath: string, message: string): void {
+        const relativePath = relative(rootDirectory, targetPath);
 
         if (
             relativePath === '..' ||
             relativePath.startsWith(`..${sep}`) ||
             isAbsolute(relativePath)
         ) {
-            throw new Error('Object storage key must stay within the configured root directory');
+            throw new Error(message);
         }
-
-        return targetPath;
     }
 
     private parseKey(key: string): readonly string[] {
