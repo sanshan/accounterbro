@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -7,12 +7,14 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { LocalFolderStorage } from './local-folder-storage.js';
 
 describe('LocalFolderStorage', () => {
-    let cleanupDirectory: string | undefined;
+    const cleanupDirectories: string[] = [];
 
     afterEach(async () => {
-        if (cleanupDirectory !== undefined) {
-            await rm(cleanupDirectory, { recursive: true, force: true });
-        }
+        await Promise.all(
+            cleanupDirectories.splice(0).map((directory) =>
+                rm(directory, { recursive: true, force: true }),
+            ),
+        );
     });
 
     async function createStorage(): Promise<{
@@ -20,7 +22,7 @@ describe('LocalFolderStorage', () => {
         readonly rootDirectory: string;
     }> {
         const rootDirectory = await mkdtemp(join(tmpdir(), 'accounterbro-object-storage-'));
-        cleanupDirectory = rootDirectory;
+        cleanupDirectories.push(rootDirectory);
 
         return {
             storage: new LocalFolderStorage({ rootDirectory }),
@@ -54,6 +56,22 @@ describe('LocalFolderStorage', () => {
         await expect(storage.get({ reference: stored.reference })).resolves.toEqual({
             content: Buffer.from(content),
         });
+    });
+
+    it('rejects a reference whose filesystem target escapes the configured root through a symlink', async () => {
+        const { storage, rootDirectory } = await createStorage();
+        const outsideDirectory = await mkdtemp(join(tmpdir(), 'accounterbro-object-storage-outside-'));
+        cleanupDirectories.push(outsideDirectory);
+        await writeFile(join(outsideDirectory, 'secret.bin'), Buffer.from([9, 8, 7]));
+        await symlink(
+            outsideDirectory,
+            join(rootDirectory, 'linked-directory'),
+            process.platform === 'win32' ? 'junction' : 'dir',
+        );
+
+        await expect(
+            storage.get({ reference: 'linked-directory/secret.bin' }),
+        ).rejects.toThrow('Object storage reference');
     });
 
     it('targets the same stored object when the same key is reused', async () => {
