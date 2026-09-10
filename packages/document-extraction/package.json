@@ -21,6 +21,8 @@
     },
     "dependencies": {
         "@tesseract.js-data/rus": "1.0.0",
+        "@tesseract.js-data/srp": "1.0.0",
+        "@tesseract.js-data/srp_latn": "1.0.0",
         "tesseract.js": "7.0.0"
     }
 }
