@@ -445,6 +445,12 @@ importers:
       '@tesseract.js-data/rus':
         specifier: 1.0.0
         version: 1.0.0
+      '@tesseract.js-data/srp':
+        specifier: 1.0.0
+        version: 1.0.0
+      '@tesseract.js-data/srp_latn':
+        specifier: 1.0.0
+        version: 1.0.0
       tesseract.js:
         specifier: 7.0.0
         version: 7.0.0
@@ -3544,6 +3550,12 @@ packages:
 
   '@tesseract.js-data/rus@1.0.0':
     resolution: {integrity: sha512-GVOaLultru90gsuVGjXyPCKsg4SMeExnqSnzb8Gb+9zZ0F4wbA6bgWu/metQlcmU7OwTnYVd4UdSH9D4yBMZEA==}
+
+  '@tesseract.js-data/srp@1.0.0':
+    resolution: {integrity: sha512-C2gHOvXDTJ+Dy/q8w9VCUkg+KBc50hCbjv/1ksssoVjd7sdy56vviTzEqc5YZKPvYD81x/SeGP87xmIUtDpNyg==}
+
+  '@tesseract.js-data/srp_latn@1.0.0':
+    resolution: {integrity: sha512-wlx5KEuIFRpz2MM+gcMZl9IZa3RYzVbZgcZc01XW+gNcjO06UKA+M8y6EN7fhuosSoO4eQDsTTvTtTAot6j+sw==}
 
   '@testing-library/dom@10.4.0':
     resolution: {integrity: sha512-pemlzrSESWbdAloYml3bAJMEfNh1Z7EduzqPKprCH5S341frlpYnUEW0H72dLxa6IsYr+mPno20GiSm+h9dEdQ==}
@@ -12914,6 +12926,10 @@ snapshots:
       '@swc/counter': 0.1.3
 
   '@tesseract.js-data/rus@1.0.0': {}
+
+  '@tesseract.js-data/srp@1.0.0': {}
+
+  '@tesseract.js-data/srp_latn@1.0.0': {}
 
   '@testing-library/dom@10.4.0':
     dependencies:
