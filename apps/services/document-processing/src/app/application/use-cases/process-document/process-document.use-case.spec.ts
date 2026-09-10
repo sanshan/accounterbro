@@ -23,6 +23,30 @@ import type { Actor } from '@event-driven-platform/actor';
 import type { ProcessDocumentUseCaseContext } from './process-document.use-case.context';
 import { ProcessDocumentUseCase } from './process-document.use-case';
 
+jest.mock('@event-driven-platform/intent', () => ({
+    IntentFactory: {
+        derive: jest.fn(() => ({
+            id: 'child-intent-id',
+            key: 'child-intent-key',
+        })),
+    },
+}));
+
+jest.mock('@event-driven-platform/execution', () => ({
+    ExecutionFailureError: class ExecutionFailureError extends Error {
+        public constructor(
+            public readonly executionFailure: {
+                readonly code: string;
+                readonly message: string;
+                readonly retryable: boolean;
+            },
+        ) {
+            super(executionFailure.message);
+            this.name = 'ExecutionFailureError';
+        }
+    },
+}));
+
 const actor = {
     type: 'user',
     id: 'user-1',
