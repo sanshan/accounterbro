@@ -43,6 +43,19 @@ describe('LocalFolderStorage', () => {
         ).resolves.toEqual(Buffer.from(content));
     });
 
+    it('reads exact bytes using the opaque reference returned by put', async () => {
+        const { storage } = await createStorage();
+        const content = new Uint8Array([0, 1, 2, 3, 255]);
+        const stored = await storage.put({
+            key: 'documents/document-1/original.bin',
+            content,
+        });
+
+        await expect(storage.get({ reference: stored.reference })).resolves.toEqual({
+            content: Buffer.from(content),
+        });
+    });
+
     it('targets the same stored object when the same key is reused', async () => {
         const { storage, rootDirectory } = await createStorage();
         const key = 'documents/document-1/original.bin';
@@ -68,5 +81,17 @@ describe('LocalFolderStorage', () => {
         await expect(storage.put({ key, content: new Uint8Array([1]) })).rejects.toThrow(
             'Object storage key',
         );
+    });
+
+    it.each([
+        '../outside.bin',
+        'documents/../../outside.bin',
+        '/absolute.bin',
+        'documents\\..\\outside.bin',
+        'C:/outside.bin',
+    ])('rejects an unsafe object reference: %s', async (reference) => {
+        const { storage } = await createStorage();
+
+        await expect(storage.get({ reference })).rejects.toThrow('Object storage key');
     });
 });
