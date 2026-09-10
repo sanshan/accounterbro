@@ -249,6 +249,9 @@ importers:
 
   apps/services/document-processing:
     dependencies:
+      '@accounterbro/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
       '@accounterbro/document-processing':
         specifier: workspace:*
         version: link:../../../packages/document-processing
@@ -267,6 +270,12 @@ importers:
       '@accounterbro/runtime-presenters':
         specifier: workspace:*
         version: link:../../../packages/runtime-presenters
+      '@event-driven-platform/actor':
+        specifier: ^0.1.7
+        version: 0.1.7
+      '@event-driven-platform/use-case':
+        specifier: ^0.1.0
+        version: 0.1.0
       '@nestjs/common':
         specifier: ^11.0.0
         version: 11.2.3(reflect-metadata@0.2.2)(rxjs@7.8.2)
