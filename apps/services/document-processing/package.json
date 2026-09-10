@@ -11,7 +11,9 @@
     },
     "dependencies": {
         "@accounterbro/core": "workspace:*",
+        "@accounterbro/document-extraction": "workspace:*",
         "@accounterbro/document-processing": "workspace:*",
+        "@accounterbro/object-storage": "workspace:*",
         "@accounterbro/runtime-config": "workspace:*",
         "@accounterbro/runtime-executions": "workspace:*",
         "@accounterbro/runtime-health": "workspace:*",
