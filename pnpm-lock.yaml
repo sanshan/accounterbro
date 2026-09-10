@@ -252,9 +252,15 @@ importers:
       '@accounterbro/core':
         specifier: workspace:*
         version: link:../../../packages/core
+      '@accounterbro/document-extraction':
+        specifier: workspace:*
+        version: link:../../../packages/document-extraction
       '@accounterbro/document-processing':
         specifier: workspace:*
         version: link:../../../packages/document-processing
+      '@accounterbro/object-storage':
+        specifier: workspace:*
+        version: link:../../../packages/object-storage
       '@accounterbro/runtime-config':
         specifier: workspace:*
         version: link:../../../packages/runtime-config
