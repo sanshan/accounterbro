@@ -27,7 +27,7 @@ Every environment variable has an owner.
 - Once multiple services could use the same generic name with different values, service-owned variables MUST use an owning-service prefix, for example `DOCUMENTS_*` or `API_*`.
 - Application and domain code MUST NOT read `process.env` directly.
 
-Service-owned database variables are owner-qualified. The API reference uses `API_DB_HOST`, `API_DB_PORT`, `API_DB_USERNAME`, `API_DB_PASSWORD`, and `API_DB_NAME`. Future database-owning services follow the same `<SERVICE>_DB_*` shape.
+Service-owned database variables are owner-qualified. The API uses `API_DB_HOST`, `API_DB_PORT`, `API_DB_USERNAME`, `API_DB_PASSWORD`, and `API_DB_NAME`; the current internal-service examples use the same shape through `DOCUMENTS_DB_*` and `DOCUMENT_PROCESSING_DB_*`. Other database-owning services follow the same `<SERVICE>_DB_*` convention.
 
 ## Execution environments
 
