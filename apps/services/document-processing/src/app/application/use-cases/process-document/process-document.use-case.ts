@@ -15,11 +15,11 @@ import {
     documentProcessingReadNames,
     DocumentProcessingStatus,
     type FinishDocumentProcessingOperation,
-    type FinishDocumentProcessingOutcome,
     type FinishDocumentProcessingPayload,
     type GetDocumentProcessingRead,
     type GetDocumentProcessingResult,
     type PrepareDocumentProcessingOperation,
+    type PrepareDocumentProcessingOutcome,
 } from '@accounterbro/document-processing';
 import { ObjectStorage } from '@accounterbro/object-storage';
 import { Reader, Runner } from '@accounterbro/runtime-executions';
@@ -39,6 +39,18 @@ export interface ProcessDocumentUseCaseInput {
 }
 
 export type ProcessDocumentUseCaseResult = GetDocumentProcessingResult;
+
+function isTerminalProcessing(processing: GetDocumentProcessingResult): boolean {
+    return processing.status !== DocumentProcessingStatus.Pending;
+}
+
+function documentProcessingInProgress(): ExecutionFailureError {
+    return new ExecutionFailureError({
+        code: 'document-processing-in-progress',
+        message: 'Document processing is already in progress.',
+        retryable: true,
+    });
+}
 
 @Injectable()
 export class ProcessDocumentUseCase
@@ -62,13 +74,35 @@ export class ProcessDocumentUseCase
         input: ProcessDocumentUseCaseInput,
         context: ProcessDocumentUseCaseContext,
     ): Promise<ProcessDocumentUseCaseResult> {
+        const preparation = await this.prepareProcessing(input.documentId, context);
+        const current = await this.getProcessing(input.documentId, context);
+
+        if (isTerminalProcessing(current)) {
+            return current;
+        }
+
+        if (preparation.kind === 'existing') {
+            throw documentProcessingInProgress();
+        }
+
+        const outcome = await this.extractDocument(input.storageReference);
+
+        await this.finishProcessing(preparation.processing.id, outcome, context);
+
+        return this.getProcessing(input.documentId, context);
+    }
+
+    private async prepareProcessing(
+        documentId: DocumentId,
+        context: ProcessDocumentUseCaseContext,
+    ): Promise<PrepareDocumentProcessingOutcome> {
         const processingId = randomUUID() as DocumentProcessingId;
-        const candidateReference = {
+        const processingReference = {
             type: documentProcessingName,
             id: processingId,
         } satisfies DocumentProcessingReference;
 
-        const prepareOperation: PrepareDocumentProcessingOperation = {
+        const operation: PrepareDocumentProcessingOperation = {
             name: documentProcessingOperationNames.prepareProcessing,
             schemaVersion: 1,
             intent: IntentFactory.derive({
@@ -77,80 +111,25 @@ export class ProcessDocumentUseCase
             }),
             actor: context.actor,
             tenant: context.tenant,
-            subject: candidateReference,
-            aggregate: candidateReference,
+            subject: processingReference,
+            aggregate: processingReference,
             payload: {
                 processingId,
-                documentId: input.documentId,
+                documentId,
             },
         };
 
-        const prepareResult = await this.runner.execute({
-            operation: prepareOperation,
+        const result = await this.runner.execute({
+            operation,
             context: {
                 correlationId: context.correlationId,
             },
         });
 
-        const current = await this.readProcessing(input.documentId, context);
-
-        if (current.status !== DocumentProcessingStatus.Pending) {
-            return current;
-        }
-
-        if (prepareResult.data.kind === 'existing') {
-            throw new ExecutionFailureError({
-                code: 'document-processing-in-progress',
-                message: 'Document processing is already in progress.',
-                retryable: true,
-            });
-        }
-
-        const processingReference = {
-            type: documentProcessingName,
-            id: prepareResult.data.processing.id,
-        } satisfies DocumentProcessingReference;
-
-        const stored = await this.objectStorage.get({
-            reference: input.storageReference,
-        });
-
-        let extractedText: string;
-
-        try {
-            const extraction = await this.documentExtractor.extract(stored.content);
-            extractedText = extraction.text;
-        } catch (error: unknown) {
-            if (!(error instanceof DocumentExtractionError)) {
-                throw error;
-            }
-
-            const failureReason = error.message.length > 0 ? error.message : error.code;
-            await this.finishProcessing(
-                processingReference,
-                {
-                    outcome: 'failed',
-                    failureReason,
-                },
-                context,
-            );
-
-            return this.readProcessing(input.documentId, context);
-        }
-
-        await this.finishProcessing(
-            processingReference,
-            {
-                outcome: 'completed',
-                extractedText,
-            },
-            context,
-        );
-
-        return this.readProcessing(input.documentId, context);
+        return result.data;
     }
 
-    private async readProcessing(
+    private async getProcessing(
         documentId: DocumentId,
         context: ProcessDocumentUseCaseContext,
     ): Promise<GetDocumentProcessingResult> {
@@ -177,11 +156,41 @@ export class ProcessDocumentUseCase
         return current;
     }
 
+    private async extractDocument(
+        storageReference: string,
+    ): Promise<FinishDocumentProcessingPayload> {
+        const stored = await this.objectStorage.get({
+            reference: storageReference,
+        });
+
+        try {
+            const extraction = await this.documentExtractor.extract(stored.content);
+
+            return {
+                outcome: 'completed',
+                extractedText: extraction.text,
+            };
+        } catch (error: unknown) {
+            if (!(error instanceof DocumentExtractionError)) {
+                throw error;
+            }
+
+            return {
+                outcome: 'failed',
+                failureReason: error.message.length > 0 ? error.message : error.code,
+            };
+        }
+    }
+
     private async finishProcessing(
-        processing: DocumentProcessingReference,
+        processingId: DocumentProcessingId,
         payload: FinishDocumentProcessingPayload,
         context: ProcessDocumentUseCaseContext,
-    ): Promise<FinishDocumentProcessingOutcome> {
+    ): Promise<void> {
+        const processingReference = {
+            type: documentProcessingName,
+            id: processingId,
+        } satisfies DocumentProcessingReference;
         const operation: FinishDocumentProcessingOperation = {
             name: documentProcessingOperationNames.finishProcessing,
             schemaVersion: 1,
@@ -191,18 +200,16 @@ export class ProcessDocumentUseCase
             }),
             actor: context.actor,
             tenant: context.tenant,
-            subject: processing,
-            aggregate: processing,
+            subject: processingReference,
+            aggregate: processingReference,
             payload,
         };
 
-        const result = await this.runner.execute({
+        await this.runner.execute({
             operation,
             context: {
                 correlationId: context.correlationId,
             },
         });
-
-        return result.data;
     }
 }
