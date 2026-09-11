@@ -92,8 +92,18 @@ export class ProcessDocumentUseCase
             },
         });
 
+        const current = await this.readProcessing(input.documentId, context);
+
+        if (current.status !== DocumentProcessingStatus.Pending) {
+            return current;
+        }
+
         if (prepareResult.data.kind === 'existing') {
-            return this.resolveExistingProcessing(input.documentId, context);
+            throw new ExecutionFailureError({
+                code: 'document-processing-in-progress',
+                message: 'Document processing is already in progress.',
+                retryable: true,
+            });
         }
 
         const processingReference = {
@@ -140,23 +150,6 @@ export class ProcessDocumentUseCase
         return this.readProcessing(input.documentId, context);
     }
 
-    private async resolveExistingProcessing(
-        documentId: DocumentId,
-        context: ProcessDocumentUseCaseContext,
-    ): Promise<ProcessDocumentUseCaseResult> {
-        const current = await this.readProcessing(documentId, context);
-
-        if (current.status === DocumentProcessingStatus.Pending) {
-            throw new ExecutionFailureError({
-                code: 'document-processing-in-progress',
-                message: 'Document processing is already in progress.',
-                retryable: true,
-            });
-        }
-
-        return current;
-    }
-
     private async readProcessing(
         documentId: DocumentId,
         context: ProcessDocumentUseCaseContext,
@@ -178,7 +171,7 @@ export class ProcessDocumentUseCase
         });
 
         if (!current) {
-            throw new Error('Existing Document Processing could not be read in the current tenant.');
+            throw new Error('Document Processing could not be read in the current tenant.');
         }
 
         return current;

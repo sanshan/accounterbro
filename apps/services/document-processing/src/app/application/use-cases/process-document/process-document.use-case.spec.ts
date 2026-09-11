@@ -103,6 +103,11 @@ describe('ProcessDocumentUseCase', () => {
     const processingId = 'processing-1' as DocumentProcessingId;
     const storageReference = 'opaque/source/reference';
     const content = new Uint8Array([1, 2, 3]);
+    const pending = {
+        id: processingId,
+        documentId,
+        status: DocumentProcessingStatus.Pending,
+    } satisfies GetDocumentProcessingResult;
 
     function createUseCase(options?: {
         readonly runnerExecute?: jest.Mock;
@@ -141,11 +146,7 @@ describe('ProcessDocumentUseCase', () => {
             .mockResolvedValueOnce({
                 data: {
                     kind: 'created',
-                    processing: {
-                        id: processingId,
-                        documentId,
-                        status: DocumentProcessingStatus.Pending,
-                    },
+                    processing: pending,
                 },
             })
             .mockResolvedValueOnce({
@@ -154,7 +155,10 @@ describe('ProcessDocumentUseCase', () => {
                     status: DocumentProcessingStatus.Completed,
                 },
             });
-        const readerExecute = jest.fn(async () => completed);
+        const readerExecute = jest
+            .fn()
+            .mockResolvedValueOnce(pending)
+            .mockResolvedValueOnce(completed);
         const storageGet = jest.fn(async () => ({ content }));
         const extract = jest.fn(async () => ({ text: 'Extracted text' }));
         const { useCase } = createUseCase({
@@ -168,17 +172,9 @@ describe('ProcessDocumentUseCase', () => {
             useCase.execute({ documentId, storageReference }, context),
         ).resolves.toEqual(completed);
 
+        expect(readerExecute).toHaveBeenCalledTimes(2);
         expect(storageGet).toHaveBeenCalledWith({ reference: storageReference });
         expect(extract).toHaveBeenCalledWith(content);
-        expect(readerExecute).toHaveBeenCalledWith({
-            read: {
-                name: documentProcessingReadNames.getDocumentProcessing,
-                actor,
-                tenant,
-                parameters: { documentId },
-            },
-            context: { correlationId: context.correlationId },
-        });
         expect(runnerExecute).toHaveBeenNthCalledWith(
             1,
             expect.objectContaining({
@@ -225,11 +221,7 @@ describe('ProcessDocumentUseCase', () => {
                 .mockResolvedValueOnce({
                     data: {
                         kind: 'created',
-                        processing: {
-                            id: processingId,
-                            documentId,
-                            status: DocumentProcessingStatus.Pending,
-                        },
+                        processing: pending,
                     },
                 })
                 .mockResolvedValueOnce({
@@ -238,7 +230,10 @@ describe('ProcessDocumentUseCase', () => {
                         status: DocumentProcessingStatus.Failed,
                     },
                 });
-            const readerExecute = jest.fn(async () => failed);
+            const readerExecute = jest
+                .fn()
+                .mockResolvedValueOnce(pending)
+                .mockResolvedValueOnce(failed);
             const storageGet = jest.fn(async () => ({ content }));
             const extract = jest.fn(async () => {
                 throw new DocumentExtractionError(code, failureReason);
@@ -254,15 +249,7 @@ describe('ProcessDocumentUseCase', () => {
                 useCase.execute({ documentId, storageReference }, context),
             ).resolves.toEqual(failed);
 
-            expect(readerExecute).toHaveBeenCalledWith({
-                read: {
-                    name: documentProcessingReadNames.getDocumentProcessing,
-                    actor,
-                    tenant,
-                    parameters: { documentId },
-                },
-                context: { correlationId: context.correlationId },
-            });
+            expect(readerExecute).toHaveBeenCalledTimes(2);
             expect(runnerExecute).toHaveBeenNthCalledWith(
                 2,
                 expect.objectContaining({
@@ -285,22 +272,24 @@ describe('ProcessDocumentUseCase', () => {
         const runnerExecute = jest.fn().mockResolvedValueOnce({
             data: {
                 kind: 'created',
-                processing: {
-                    id: processingId,
-                    documentId,
-                    status: DocumentProcessingStatus.Pending,
-                },
+                processing: pending,
             },
         });
+        const readerExecute = jest.fn(async () => pending);
         const storageGet = jest.fn(async () => {
             throw storageFailure;
         });
-        const { useCase, extract } = createUseCase({ runnerExecute, storageGet });
+        const { useCase, extract } = createUseCase({
+            runnerExecute,
+            readerExecute,
+            storageGet,
+        });
 
         await expect(
             useCase.execute({ documentId, storageReference }, context),
         ).rejects.toBe(storageFailure);
 
+        expect(readerExecute).toHaveBeenCalledTimes(1);
         expect(runnerExecute).toHaveBeenCalledTimes(1);
         expect(extract).not.toHaveBeenCalled();
     });
@@ -310,23 +299,26 @@ describe('ProcessDocumentUseCase', () => {
         const runnerExecute = jest.fn().mockResolvedValueOnce({
             data: {
                 kind: 'created',
-                processing: {
-                    id: processingId,
-                    documentId,
-                    status: DocumentProcessingStatus.Pending,
-                },
+                processing: pending,
             },
         });
+        const readerExecute = jest.fn(async () => pending);
         const storageGet = jest.fn(async () => ({ content }));
         const extract = jest.fn(async () => {
             throw extractionFailure;
         });
-        const { useCase } = createUseCase({ runnerExecute, storageGet, extract });
+        const { useCase } = createUseCase({
+            runnerExecute,
+            readerExecute,
+            storageGet,
+            extract,
+        });
 
         await expect(
             useCase.execute({ documentId, storageReference }, context),
         ).rejects.toBe(extractionFailure);
 
+        expect(readerExecute).toHaveBeenCalledTimes(1);
         expect(runnerExecute).toHaveBeenCalledTimes(1);
     });
 
@@ -340,11 +332,7 @@ describe('ProcessDocumentUseCase', () => {
         const runnerExecute = jest.fn().mockResolvedValueOnce({
             data: {
                 kind: 'existing',
-                processing: {
-                    id: processingId,
-                    documentId,
-                    status: DocumentProcessingStatus.Pending,
-                },
+                processing: pending,
             },
         });
         const readerExecute = jest.fn(async () => completed);
@@ -381,11 +369,7 @@ describe('ProcessDocumentUseCase', () => {
         const runnerExecute = jest.fn().mockResolvedValueOnce({
             data: {
                 kind: 'existing',
-                processing: {
-                    id: processingId,
-                    documentId,
-                    status: DocumentProcessingStatus.Completed,
-                },
+                processing: pending,
             },
         });
         const readerExecute = jest.fn(async () => failed);
@@ -403,12 +387,52 @@ describe('ProcessDocumentUseCase', () => {
         expect(extract).not.toHaveBeenCalled();
     });
 
+    it.each([
+        [
+            'COMPLETED',
+            {
+                id: processingId,
+                documentId,
+                status: DocumentProcessingStatus.Completed,
+                extractedText: 'Durable text',
+            } satisfies GetDocumentProcessingResult,
+        ],
+        [
+            'FAILED',
+            {
+                id: processingId,
+                documentId,
+                status: DocumentProcessingStatus.Failed,
+                failureReason: 'Durable failure',
+            } satisfies GetDocumentProcessingResult,
+        ],
+    ] as const)(
+        'returns durable %s state after a replayed created Prepare without reprocessing',
+        async (_status, terminal) => {
+            const runnerExecute = jest.fn().mockResolvedValueOnce({
+                data: {
+                    kind: 'created',
+                    processing: pending,
+                },
+            });
+            const readerExecute = jest.fn(async () => terminal);
+            const { useCase, storageGet, extract } = createUseCase({
+                runnerExecute,
+                readerExecute,
+            });
+
+            await expect(
+                useCase.execute({ documentId, storageReference }, context),
+            ).resolves.toEqual(terminal);
+
+            expect(readerExecute).toHaveBeenCalledTimes(1);
+            expect(runnerExecute).toHaveBeenCalledTimes(1);
+            expect(storageGet).not.toHaveBeenCalled();
+            expect(extract).not.toHaveBeenCalled();
+        },
+    );
+
     it('DPROC-PROC-005 reports existing current PENDING processing as retryable in-progress failure', async () => {
-        const pending = {
-            id: processingId,
-            documentId,
-            status: DocumentProcessingStatus.Pending,
-        } satisfies GetDocumentProcessingResult;
         const runnerExecute = jest.fn().mockResolvedValueOnce({
             data: {
                 kind: 'existing',
@@ -430,20 +454,17 @@ describe('ProcessDocumentUseCase', () => {
                 retryable: true,
             },
         });
+        expect(readerExecute).toHaveBeenCalledTimes(1);
         expect(runnerExecute).toHaveBeenCalledTimes(1);
         expect(storageGet).not.toHaveBeenCalled();
         expect(extract).not.toHaveBeenCalled();
     });
 
-    it('fails an inconsistent existing processing read without starting extraction', async () => {
+    it('fails an inconsistent processing read without starting extraction', async () => {
         const runnerExecute = jest.fn().mockResolvedValueOnce({
             data: {
                 kind: 'existing',
-                processing: {
-                    id: processingId,
-                    documentId,
-                    status: DocumentProcessingStatus.Pending,
-                },
+                processing: pending,
             },
         });
         const readerExecute = jest.fn(async () => null);
@@ -454,7 +475,7 @@ describe('ProcessDocumentUseCase', () => {
 
         await expect(
             useCase.execute({ documentId, storageReference }, context),
-        ).rejects.toThrow('Existing Document Processing could not be read in the current tenant.');
+        ).rejects.toThrow('Document Processing could not be read in the current tenant.');
 
         expect(runnerExecute).toHaveBeenCalledTimes(1);
         expect(storageGet).not.toHaveBeenCalled();
