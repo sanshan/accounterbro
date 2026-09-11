@@ -361,17 +361,17 @@ importers:
         specifier: ^0.2.4
         version: 0.2.4
       '@event-driven-platform/reader':
-        specifier: ^0.0.9
-        version: 0.0.9
+        specifier: ^0.0.10
+        version: 0.0.10
       '@event-driven-platform/runner':
-        specifier: ^0.0.12
-        version: 0.0.12
+        specifier: ^0.0.13
+        version: 0.0.13
       '@event-driven-platform/use-case':
         specifier: ^0.1.0
         version: 0.1.0
       '@event-driven-platform/use-case-executor':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.1.1
+        version: 0.1.1
       '@nestjs/common':
         specifier: ^11.0.0
         version: 11.2.3(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -600,8 +600,8 @@ importers:
         specifier: ^0.2.4
         version: 0.2.4
       '@event-driven-platform/observability':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       '@event-driven-platform/operation':
         specifier: ^0.1.8
         version: 0.1.8
@@ -630,17 +630,17 @@ importers:
         specifier: ^0.0.7
         version: 0.0.7
       '@event-driven-platform/reader':
-        specifier: ^0.0.9
-        version: 0.0.9
+        specifier: ^0.0.10
+        version: 0.0.10
       '@event-driven-platform/runner':
-        specifier: ^0.0.12
-        version: 0.0.12
+        specifier: ^0.0.13
+        version: 0.0.13
       '@event-driven-platform/use-case-execution-store':
         specifier: ^0.0.7
         version: 0.0.7
       '@event-driven-platform/use-case-executor':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.1.1
+        version: 0.1.1
       '@nestjs/common':
         specifier: ^11.0.0
         version: 11.2.3(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -680,8 +680,8 @@ importers:
         specifier: ^0.0.8
         version: 0.0.8
       '@event-driven-platform/observability':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       '@nestjs/common':
         specifier: ^11.0.0
         version: 11.2.3(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -1621,8 +1621,8 @@ packages:
   '@event-driven-platform/intent@0.2.4':
     resolution: {integrity: sha512-pR1ERtt205vpQana0rjlvUtSA7F8gPhgXj/mcgM/CS1/+yAp/SIidWyRjLkGIlcYj+K9Waw0aUdC5o855pWMyQ==}
 
-  '@event-driven-platform/observability@0.1.0':
-    resolution: {integrity: sha512-0WA2EkJUJa6TPlEAJSZ6Qvm6+sUOalcdMG8FFCwm3pAPyT+MUm62025fV9/zyQ7N2GqEFoFpyGf2X51IA43QwA==}
+  '@event-driven-platform/observability@0.2.0':
+    resolution: {integrity: sha512-jQ2dv+Cnej9OY0LjVPhuXtRj2NjlSS0Ei73JwN+6+jbHVS6Gx9I/cUkXyo/btWqjiofG/g58w3nPXQkKV9ZmxQ==}
 
   '@event-driven-platform/operation-event-envelope-factory@0.0.10':
     resolution: {integrity: sha512-0FUlyZItdtHxGfxG2bTeEbnuX01VJ0L9wxsZpS/KDIfEYp67sHOIgQPwSX0g2/0NP//SXJlrlKrnbocSwY+Kfw==}
@@ -1663,14 +1663,14 @@ packages:
   '@event-driven-platform/read@0.0.8':
     resolution: {integrity: sha512-lo0hP0ZCTkcHuOoxrqHtJFeKwJfaumYIl4YiKujrCs5nbbK9iis2wU08U+fqnh4Ca6PzQA8xP5vCSwPwL9eAcA==}
 
-  '@event-driven-platform/reader@0.0.9':
-    resolution: {integrity: sha512-9+/oFZL5CdKbls1cWAqN3S27AXJj3Qah9bciisaFWqv6BC5gGxBcJSEOj/wGZeXxLBLIuEpvZDowW8nb0xEVbA==}
+  '@event-driven-platform/reader@0.0.10':
+    resolution: {integrity: sha512-/r9aDpjKyYLSphSzvpX8JiIEMkIS0r9yFeAoYu/t1dUdufJaUj24aJbuH97eP0TR0ktTRs8Lu4PVVB74+C3hCQ==}
 
   '@event-driven-platform/retry@0.0.8':
     resolution: {integrity: sha512-NZ9Vh5usSWwgyLbBZLXs+EUnLslri0goxcYzewYeQH46ZdO67YSc7alfB99Z/QnSGkmKJofgvnUAWucgNRUK/A==}
 
-  '@event-driven-platform/runner@0.0.12':
-    resolution: {integrity: sha512-X61m4QaX5m//RX+XaxWHiZLSXkqqzUocrDcd4w0ph5luwk0mAC9Q8soWREwA66WtLiy9+i8C/gofiC2Z7g/k3g==}
+  '@event-driven-platform/runner@0.0.13':
+    resolution: {integrity: sha512-SrgZrIih9PR1wpEtwkkH+Cll7IxP/RnFYaKSR1etssPaH1JrtNNpU56bkfUKLuP9jgTlo3kxPPcRBp5tNXUQoQ==}
 
   '@event-driven-platform/subject@0.1.7':
     resolution: {integrity: sha512-ZHMppUkMhO2j/6lSfgrafXbqnR9jY3u4zsyvsKREvXVumhmvs1nWrxNUiZhcYRbkdw+jNUshzwm2VyiCLfC+JA==}
@@ -1684,8 +1684,8 @@ packages:
   '@event-driven-platform/use-case-execution-store@0.0.7':
     resolution: {integrity: sha512-pOHhl4qN4D5022/o0eAdOeNsDj+9S+s6Ir/urOHWldx4lE+AkfWVFpL9QNRyXIhD7Yo3nNAyB4CMMgy1dqHlcA==}
 
-  '@event-driven-platform/use-case-executor@0.1.0':
-    resolution: {integrity: sha512-N+GFQApZcYD+rDR2D7HkcC+5nJVmSuaUgXyEX6uDa/0XsAcnebpRForyTz+7kQwoimmCaQ7W7S06MU6aRE1u4Q==}
+  '@event-driven-platform/use-case-executor@0.1.1':
+    resolution: {integrity: sha512-ZRu1h8rvVC0BvKQ6HYPYoMy0uiXUKWpFPpFaJqRT95mWiPTuqOc2HVWZD8YtIJxhRUmytwXQp3Qm7jdw8JXB0w==}
 
   '@event-driven-platform/use-case@0.1.0':
     resolution: {integrity: sha512-yfezTo3MeO8/vqAcGxYCScdx/eWB3GdYhGU3EfRNpjVjqxQ1EwVxt2DG6jeT1xntYFMtXjY1qlm9APESsBh3zQ==}
@@ -10534,7 +10534,7 @@ snapshots:
       uuid: 13.0.2
       zod: 4.5.4
 
-  '@event-driven-platform/observability@0.1.0':
+  '@event-driven-platform/observability@0.2.0':
     dependencies:
       '@event-driven-platform/tenant-reference': 0.1.7
       tslib: 2.8.1
@@ -10616,11 +10616,11 @@ snapshots:
       '@event-driven-platform/tenant-reference': 0.1.7
       tslib: 2.8.1
 
-  '@event-driven-platform/reader@0.0.9':
+  '@event-driven-platform/reader@0.0.10':
     dependencies:
       '@event-driven-platform/clock': 0.0.9
       '@event-driven-platform/execution': 0.0.8
-      '@event-driven-platform/observability': 0.1.0
+      '@event-driven-platform/observability': 0.2.0
       '@event-driven-platform/query': 0.0.8
       '@event-driven-platform/read': 0.0.8
       '@event-driven-platform/read-execution-coordinator': 0.0.7
@@ -10631,7 +10631,7 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@event-driven-platform/runner@0.0.12':
+  '@event-driven-platform/runner@0.0.13':
     dependencies:
       '@event-driven-platform/clock': 0.0.9
       '@event-driven-platform/command': 0.0.9
@@ -10639,7 +10639,7 @@ snapshots:
       '@event-driven-platform/execution-log': 0.0.9
       '@event-driven-platform/execution-log-store': 0.0.9
       '@event-driven-platform/execution-transaction': 0.0.8
-      '@event-driven-platform/observability': 0.1.0
+      '@event-driven-platform/observability': 0.2.0
       '@event-driven-platform/operation': 0.1.8
       '@event-driven-platform/operation-event-envelope-factory': 0.0.10
       '@event-driven-platform/operation-handler-resolver': 0.0.9
@@ -10669,11 +10669,11 @@ snapshots:
       '@event-driven-platform/intent': 0.2.4
       tslib: 2.8.1
 
-  '@event-driven-platform/use-case-executor@0.1.0':
+  '@event-driven-platform/use-case-executor@0.1.1':
     dependencies:
       '@event-driven-platform/clock': 0.0.9
       '@event-driven-platform/execution': 0.0.8
-      '@event-driven-platform/observability': 0.1.0
+      '@event-driven-platform/observability': 0.2.0
       '@event-driven-platform/use-case': 0.1.0
       '@event-driven-platform/use-case-execution-store': 0.0.7
       tslib: 2.8.1
