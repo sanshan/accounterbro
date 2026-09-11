@@ -9,12 +9,14 @@ import {
     documentOperationNames,
     type DocumentRegistrationStatus,
     type FinishDocumentRegistrationOperation,
+    type FinishDocumentRegistrationOutcome,
     type FinishDocumentRegistrationPayload,
     type PrepareDocumentRegistrationOperation,
+    type PrepareDocumentRegistrationOutcome,
 } from '@accounterbro/documents';
 import { ObjectStorage } from '@accounterbro/object-storage';
-import { IntentFactory } from '@event-driven-platform/intent';
 import { Runner } from '@accounterbro/runtime-executions';
+import { IntentFactory } from '@event-driven-platform/intent';
 import type { UseCase } from '@event-driven-platform/use-case';
 import { Injectable } from '@nestjs/common';
 
@@ -54,13 +56,44 @@ export class RegisterDocumentUseCase
         input: RegisterDocumentInput,
         context: RegisterDocumentUseCaseContext,
     ): Promise<RegisterDocumentResult> {
+        const preparation = await this.prepareRegistration(input.file, context);
+
+        if (preparation.kind === 'duplicate') {
+            return {
+                id: preparation.document.id,
+                status: preparation.document.status,
+                duplicate: true,
+            };
+        }
+
+        const storageOutcome = await this.storeDocument(
+            preparation.document.id,
+            input.file,
+            context,
+        );
+        const registration = await this.finishRegistration(
+            preparation.document.id,
+            storageOutcome,
+            context,
+        );
+
+        return {
+            id: registration.id,
+            status: registration.status,
+            duplicate: false,
+        };
+    }
+
+    private async prepareRegistration(
+        file: Uint8Array,
+        context: RegisterDocumentUseCaseContext,
+    ): Promise<PrepareDocumentRegistrationOutcome> {
         const documentId = randomUUID() as DocumentId;
-        const candidateReference = {
+        const documentReference = {
             type: documentName,
             id: documentId,
         } satisfies DocumentReference;
-
-        const prepareOperation: PrepareDocumentRegistrationOperation = {
+        const operation: PrepareDocumentRegistrationOperation = {
             name: documentOperationNames.prepareRegistration,
             schemaVersion: 1,
             intent: IntentFactory.derive({
@@ -69,55 +102,57 @@ export class RegisterDocumentUseCase
             }),
             actor: context.actor,
             tenant: context.tenant,
-            subject: candidateReference,
-            aggregate: candidateReference,
+            subject: documentReference,
+            aggregate: documentReference,
             payload: {
                 documentId,
-                contentHash: createHash('sha256').update(input.file).digest('hex'),
+                contentHash: createHash('sha256').update(file).digest('hex'),
             },
         };
 
-        const prepareResult = await this.runner.execute({
-            operation: prepareOperation,
+        const result = await this.runner.execute({
+            operation,
             context: {
                 correlationId: context.correlationId,
             },
         });
 
-        if (prepareResult.data.kind === 'duplicate') {
-            return {
-                id: prepareResult.data.document.id,
-                status: prepareResult.data.document.status,
-                duplicate: true,
-            };
-        }
+        return result.data;
+    }
 
-        const preparedDocument = prepareResult.data.document;
-        const documentReference = {
-            type: documentName,
-            id: preparedDocument.id,
-        } satisfies DocumentReference;
-
-        let finishPayload: FinishDocumentRegistrationPayload;
-
+    private async storeDocument(
+        documentId: DocumentId,
+        file: Uint8Array,
+        context: RegisterDocumentUseCaseContext,
+    ): Promise<FinishDocumentRegistrationPayload> {
         try {
             const stored = await this.objectStorage.put({
-                key: `documents/${context.tenant.id}/${preparedDocument.id}/original`,
-                content: input.file,
+                key: `documents/${context.tenant.id}/${documentId}/original`,
+                content: file,
             });
 
-            finishPayload = {
+            return {
                 outcome: 'registered',
                 storageReference: stored.reference,
             };
         } catch (error: unknown) {
-            finishPayload = {
+            return {
                 outcome: 'failed',
                 failureReason: storageFailureReason(error),
             };
         }
+    }
 
-        const finishOperation: FinishDocumentRegistrationOperation = {
+    private async finishRegistration(
+        documentId: DocumentId,
+        payload: FinishDocumentRegistrationPayload,
+        context: RegisterDocumentUseCaseContext,
+    ): Promise<FinishDocumentRegistrationOutcome> {
+        const documentReference = {
+            type: documentName,
+            id: documentId,
+        } satisfies DocumentReference;
+        const operation: FinishDocumentRegistrationOperation = {
             name: documentOperationNames.finishRegistration,
             schemaVersion: 1,
             intent: IntentFactory.derive({
@@ -128,20 +163,16 @@ export class RegisterDocumentUseCase
             tenant: context.tenant,
             subject: documentReference,
             aggregate: documentReference,
-            payload: finishPayload,
+            payload,
         };
 
-        const finishResult = await this.runner.execute({
-            operation: finishOperation,
+        const result = await this.runner.execute({
+            operation,
             context: {
                 correlationId: context.correlationId,
             },
         });
 
-        return {
-            id: finishResult.data.id,
-            status: finishResult.data.status,
-            duplicate: false,
-        };
+        return result.data;
     }
 }
