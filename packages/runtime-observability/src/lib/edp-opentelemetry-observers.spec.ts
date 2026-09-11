@@ -27,6 +27,7 @@ const runnerContext: RunnerObservationContext = {
 const readerContext: ReaderObservationContext = {
     read: 'documents.get',
     tenant: {} as ReaderObservationContext['tenant'],
+    correlationId: 'correlation-reader-1',
 };
 
 describe('EDP OpenTelemetry mapping', () => {
@@ -54,6 +55,29 @@ describe('EDP OpenTelemetry mapping', () => {
         expect(record.metricAttributes).not.toHaveProperty('edp.correlation.id');
         expect(record.metricAttributes).not.toHaveProperty('edp.attempt');
         expect(record.metricAttributes).not.toHaveProperty('failure.code');
+    });
+
+    it('keeps Reader correlation and attempt identity out of metric attributes', () => {
+        const record = toReaderTelemetryRecord({
+            type: 'read.attempt.completed',
+            context: readerContext,
+            attempt: 3,
+            outcome: 'error',
+            retryable: true,
+            durationMs: 19,
+        });
+
+        expect(record.metricAttributes).toEqual({
+            'edp.outcome': 'error',
+            'edp.retryable': true,
+        });
+        expect(record.traceAttributes).toMatchObject({
+            'edp.read': 'documents.get',
+            'edp.correlation.id': 'correlation-reader-1',
+            'edp.attempt': 3,
+        });
+        expect(record.metricAttributes).not.toHaveProperty('edp.correlation.id');
+        expect(record.metricAttributes).not.toHaveProperty('edp.attempt');
     });
 
     it('maps Runner and Reader retry scheduling from their real EDP observations', () => {

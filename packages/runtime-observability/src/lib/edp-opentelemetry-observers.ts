@@ -191,6 +191,7 @@ export function toReaderTelemetryRecord(observation: ReaderObservation): EdpTele
         metricAttributes: boundedObservationAttributes(observation),
         traceAttributes: {
             'edp.read': observation.context.read,
+            'edp.correlation.id': observation.context.correlationId,
             ...attemptTraceAttributes(observation),
         },
         ...('durationMs' in observation ? { durationMs: observation.durationMs } : {}),
