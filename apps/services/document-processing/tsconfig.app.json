@@ -39,7 +39,16 @@
             "path": "../../../packages/runtime-config/tsconfig.lib.json"
         },
         {
+            "path": "../../../packages/object-storage/tsconfig.lib.json"
+        },
+        {
             "path": "../../../packages/document-processing/tsconfig.lib.json"
+        },
+        {
+            "path": "../../../packages/document-extraction/tsconfig.lib.json"
+        },
+        {
+            "path": "../../../packages/core/tsconfig.lib.json"
         }
     ]
 }

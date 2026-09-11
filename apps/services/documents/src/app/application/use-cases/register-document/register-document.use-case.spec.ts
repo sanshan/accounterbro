@@ -65,7 +65,11 @@ function createRunner(execute: (command: RegistrationCommand) => Promise<unknown
 function createObjectStorage(
     put: ObjectStorage['put'] = async ({ key }) => ({ reference: `local://${key}` }),
 ): ObjectStorage {
-    return { put };
+    const get: ObjectStorage['get'] = async () => {
+        throw new Error('RegisterDocumentUseCase must not read object storage.');
+    };
+
+    return { put, get };
 }
 
 describe('RegisterDocumentUseCase', () => {
