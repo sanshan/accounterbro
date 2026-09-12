@@ -8,6 +8,8 @@ import App from './app/app';
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 
+void fetch('/api/health/live').catch(() => undefined);
+
 root.render(
     <StrictMode>
         <MantineProvider>
