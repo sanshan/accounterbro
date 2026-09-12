@@ -116,8 +116,12 @@ The current canonical reference is Documents: `Document` preserves its owner, `D
 - **EVENT-003** — Event names MUST be declared in `packages/[package-name]/src/lib/events/names.ts`.
 - **EVENT-004** — Event names MUST be exposed through `[camelCaseDomainName]EventNames`.
 - **EVENT-005** — An event name MUST use the domain name from Core and describe the completed parent operation in past tense: `[domain-name].[past-tense-event]`.
-- **EVENT-006** — Package events MUST be implemented as classes.
-- **EVENT-007** — Event class names MUST end with `Event`.
+- **EVENT-006** — A business event MUST be declared through the published EDP `defineEventContract(...)` API so its literal name, business schema version, and Zod payload schema have one runtime source of truth.
+- **EVENT-007** — Event payload and Event TypeScript types MUST derive from that contract through the published EDP inference types instead of a separately maintained payload interface or Event class.
+- **EVENT-008** — An Operation handler that emits a package event MUST create it through the owning EventContract's `.create(...)` API instead of constructing a parallel Event representation.
+- **EVENT-009** — A business package MUST expose the runtime EventContract value and required derived public Event/payload types from its main business entrypoint when those contracts are part of its integration API.
+
+`packages/documents/src/lib/events/document-registered/document-registered.event.ts` and `packages/document-processing/src/lib/events/document-processing-completed/document-processing-completed.event.ts` are the canonical working references. Keep EDP EventContract/runtime-validation and renderer semantics in EDP documentation rather than duplicating them here.
 
 ## Persistence
 
