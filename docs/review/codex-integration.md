@@ -61,7 +61,7 @@ The following behaviors are established by PR #243, PR #272, and the controlled 
 - the reviewer actor is `chatgpt-codex-connector[bot]`;
 - a finding run creates a pull-request review with state `COMMENTED` and an exact `commit_id` for the reviewed head;
 - blocking findings are inline review comments with path/line evidence and participate in GitHub review threads;
-- review threads expose `is_resolved` and `is_outdated`; after a new head, historical findings can become outdated while their review submissions remain in history;
+- review threads expose `is_resolved` and `is_outdated`; after a new head, historical findings can become outdated while their review submissions remain visible;
 - a transient `eyes` reaction may be present while review is processing and is not a completion signal;
 - automatic review on a fresh pull-request-open event is proven; automatic review on push is not proven;
 - the observed clean representation is a connector top-level comment containing a reviewed short SHA and/or a PR-level `+1` reaction depending on the run;
@@ -109,7 +109,8 @@ Calibration evidence deliberately excludes runs that were not independent or who
 - early `PRR-004` probes #254-#256 are excluded because synthetic fixtures created unrelated lint/typecheck failures;
 - `PRR-004` probes #263-#264 correctly found the policy violation but are excluded because the fixture still violated deterministic repository conventions;
 - probes #266-#267 are excluded because direct EDP type imports expanded the Documents service dependency surface and failed typecheck;
-- after the committed PRR-004 boundary case was rewritten to the production-shaped variable rename, the older boundary evidence was retired and the exact current case was rerun as PR #270.
+- after the committed PRR-004 boundary case was rewritten to the production-shaped variable rename, the older boundary evidence was retired and the exact current case was rerun as PR #270;
+- PRR-007 probes #347-#348 are excluded because their Vite-proxy-only fixture did not establish an actual runtime service relationship and therefore did not isolate the rule's high-level topology boundary.
 
 As required by the provider-neutral calibration contract, accepted calibration evidence must isolate the semantic rule boundary; unrelated deterministic lint/typecheck/test/dependency failures invalidate that evidence until the fixture is corrected. Task #237 applied that rule rather than weakening deterministic checks.
 
@@ -130,12 +131,12 @@ A future machine gate is appropriate only after the provider exposes a documente
 
 ## PRR-007 calibration evidence
 
-`PRR-007` was calibrated on 2026-09-12 using the same blocking-safety procedure as the initial catalog. Both known-violation trials used fresh pull requests with equivalent case semantics, and the committed boundary case was exercised separately. All three probes completed deterministic CI successfully and were closed without merge.
+`PRR-007` was calibrated on 2026-09-12 using the same blocking-safety procedure as the initial catalog. The accepted known-violation fixture establishes a real Web → API runtime interaction rather than relying on development proxy configuration alone. Both known-violation trials used fresh pull requests with equivalent case semantics, and the committed boundary case was exercised separately. All three accepted probes completed deterministic CI successfully and were closed without merge.
 
 | Rule / case | Trial | Reviewed head | Observable provider result |
 | --- | --- | --- | --- |
-| `PRR-007` / `new-service-relationship-with-stale-system-overview` | PR #347 | `acd5beee30750b584261a298dec4fba4140cbe45` | blocking `violation` — review `5186514607`, inline `3996302934`; CI run `34695947768` green |
-| `PRR-007` / `new-service-relationship-with-stale-system-overview` | PR #348 | `1e179c6bffb76434e5dc6b6633782d93b32e2612` | blocking `violation` — review `5186517665`, inline `3996305662`; CI run `34695981392` green |
-| `PRR-007` / `internal-refactor-with-stable-topology` | PR #349 | `133d07d8b99cdd0a4ebb602a89281b9ba7629333` | declared expected `not-applicable`; clean `+1` `502447413`; CI run `34695998564` green |
+| `PRR-007` / `new-service-relationship-with-stale-system-overview` | PR #350 | `a986c1c5d789ec33843c6f9d5ce3d36087470a7b` | blocking `violation` — review `5186580343`, inline `3996372942`; CI run `34697352648` green |
+| `PRR-007` / `new-service-relationship-with-stale-system-overview` | PR #351 | `a986c1c5d789ec33843c6f9d5ce3d36087470a7b` | blocking `violation` — review `5186581097`, inline `3996373882`; CI run `34697359773` green |
+| `PRR-007` / `internal-refactor-with-stable-topology` | PR #352 | `bd5608c4e76fb818a58bce99ef427a83332d7979` | declared expected `not-applicable`; clean `+1` `502469586`; CI run `34697536637` green |
 
 The boundary row records only the observable clean result. Codex did not expose whether it internally classified the case as `not-applicable` or `no-violation`, so this evidence does not claim an unobserved clean subtype.
