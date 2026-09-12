@@ -1,0 +1,10 @@
+model {
+  accounterbro.documents -> accounterbro.runtime.config "uses"
+  accounterbro.documents -> accounterbro.runtime.health "uses"
+  accounterbro.documents -> accounterbro.runtime.observability "uses"
+  accounterbro.documents -> accounterbro.runtime.presenters "uses"
+  accounterbro.processing -> accounterbro.runtime.config "uses"
+  accounterbro.processing -> accounterbro.runtime.health "uses"
+  accounterbro.processing -> accounterbro.runtime.observability "uses"
+  accounterbro.processing -> accounterbro.runtime.presenters "uses"
+}

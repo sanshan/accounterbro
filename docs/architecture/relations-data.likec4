@@ -1,0 +1,7 @@
+model {
+  accounterbro.api -> accounterbro.data.apiDb "persistence"
+  accounterbro.documents -> accounterbro.data.documentsDb "persistence"
+  accounterbro.processing -> accounterbro.data.processingDb "persistence"
+  accounterbro.documents -> accounterbro.data.objectStore "storage"
+  accounterbro.processing -> accounterbro.data.objectStore "storage"
+}

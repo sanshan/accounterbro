@@ -1,0 +1,19 @@
+views {
+  view index {
+    title "AccounterBro system overview"
+    include user
+    include accounterbro.web, accounterbro.api, accounterbro.documents, accounterbro.processing
+    include accounterbro.data._
+    include edp
+    autoLayout LeftRight
+  }
+
+  view composition {
+    title "Application and package composition"
+    include accounterbro.web, accounterbro.api, accounterbro.documents, accounterbro.processing
+    include accounterbro.packages._
+    include accounterbro.runtime._
+    include edp
+    autoLayout LeftRight
+  }
+}
