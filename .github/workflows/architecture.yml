@@ -19,6 +19,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
 
       - name: Build architecture site
         uses: likec4/actions@v1
@@ -30,7 +33,7 @@ jobs:
       - name: Upload architecture artifact
         uses: actions/upload-artifact@v4
         with:
-          name: accounterbro-architecture-${{ github.sha }}
+          name: accounterbro-architecture-${{ github.event.pull_request.head.sha || github.sha }}
           path: likec4-dist
           if-no-files-found: error
           retention-days: 7
