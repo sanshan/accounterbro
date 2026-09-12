@@ -2,5 +2,5 @@ const nxPreset = require('@nx/jest/preset').default;
 
 module.exports = {
     ...nxPreset,
-    transformIgnorePatterns: ['node_modules/(?!.pnpm|@event-driven-platform/)'],
+    transformIgnorePatterns: ['node_modules/(?!.pnpm|@event-driven-platform/|uuid/)'],
 };
