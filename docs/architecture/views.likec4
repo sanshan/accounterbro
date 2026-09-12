@@ -1,0 +1,11 @@
+views {
+  view index {
+    include user
+    include accounterbro.web
+    include accounterbro.api
+    include accounterbro.documents
+    include accounterbro.processing
+    include accounterbro.data._
+    autoLayout LeftRight
+  }
+}

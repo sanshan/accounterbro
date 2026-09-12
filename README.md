@@ -39,36 +39,11 @@ The codebase is also the executable reference for the engineering rules used to 
 
 AccounterBro separates product behavior from service/runtime composition. Business packages own business execution contracts and persistence integration surfaces; deployable services compose those packages with transport and infrastructure concerns.
 
-```mermaid
-flowchart LR
-    Web[React Web] --> DocumentsService[Documents Service]
+[Open the interactive System Overview](https://sanshan.github.io/accounterbro/)
 
-    subgraph Services
-        API[API]
-        DocumentsService
-        ProcessingService[Document Processing Service]
-    end
+The System Overview is the repository-maintained high-level topology map. Engineering documentation remains the canonical source for the rules and reasoning behind those boundaries.
 
-    DocumentsService --> DocumentsPackage["@accounterbro/documents"]
-    ProcessingService --> ProcessingPackage["@accounterbro/document-processing"]
-    ProcessingService --> Extraction["@accounterbro/document-extraction"]
-
-    Runtime[Shared runtime packages] -. compose .-> API
-    Runtime -. compose .-> DocumentsService
-    Runtime -. compose .-> ProcessingService
-
-    API --> ApiDb[(API PostgreSQL)]
-    DocumentsService --> DocumentsDb[(Documents PostgreSQL)]
-    ProcessingService --> ProcessingDb[(Document Processing PostgreSQL)]
-
-    DocumentsService --> Storage[Object storage]
-    ProcessingService --> Storage
-
-    EDP[Event-driven execution contracts] -. used by .-> DocumentsPackage
-    EDP -. used by .-> ProcessingPackage
-```
-
-The PostgreSQL nodes above are logical service-owned database boundaries. Local development may host them in the same PostgreSQL server; services do not share persistence ownership.
+The PostgreSQL nodes in the overview are logical service-owned database boundaries. Local development may host them in the same PostgreSQL server; services do not share persistence ownership.
 
 Inside an internal service, the stable composition direction is:
 
@@ -104,6 +79,7 @@ Domain code is introduced only where the service genuinely owns domain behavior;
 | `packages/runtime-*` | Reusable technical/runtime capabilities |
 | `packages/object-storage` | Object-storage capability |
 | `specs` | Product/application behavioral specifications |
+| `docs/architecture` | Canonical LikeC4 high-level System Overview model |
 | `docs/engineering` | Canonical engineering guidance |
 | `docs/review` | Deterministic repository review rules |
 
@@ -206,6 +182,7 @@ The repository documentation is part of the implementation contract, not a separ
 
 Start with:
 
+- [System Overview model and maintenance contract](docs/architecture/README.md)
 - [Service engineering guidelines](docs/engineering/service-guidelines.md)
 - [Business package guidelines](docs/engineering/package-guidelines.md)
 - [Database guidelines](docs/engineering/database-guidelines.md)

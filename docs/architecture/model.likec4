@@ -1,0 +1,17 @@
+model {
+  user = actor "User"
+
+  accounterbro = system "AccounterBro" {
+    web = webapp "Web"
+    api = app "API"
+    documents = app "Documents"
+    processing = app "Document Processing"
+
+    data = boundary "Owned data boundaries" {
+      apiDb = database "API PostgreSQL"
+      documentsDb = database "Documents PostgreSQL"
+      processingDb = database "Document Processing PostgreSQL"
+      objectStore = storage "Object Storage"
+    }
+  }
+}
