@@ -1,6 +1,5 @@
 model {
   user = actor "User"
-  edp = system "Event Driven Platform"
 
   accounterbro = system "AccounterBro" {
     web = webapp "Web"

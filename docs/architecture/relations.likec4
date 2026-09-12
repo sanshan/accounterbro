@@ -6,6 +6,4 @@ model {
   accounterbro.processing -> accounterbro.data.processingDb
   accounterbro.documents -> accounterbro.data.objectStore
   accounterbro.processing -> accounterbro.data.objectStore
-  accounterbro.documents -> edp
-  accounterbro.processing -> edp
 }

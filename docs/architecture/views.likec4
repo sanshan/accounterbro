@@ -6,7 +6,6 @@ views {
     include accounterbro.documents
     include accounterbro.processing
     include accounterbro.data._
-    include edp
     autoLayout LeftRight
   }
 }
