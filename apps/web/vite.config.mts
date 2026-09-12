@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
-    const { api, documents, web } = runtimeConfig;
+    const { api, documentProcessing, documents, web } = runtimeConfig;
 
     return {
         root: import.meta.dirname,
@@ -14,6 +14,10 @@ export default defineConfig(() => {
             host: 'localhost',
             proxy: {
                 '/api': { target: `http://localhost:${api.port}`, changeOrigin: true },
+                '/document-processing': {
+                    target: `http://localhost:${documentProcessing.port}`,
+                    changeOrigin: true,
+                },
                 '/documents': {
                     target: `http://localhost:${documents.port}`,
                     changeOrigin: true,
