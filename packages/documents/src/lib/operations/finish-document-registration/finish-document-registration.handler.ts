@@ -4,7 +4,10 @@ import {
     type SuccessfulOperationResult,
 } from '@event-driven-platform/operation-result';
 
-import { DocumentRegisteredEvent } from '../../events/document-registered/document-registered.event.js';
+import {
+    DocumentRegisteredEventContract,
+    type DocumentRegisteredEvent,
+} from '../../events/document-registered/document-registered.event.js';
 import type { DocumentPersistence } from '../../ports/document-persistence.js';
 import type {
     FinishDocumentRegistrationOperation,
@@ -37,7 +40,7 @@ export class FinishDocumentRegistrationHandler
                 status,
             } satisfies FinishDocumentRegistrationOutcome;
 
-            const event = new DocumentRegisteredEvent({
+            const event = DocumentRegisteredEventContract.create({
                 documentId: document.id,
                 storageReference: operation.payload.storageReference,
             });

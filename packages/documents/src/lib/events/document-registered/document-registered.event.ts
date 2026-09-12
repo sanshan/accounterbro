@@ -1,18 +1,20 @@
-import type { DocumentId } from '@accounterbro/core';
-import type { Event } from '@event-driven-platform/event';
+import {
+    defineEventContract,
+    type EventOf,
+    type EventPayloadOf,
+} from '@event-driven-platform/event';
+import { z } from 'zod';
 
 import { documentEventNames } from '../names.js';
 
-export interface DocumentRegisteredPayload {
-    readonly documentId: DocumentId;
-    readonly storageReference: string;
-}
+export const DocumentRegisteredEventContract = defineEventContract({
+    name: documentEventNames.registered,
+    schemaVersion: 1,
+    payload: z.object({
+        documentId: z.string(),
+        storageReference: z.string(),
+    }),
+});
 
-export class DocumentRegisteredEvent
-    implements Event<typeof documentEventNames.registered, 1, DocumentRegisteredPayload>
-{
-    public readonly name = documentEventNames.registered;
-    public readonly schemaVersion = 1 as const;
-
-    public constructor(public readonly payload: DocumentRegisteredPayload) {}
-}
+export type DocumentRegisteredPayload = EventPayloadOf<typeof DocumentRegisteredEventContract>;
+export type DocumentRegisteredEvent = EventOf<typeof DocumentRegisteredEventContract>;

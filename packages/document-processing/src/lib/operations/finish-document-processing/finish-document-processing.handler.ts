@@ -4,7 +4,10 @@ import {
     type SuccessfulOperationResult,
 } from '@event-driven-platform/operation-result';
 
-import { DocumentProcessingCompletedEvent } from '../../events/document-processing-completed/document-processing-completed.event.js';
+import {
+    DocumentProcessingCompletedEventContract,
+    type DocumentProcessingCompletedEvent,
+} from '../../events/document-processing-completed/document-processing-completed.event.js';
 import type { DocumentProcessingPersistence } from '../../ports/document-processing-persistence.js';
 import type {
     FinishDocumentProcessingOperation,
@@ -39,7 +42,7 @@ export class FinishDocumentProcessingHandler
                 status,
             } satisfies FinishDocumentProcessingOutcome;
 
-            const event = new DocumentProcessingCompletedEvent({
+            const event = DocumentProcessingCompletedEventContract.create({
                 processingId: processing.id,
                 documentId: processing.documentId,
             });
