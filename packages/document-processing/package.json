@@ -41,7 +41,8 @@
         "@event-driven-platform/read": "^0.0.8",
         "@event-driven-platform/read-handler": "^0.0.7",
         "@event-driven-platform/subject": "^0.1.7",
-        "typeorm": "catalog:"
+        "typeorm": "catalog:",
+        "zod": "catalog:"
     },
     "devDependencies": {
         "pg": "catalog:"
