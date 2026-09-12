@@ -364,14 +364,14 @@ importers:
         specifier: ^0.0.10
         version: 0.0.10
       '@event-driven-platform/runner':
-        specifier: ^0.0.13
-        version: 0.0.13
+        specifier: ^0.0.14
+        version: 0.0.14
       '@event-driven-platform/use-case':
         specifier: ^0.1.0
         version: 0.1.0
       '@event-driven-platform/use-case-executor':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.2
+        version: 0.1.2
       '@nestjs/common':
         specifier: ^11.0.0
         version: 11.2.3(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -488,20 +488,20 @@ importers:
         specifier: ^0.1.7
         version: 0.1.7
       '@event-driven-platform/event':
-        specifier: ^0.1.7
-        version: 0.1.7
+        specifier: ^0.1.8
+        version: 0.1.8
       '@event-driven-platform/intent':
         specifier: ^0.2.4
         version: 0.2.4
       '@event-driven-platform/operation':
+        specifier: ^0.1.9
+        version: 0.1.9
+      '@event-driven-platform/operation-handler':
+        specifier: ^0.0.10
+        version: 0.0.10
+      '@event-driven-platform/operation-result':
         specifier: ^0.1.8
         version: 0.1.8
-      '@event-driven-platform/operation-handler':
-        specifier: ^0.0.9
-        version: 0.0.9
-      '@event-driven-platform/operation-result':
-        specifier: ^0.1.7
-        version: 0.1.7
       '@event-driven-platform/read':
         specifier: ^0.0.8
         version: 0.0.8
@@ -531,20 +531,20 @@ importers:
         specifier: ^0.1.7
         version: 0.1.7
       '@event-driven-platform/event':
-        specifier: ^0.1.7
-        version: 0.1.7
+        specifier: ^0.1.8
+        version: 0.1.8
       '@event-driven-platform/intent':
         specifier: ^0.2.4
         version: 0.2.4
       '@event-driven-platform/operation':
+        specifier: ^0.1.9
+        version: 0.1.9
+      '@event-driven-platform/operation-handler':
+        specifier: ^0.0.10
+        version: 0.0.10
+      '@event-driven-platform/operation-result':
         specifier: ^0.1.8
         version: 0.1.8
-      '@event-driven-platform/operation-handler':
-        specifier: ^0.0.9
-        version: 0.0.9
-      '@event-driven-platform/operation-result':
-        specifier: ^0.1.7
-        version: 0.1.7
       '@event-driven-platform/read':
         specifier: ^0.0.8
         version: 0.0.8
@@ -582,17 +582,17 @@ importers:
         specifier: ^0.0.9
         version: 0.0.9
       '@event-driven-platform/event':
-        specifier: ^0.1.7
-        version: 0.1.7
+        specifier: ^0.1.8
+        version: 0.1.8
       '@event-driven-platform/execution':
         specifier: ^0.0.8
         version: 0.0.8
       '@event-driven-platform/execution-log':
-        specifier: ^0.0.9
-        version: 0.0.9
+        specifier: ^0.0.10
+        version: 0.0.10
       '@event-driven-platform/execution-log-store':
-        specifier: ^0.0.9
-        version: 0.0.9
+        specifier: ^0.0.10
+        version: 0.0.10
       '@event-driven-platform/execution-transaction':
         specifier: ^0.0.8
         version: 0.0.8
@@ -603,23 +603,23 @@ importers:
         specifier: ^0.2.0
         version: 0.2.0
       '@event-driven-platform/operation':
-        specifier: ^0.1.8
-        version: 0.1.8
+        specifier: ^0.1.9
+        version: 0.1.9
       '@event-driven-platform/operation-event-envelope-factory':
+        specifier: ^0.0.11
+        version: 0.0.11
+      '@event-driven-platform/operation-handler':
         specifier: ^0.0.10
         version: 0.0.10
-      '@event-driven-platform/operation-handler':
-        specifier: ^0.0.9
-        version: 0.0.9
       '@event-driven-platform/operation-handler-resolver':
-        specifier: ^0.0.9
-        version: 0.0.9
+        specifier: ^0.0.10
+        version: 0.0.10
       '@event-driven-platform/outbox':
-        specifier: ^0.0.9
-        version: 0.0.9
+        specifier: ^0.0.10
+        version: 0.0.10
       '@event-driven-platform/outbox-store':
-        specifier: ^0.0.9
-        version: 0.0.9
+        specifier: ^0.0.10
+        version: 0.0.10
       '@event-driven-platform/read':
         specifier: ^0.0.8
         version: 0.0.8
@@ -633,14 +633,14 @@ importers:
         specifier: ^0.0.10
         version: 0.0.10
       '@event-driven-platform/runner':
-        specifier: ^0.0.13
-        version: 0.0.13
+        specifier: ^0.0.14
+        version: 0.0.14
       '@event-driven-platform/use-case-execution-store':
         specifier: ^0.0.7
         version: 0.0.7
       '@event-driven-platform/use-case-executor':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.2
+        version: 0.1.2
       '@nestjs/common':
         specifier: ^11.0.0
         version: 11.2.3(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -1597,17 +1597,17 @@ packages:
   '@event-driven-platform/clock@0.0.9':
     resolution: {integrity: sha512-PsZY10HwHnkaRQs/Q11CEipTap01zhKoIB1Y84uaEL8d8UfeHL1EzgCB/nOMMejFAl7LpV14QfZUB2FYW18CKQ==}
 
-  '@event-driven-platform/command@0.0.9':
-    resolution: {integrity: sha512-LNjUMziZO0zFLMSDNhSa4e8/yWxKKJgbXx7vE0t0WFC+ua9lK2q2mGDDyCuRyP+DADdr4kggrAfOlnxujr/3ag==}
+  '@event-driven-platform/command@0.0.10':
+    resolution: {integrity: sha512-nAzSdNDSAVnMsua/d4TjYkpw5uaWq3xtO/5u6Kp7fddWDRNvEDVML6RSK9ox80M+PnDfxUw645EEoNAk/3nrOw==}
 
-  '@event-driven-platform/event@0.1.7':
-    resolution: {integrity: sha512-qE/2+XlYOgsQA+Gr849h5rdEtbnLL0K4rAnfgLMGGFVb7otGndm+GoY5FTwrikAvuEdO6U3Dut0u6Ng7tbx8Kg==}
+  '@event-driven-platform/event@0.1.8':
+    resolution: {integrity: sha512-e0wkYJGZmX2qD9L2z+oeDONlo3FIWvWNu86tf7mSUn7yIKz4rep0vcjFOOAaCdyLplC1t3ZMiM090OoTyb/Rog==}
 
-  '@event-driven-platform/execution-log-store@0.0.9':
-    resolution: {integrity: sha512-TFOgNba5+VG2p21t3rGTcLiObn82G852oK5Ez+uhaehLhTdSQKmKEftzhMbyM5QEW+fh939X1Dr2im72aOleFw==}
+  '@event-driven-platform/execution-log-store@0.0.10':
+    resolution: {integrity: sha512-wmyWVto9X87pIKS1wRTEYwNigzChNhWRpvYVFCY6HW+/vDb8YGgX2pg9HFlQQ7uraBux8l4kw3S6SlElB0zNkA==}
 
-  '@event-driven-platform/execution-log@0.0.9':
-    resolution: {integrity: sha512-wSLvq+i18tiGqpc5Audee7/IgVXyfwv6k72AgtdoZ5ixA4PV6xUclpQBFz7zNpOENcA2bI4q7zL/zxLPtwZm1Q==}
+  '@event-driven-platform/execution-log@0.0.10':
+    resolution: {integrity: sha512-HxCXteUwaSnJ0KzCBBuISouTjPqmCeNRvzhEbBu/TLMu3Tjp7Qvf2+SujBksqKLH/92GtsLlUzdM/CysylCwqg==}
 
   '@event-driven-platform/execution-transaction@0.0.8':
     resolution: {integrity: sha512-xhVecRUaQnR6xQj7qvrnryZ/y7Bt9ikz1AwnoNFAF9pmEmj1g3FsthBw7NlUrqi7AoBACi9aVxCmJ1N7uW7scw==}
@@ -1624,26 +1624,26 @@ packages:
   '@event-driven-platform/observability@0.2.0':
     resolution: {integrity: sha512-jQ2dv+Cnej9OY0LjVPhuXtRj2NjlSS0Ei73JwN+6+jbHVS6Gx9I/cUkXyo/btWqjiofG/g58w3nPXQkKV9ZmxQ==}
 
-  '@event-driven-platform/operation-event-envelope-factory@0.0.10':
-    resolution: {integrity: sha512-0FUlyZItdtHxGfxG2bTeEbnuX01VJ0L9wxsZpS/KDIfEYp67sHOIgQPwSX0g2/0NP//SXJlrlKrnbocSwY+Kfw==}
+  '@event-driven-platform/operation-event-envelope-factory@0.0.11':
+    resolution: {integrity: sha512-n0sXMVlIX5K96gq9X9tEwsn6e4i6NKTGre3VVpC33ZR64eRpI4JFtW9ijTBIME+N4d47yNvnxE+/uvWKVfZxPQ==}
 
-  '@event-driven-platform/operation-handler-resolver@0.0.9':
-    resolution: {integrity: sha512-FovhWpOMbOqpZ/ewm3v1fuZLv8h4sGGXGNFp662b20VpBeFUCk3uG24Q0RW0xiXSaDk5aXje/ke+G2gAdXu8TA==}
+  '@event-driven-platform/operation-handler-resolver@0.0.10':
+    resolution: {integrity: sha512-gLY0/PnLsPVj2GdqOaIFlEW1lytnNYpRB5KZIQ65lm3VemAMDjmtv5GXiQN/qE47+ipTQlgAEFUfS95foawLaQ==}
 
-  '@event-driven-platform/operation-handler@0.0.9':
-    resolution: {integrity: sha512-h5O8jd5m4bH+Is3hiE708WbFfShRVohGe9iKl0X/Z5b2GrRlVtmZhQkfK0ztmSnvEAtCOTN9TwFU0YCza4qRtw==}
+  '@event-driven-platform/operation-handler@0.0.10':
+    resolution: {integrity: sha512-iidgw3meI9QSx9BTDtZPjg0aVeI2bYQnNPYuRvHCvpRMxdVIYCrRasLLvvxPDpGQWZTCbSBeFBzujFRg09eZuw==}
 
-  '@event-driven-platform/operation-result@0.1.7':
-    resolution: {integrity: sha512-azES4rsjetRPJBQmTWNB2mDPXhhzgWkalSw4HlYC+EFdAV1EUgnvEAMJhRwwsLH7gJuqgs5btPu8OpvkQ3k9/g==}
+  '@event-driven-platform/operation-result@0.1.8':
+    resolution: {integrity: sha512-PcW80PSfBigRRKY74kBdUj9klpGd5swHFnWjtAnheqpeOmZnXdjBR5kbxmQhKHZdXuMd6LoD5HLjydF6NogbjQ==}
 
-  '@event-driven-platform/operation@0.1.8':
-    resolution: {integrity: sha512-3cjB/DlC9E9CDdDGTrfVg/EqSFmKzXLOetuXmd/4kA2Lc/t+YWpFKnlqYbAQlX5ogAYDzEk/JjDjruEXTTz4Dw==}
+  '@event-driven-platform/operation@0.1.9':
+    resolution: {integrity: sha512-POi4aK0pH8K5GGdd9Qmblb3Byfh6ezu3SuibCtj8H8CVwL1jelkD7JWiHkXcJ4GKgu+jud/VHQn2VT9SX9lYUQ==}
 
-  '@event-driven-platform/outbox-store@0.0.9':
-    resolution: {integrity: sha512-x5v03K3OA7Zaq/bHa3S7tqQtSrNepK+fSPh9EHbTkLkNfPTTyxS2+1MLFFLTLvxlmDDYgzJ1JtfpYWdUZZBxtA==}
+  '@event-driven-platform/outbox-store@0.0.10':
+    resolution: {integrity: sha512-txwejI/nRQoSR6AE2zH/iXOFiALOxvIsNpURo4rU8rWJ2vs+yStOBXM8c5+cg4cMDH4DonkX6E4R6GgBGou+MA==}
 
-  '@event-driven-platform/outbox@0.0.9':
-    resolution: {integrity: sha512-eUK3OMorNfSuKhYbInHITOCfNVvOD9BRT3o9inKqbEwqq7zVlpsNZUcBgvIf3vkpjILnhQV9tVxZC59zQKTEZg==}
+  '@event-driven-platform/outbox@0.0.10':
+    resolution: {integrity: sha512-ztagZHd4cu2a6t/Zos/vabMTa0yoC3oGpXmokqwvczrcjMGweKtbN+y2IQmt8ZA0aH4Hay/aRwLBR5mfdl9+PA==}
 
   '@event-driven-platform/query@0.0.8':
     resolution: {integrity: sha512-c8gm8OXBCgzaHFQaNZLHGYidG4Mv9kpkPCEt/zoai5gakzLv9rd9Vm14gnj1nkV3waQbHNE/uQvOaCdBv7Ic+Q==}
@@ -1669,8 +1669,8 @@ packages:
   '@event-driven-platform/retry@0.0.8':
     resolution: {integrity: sha512-NZ9Vh5usSWwgyLbBZLXs+EUnLslri0goxcYzewYeQH46ZdO67YSc7alfB99Z/QnSGkmKJofgvnUAWucgNRUK/A==}
 
-  '@event-driven-platform/runner@0.0.13':
-    resolution: {integrity: sha512-SrgZrIih9PR1wpEtwkkH+Cll7IxP/RnFYaKSR1etssPaH1JrtNNpU56bkfUKLuP9jgTlo3kxPPcRBp5tNXUQoQ==}
+  '@event-driven-platform/runner@0.0.14':
+    resolution: {integrity: sha512-hSB2++eXSmfzQimpmIr8w4qJNKu0d2qJhVsiFHYwYlj75fTU6Nb/17zGfBFekPmXs0FUzp+hHGFJf6nhexORuw==}
 
   '@event-driven-platform/subject@0.1.7':
     resolution: {integrity: sha512-ZHMppUkMhO2j/6lSfgrafXbqnR9jY3u4zsyvsKREvXVumhmvs1nWrxNUiZhcYRbkdw+jNUshzwm2VyiCLfC+JA==}
@@ -1684,8 +1684,8 @@ packages:
   '@event-driven-platform/use-case-execution-store@0.0.7':
     resolution: {integrity: sha512-pOHhl4qN4D5022/o0eAdOeNsDj+9S+s6Ir/urOHWldx4lE+AkfWVFpL9QNRyXIhD7Yo3nNAyB4CMMgy1dqHlcA==}
 
-  '@event-driven-platform/use-case-executor@0.1.1':
-    resolution: {integrity: sha512-ZRu1h8rvVC0BvKQ6HYPYoMy0uiXUKWpFPpFaJqRT95mWiPTuqOc2HVWZD8YtIJxhRUmytwXQp3Qm7jdw8JXB0w==}
+  '@event-driven-platform/use-case-executor@0.1.2':
+    resolution: {integrity: sha512-zWO+ij4tO7VXcSMZEUmc6ETboalhWxm5F5NLYJSkBAglYTQEwCeXrcGaixJoIb5e9E4M3LYIMF+iy71AyuanrQ==}
 
   '@event-driven-platform/use-case@0.1.0':
     resolution: {integrity: sha512-yfezTo3MeO8/vqAcGxYCScdx/eWB3GdYhGU3EfRNpjVjqxQ1EwVxt2DG6jeT1xntYFMtXjY1qlm9APESsBh3zQ==}
@@ -7801,8 +7801,8 @@ packages:
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
-  react-is@19.2.8:
-    resolution: {integrity: sha512-s5un28nYxKJw5gvUHyW5PCC28CvBqLu9r3cWgzHT4Vo/5fqqkFcdRYsGcKf50WMPpjjFZS5d76fn3YCo2njKwQ==}
+  react-is@19.3.0:
+    resolution: {integrity: sha512-UpMYezM4v5/18F28aC66AEsjXIgE02kyEMH6yLdgLXu/UTfa1Ntwck/nNLrbqJsEXW7gPb0coNO9FQse9WTovA==}
 
   react-number-format@5.4.5:
     resolution: {integrity: sha512-y8O2yHHj3w0aE9XO8d2BCcUOOdQTRSVq+WIuMlLVucAm5XNjJAy+BoOJiuQMldVYVOKTMyvVNfnbl2Oqp+YxGw==}
@@ -9440,6 +9440,9 @@ packages:
   zod@4.5.4:
     resolution: {integrity: sha512-sC95tT5iHHH9gtpj6A81kh+NEaRAUFN+qlUPDUbRfOMvNf5QCBqsb3WgvnpVtK5Y+4UfA6KqufotuTvMGiTlsA==}
 
+  zod@4.6.2:
+    resolution: {integrity: sha512-lh5RCAGFa1Cm2hjtNwLQhSs/AsqdWnTQaBER9fEwN/88pSh7KOtJavtBx/0VlkN/uFd61SwYmljLMDAsHlvzBQ==}
+
 snapshots:
 
   '@acemir/cssom@0.9.31': {}
@@ -10476,40 +10479,40 @@ snapshots:
     dependencies:
       '@event-driven-platform/types': 0.1.7
       tslib: 2.8.1
-      zod: 4.5.4
+      zod: 4.6.2
 
   '@event-driven-platform/clock@0.0.9':
     dependencies:
       tslib: 2.8.1
 
-  '@event-driven-platform/command@0.0.9':
+  '@event-driven-platform/command@0.0.10':
     dependencies:
       '@event-driven-platform/guard': 0.0.8
-      '@event-driven-platform/operation': 0.1.8
+      '@event-driven-platform/operation': 0.1.9
       '@event-driven-platform/rate-limit': 0.0.8
       '@event-driven-platform/retry': 0.0.8
       tslib: 2.8.1
 
-  '@event-driven-platform/event@0.1.7':
+  '@event-driven-platform/event@0.1.8':
     dependencies:
       '@event-driven-platform/aggregate-reference': 0.1.7
       '@event-driven-platform/tenant-reference': 0.1.7
       '@event-driven-platform/types': 0.1.7
       tslib: 2.8.1
       uuid: 13.0.2
-      zod: 4.5.4
+      zod: 4.6.2
 
-  '@event-driven-platform/execution-log-store@0.0.9':
+  '@event-driven-platform/execution-log-store@0.0.10':
     dependencies:
       '@event-driven-platform/execution': 0.0.8
-      '@event-driven-platform/execution-log': 0.0.9
-      '@event-driven-platform/operation': 0.1.8
+      '@event-driven-platform/execution-log': 0.0.10
+      '@event-driven-platform/operation': 0.1.9
       tslib: 2.8.1
 
-  '@event-driven-platform/execution-log@0.0.9':
+  '@event-driven-platform/execution-log@0.0.10':
     dependencies:
       '@event-driven-platform/execution': 0.0.8
-      '@event-driven-platform/operation': 0.1.8
+      '@event-driven-platform/operation': 0.1.9
       tslib: 2.8.1
 
   '@event-driven-platform/execution-transaction@0.0.8':
@@ -10539,49 +10542,49 @@ snapshots:
       '@event-driven-platform/tenant-reference': 0.1.7
       tslib: 2.8.1
 
-  '@event-driven-platform/operation-event-envelope-factory@0.0.10':
+  '@event-driven-platform/operation-event-envelope-factory@0.0.11':
     dependencies:
       '@event-driven-platform/clock': 0.0.9
-      '@event-driven-platform/command': 0.0.9
-      '@event-driven-platform/event': 0.1.7
-      '@event-driven-platform/operation': 0.1.8
+      '@event-driven-platform/command': 0.0.10
+      '@event-driven-platform/event': 0.1.8
+      '@event-driven-platform/operation': 0.1.9
       tslib: 2.8.1
 
-  '@event-driven-platform/operation-handler-resolver@0.0.9':
+  '@event-driven-platform/operation-handler-resolver@0.0.10':
     dependencies:
-      '@event-driven-platform/operation': 0.1.8
-      '@event-driven-platform/operation-handler': 0.0.9
+      '@event-driven-platform/operation': 0.1.9
+      '@event-driven-platform/operation-handler': 0.0.10
       tslib: 2.8.1
 
-  '@event-driven-platform/operation-handler@0.0.9':
+  '@event-driven-platform/operation-handler@0.0.10':
     dependencies:
-      '@event-driven-platform/operation': 0.1.8
+      '@event-driven-platform/operation': 0.1.9
       tslib: 2.8.1
 
-  '@event-driven-platform/operation-result@0.1.7':
+  '@event-driven-platform/operation-result@0.1.8':
     dependencies:
-      '@event-driven-platform/event': 0.1.7
+      '@event-driven-platform/event': 0.1.8
       tslib: 2.8.1
 
-  '@event-driven-platform/operation@0.1.8':
+  '@event-driven-platform/operation@0.1.9':
     dependencies:
       '@event-driven-platform/actor': 0.1.7
       '@event-driven-platform/aggregate-reference': 0.1.7
       '@event-driven-platform/intent': 0.2.4
-      '@event-driven-platform/operation-result': 0.1.7
+      '@event-driven-platform/operation-result': 0.1.8
       '@event-driven-platform/subject': 0.1.7
       '@event-driven-platform/tenant-reference': 0.1.7
       tslib: 2.8.1
 
-  '@event-driven-platform/outbox-store@0.0.9':
+  '@event-driven-platform/outbox-store@0.0.10':
     dependencies:
-      '@event-driven-platform/outbox': 0.0.9
+      '@event-driven-platform/outbox': 0.0.10
       tslib: 2.8.1
 
-  '@event-driven-platform/outbox@0.0.9':
+  '@event-driven-platform/outbox@0.0.10':
     dependencies:
       '@event-driven-platform/clock': 0.0.9
-      '@event-driven-platform/event': 0.1.7
+      '@event-driven-platform/event': 0.1.8
       tslib: 2.8.1
 
   '@event-driven-platform/query@0.0.8':
@@ -10631,33 +10634,33 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@event-driven-platform/runner@0.0.13':
+  '@event-driven-platform/runner@0.0.14':
     dependencies:
       '@event-driven-platform/clock': 0.0.9
-      '@event-driven-platform/command': 0.0.9
+      '@event-driven-platform/command': 0.0.10
       '@event-driven-platform/execution': 0.0.8
-      '@event-driven-platform/execution-log': 0.0.9
-      '@event-driven-platform/execution-log-store': 0.0.9
+      '@event-driven-platform/execution-log': 0.0.10
+      '@event-driven-platform/execution-log-store': 0.0.10
       '@event-driven-platform/execution-transaction': 0.0.8
       '@event-driven-platform/observability': 0.2.0
-      '@event-driven-platform/operation': 0.1.8
-      '@event-driven-platform/operation-event-envelope-factory': 0.0.10
-      '@event-driven-platform/operation-handler-resolver': 0.0.9
-      '@event-driven-platform/operation-result': 0.1.7
-      '@event-driven-platform/outbox': 0.0.9
-      '@event-driven-platform/outbox-store': 0.0.9
+      '@event-driven-platform/operation': 0.1.9
+      '@event-driven-platform/operation-event-envelope-factory': 0.0.11
+      '@event-driven-platform/operation-handler-resolver': 0.0.10
+      '@event-driven-platform/operation-result': 0.1.8
+      '@event-driven-platform/outbox': 0.0.10
+      '@event-driven-platform/outbox-store': 0.0.10
       tslib: 2.8.1
 
   '@event-driven-platform/subject@0.1.7':
     dependencies:
       tslib: 2.8.1
-      zod: 4.5.4
+      zod: 4.6.2
 
   '@event-driven-platform/tenant-reference@0.1.7':
     dependencies:
       '@event-driven-platform/types': 0.1.7
       tslib: 2.8.1
-      zod: 4.5.4
+      zod: 4.6.2
 
   '@event-driven-platform/types@0.1.7':
     dependencies:
@@ -10669,7 +10672,7 @@ snapshots:
       '@event-driven-platform/intent': 0.2.4
       tslib: 2.8.1
 
-  '@event-driven-platform/use-case-executor@0.1.1':
+  '@event-driven-platform/use-case-executor@0.1.2':
     dependencies:
       '@event-driven-platform/clock': 0.0.9
       '@event-driven-platform/execution': 0.0.8
@@ -17887,7 +17890,7 @@ snapshots:
   pretty-format@30.5.0:
     dependencies:
       '@jest/react-is-18': react-is@18.3.1
-      '@jest/react-is-19': react-is@19.2.8
+      '@jest/react-is-19': react-is@19.3.0
       '@jest/schemas': 30.5.0
       ansi-styles: 5.2.0
 
@@ -17977,7 +17980,7 @@ snapshots:
 
   react-is@18.3.1: {}
 
-  react-is@19.2.8: {}
+  react-is@19.3.0: {}
 
   react-number-format@5.4.5(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
     dependencies:
@@ -19759,3 +19762,5 @@ snapshots:
   zlibjs@0.3.1: {}
 
   zod@4.5.4: {}
+
+  zod@4.6.2: {}
