@@ -6,19 +6,19 @@ import { DocumentsConfigModule } from './config/documents-config.module';
 import { DocumentsTypeormModule } from './persistence/typeorm/documents-typeorm.module';
 import { DocumentsObjectStorageModule } from './storage/documents-object-storage.module';
 
-const documentsRuntimeModule = RuntimeExecutionsModule.register([documents]);
+const documentsExecutionRuntimeModule = RuntimeExecutionsModule.register([documents]);
 
 @Module({
     imports: [
         DocumentsConfigModule,
         DocumentsTypeormModule,
-        documentsRuntimeModule,
+        documentsExecutionRuntimeModule,
         DocumentsObjectStorageModule,
     ],
     exports: [
         DocumentsConfigModule,
         DocumentsTypeormModule,
-        documentsRuntimeModule,
+        documentsExecutionRuntimeModule,
         DocumentsObjectStorageModule,
     ],
 })
