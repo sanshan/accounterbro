@@ -49,14 +49,14 @@ jobs:
           base: ${{ steps.pages.outputs.base_path }}
 
       - name: Upload GitHub Pages artifact
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.head_ref == 'verify-342-likec4-pages-preview-final'
         uses: actions/upload-pages-artifact@v4
         with:
           path: likec4-dist
 
   deploy:
     name: Deploy LikeC4 site
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.head_ref == 'verify-342-likec4-pages-preview-final'
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -64,7 +64,7 @@ jobs:
       pages: write
       id-token: write
     environment:
-      name: github-pages
+      name: ${{ github.event_name == 'pull_request' && 'github-pages-preview' || 'github-pages' }}
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
