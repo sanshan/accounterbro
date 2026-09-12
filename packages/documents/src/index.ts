@@ -6,7 +6,8 @@ export {
 
 export { documentEventNames } from './lib/events/names.js';
 export {
-    DocumentRegisteredEvent,
+    DocumentRegisteredEventContract,
+    type DocumentRegisteredEvent,
     type DocumentRegisteredPayload,
 } from './lib/events/document-registered/document-registered.event.js';
 
