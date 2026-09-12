@@ -6,7 +6,7 @@ describe('@accounterbro/documents', () => {
     it('exposes only the root business contracts and runtime values', () => {
         expect(Object.keys(documents).sort()).toEqual([
             'Document',
-            'DocumentRegisteredEvent',
+            'DocumentRegisteredEventContract',
             'DocumentRegistrationStatus',
             'documentEventNames',
             'documentOperationNames',

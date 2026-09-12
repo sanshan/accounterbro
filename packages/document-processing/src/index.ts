@@ -6,7 +6,8 @@ export {
 
 export { documentProcessingEventNames } from './lib/events/names.js';
 export {
-    DocumentProcessingCompletedEvent,
+    DocumentProcessingCompletedEventContract,
+    type DocumentProcessingCompletedEvent,
     type DocumentProcessingCompletedPayload,
 } from './lib/events/document-processing-completed/document-processing-completed.event.js';
 

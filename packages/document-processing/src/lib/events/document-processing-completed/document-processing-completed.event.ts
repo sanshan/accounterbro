@@ -1,23 +1,24 @@
-import type { DocumentId, DocumentProcessingId } from '@accounterbro/core';
-import type { Event } from '@event-driven-platform/event';
+import {
+    defineEventContract,
+    type EventOf,
+    type EventPayloadOf,
+} from '@event-driven-platform/event';
+import { z } from 'zod';
 
 import { documentProcessingEventNames } from '../names.js';
 
-export interface DocumentProcessingCompletedPayload {
-    readonly processingId: DocumentProcessingId;
-    readonly documentId: DocumentId;
-}
+export const DocumentProcessingCompletedEventContract = defineEventContract({
+    name: documentProcessingEventNames.completed,
+    schemaVersion: 1,
+    payload: z.object({
+        processingId: z.string(),
+        documentId: z.string(),
+    }),
+});
 
-export class DocumentProcessingCompletedEvent
-    implements
-        Event<
-            typeof documentProcessingEventNames.completed,
-            1,
-            DocumentProcessingCompletedPayload
-        >
-{
-    public readonly name = documentProcessingEventNames.completed;
-    public readonly schemaVersion = 1 as const;
-
-    public constructor(public readonly payload: DocumentProcessingCompletedPayload) {}
-}
+export type DocumentProcessingCompletedPayload = EventPayloadOf<
+    typeof DocumentProcessingCompletedEventContract
+>;
+export type DocumentProcessingCompletedEvent = EventOf<
+    typeof DocumentProcessingCompletedEventContract
+>;
