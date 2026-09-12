@@ -127,3 +127,15 @@ The normative merge lifecycle is defined only by [`docs/review/README.md`](READM
 Because of those observed constraints, Task #238 does not add an independent-review CI parser/gate. Doing so with the current surface would require unsupported parsing or inference rather than a proven machine contract. The repository process remains governed by the canonical merge workflow even though this part of it cannot yet be safely hard-enforced by CI.
 
 A future machine gate is appropriate only after the provider exposes a documented or empirically proven structured clean artifact tied to the exact head. Credits, API-key review calls, permanent LLM-in-CI fallback, and manual attestation presented as independently derived reviewer state remain outside the observed integration design.
+
+## PRR-007 calibration evidence
+
+`PRR-007` was calibrated on 2026-09-12 using the same blocking-safety procedure as the initial catalog. Both known-violation trials used fresh pull requests with equivalent case semantics, and the committed boundary case was exercised separately. All three probes completed deterministic CI successfully and were closed without merge.
+
+| Rule / case | Trial | Reviewed head | Observable provider result |
+| --- | --- | --- | --- |
+| `PRR-007` / `new-service-relationship-with-stale-system-overview` | PR #347 | `acd5beee30750b584261a298dec4fba4140cbe45` | blocking `violation` — review `5186514607`, inline `3996302934`; CI run `34695947768` green |
+| `PRR-007` / `new-service-relationship-with-stale-system-overview` | PR #348 | `1e179c6bffb76434e5dc6b6633782d93b32e2612` | blocking `violation` — review `5186517665`, inline `3996305662`; CI run `34695981392` green |
+| `PRR-007` / `internal-refactor-with-stable-topology` | PR #349 | `133d07d8b99cdd0a4ebb602a89281b9ba7629333` | declared expected `not-applicable`; clean `+1` `502447413`; CI run `34695998564` green |
+
+The boundary row records only the observable clean result. Codex did not expose whether it internally classified the case as `not-applicable` or `no-violation`, so this evidence does not claim an unobserved clean subtype.

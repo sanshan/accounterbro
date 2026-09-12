@@ -41,7 +41,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Build architecture site
-        uses: likec4/actions@v1
+        uses: likec4/actions@d36a6b8c87c1d540a3737302808755db435183b0 # v1.89.0
         with:
           action: build
           path: docs/architecture
@@ -49,14 +49,14 @@ jobs:
           base: ${{ steps.pages.outputs.base_path }}
 
       - name: Upload GitHub Pages artifact
-        if: github.event_name == 'push' || github.head_ref == 'issue-342-likec4-architecture-spike'
+        if: github.event_name == 'push'
         uses: actions/upload-pages-artifact@v4
         with:
           path: likec4-dist
 
   deploy:
     name: Deploy LikeC4 site
-    if: github.event_name == 'push' || github.head_ref == 'issue-342-likec4-architecture-spike'
+    if: github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -64,7 +64,7 @@ jobs:
       pages: write
       id-token: write
     environment:
-      name: ${{ github.event_name == 'pull_request' && 'github-pages-preview' || 'github-pages' }}
+      name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
