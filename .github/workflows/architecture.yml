@@ -3,18 +3,31 @@ name: Architecture
 on:
   pull_request:
     paths:
-      - 'docs/architecture/**'
+      - 'docs/**'
+      - 'README.md'
       - '.github/workflows/architecture.yml'
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'README.md'
+      - '.github/workflows/architecture.yml'
 
 permissions:
   contents: read
+
+concurrency:
+  group: architecture-pages
+  cancel-in-progress: false
 
 jobs:
   build:
     name: Build LikeC4 site
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -23,17 +36,38 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
+      - name: Configure GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
       - name: Build architecture site
         uses: likec4/actions@v1
         with:
           action: build
           path: docs/architecture
           output: likec4-dist
+          base: ${{ steps.pages.outputs.base_path }}
 
-      - name: Upload architecture artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload GitHub Pages artifact
+        if: github.event_name == 'push' || github.head_ref == 'issue-342-likec4-architecture-spike'
+        uses: actions/upload-pages-artifact@v4
         with:
-          name: accounterbro-architecture-${{ github.event.pull_request.head.sha || github.sha }}
           path: likec4-dist
-          if-no-files-found: error
-          retention-days: 7
+
+  deploy:
+    name: Deploy LikeC4 site
+    if: github.event_name == 'push' || github.head_ref == 'issue-342-likec4-architecture-spike'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

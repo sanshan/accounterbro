@@ -1,6 +1,0 @@
-model {
-  accounterbro.api -> accounterbro.runtime.config "uses"
-  accounterbro.api -> accounterbro.runtime.health "uses"
-  accounterbro.api -> accounterbro.runtime.observability "uses"
-  accounterbro.api -> accounterbro.runtime.presenters "uses"
-}

@@ -4,6 +4,6 @@ specification {
   element webapp
   element app
   element boundary
-  element component
   element database
+  element storage
 }

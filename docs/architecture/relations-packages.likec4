@@ -1,9 +1,0 @@
-model {
-  accounterbro.documents -> accounterbro.packages.core "uses"
-  accounterbro.documents -> accounterbro.packages.documents "hosts"
-  accounterbro.documents -> accounterbro.packages.objectStorage "uses"
-  accounterbro.processing -> accounterbro.packages.core "uses"
-  accounterbro.processing -> accounterbro.packages.processing "hosts"
-  accounterbro.processing -> accounterbro.packages.extraction "uses"
-  accounterbro.processing -> accounterbro.packages.objectStorage "uses"
-}

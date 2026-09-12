@@ -1,4 +1,0 @@
-model {
-  user -> accounterbro.web "uses"
-  accounterbro.web -> accounterbro.documents "uses"
-}

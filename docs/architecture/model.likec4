@@ -8,27 +8,11 @@ model {
     documents = app "Documents"
     processing = app "Document Processing"
 
-    packages = boundary "Business and capability packages" {
-      core = component "@accounterbro/core"
-      documents = component "@accounterbro/documents"
-      processing = component "@accounterbro/document-processing"
-      extraction = component "@accounterbro/document-extraction"
-      objectStorage = component "@accounterbro/object-storage"
-    }
-
-    runtime = boundary "Shared runtime packages" {
-      config = component "@accounterbro/runtime-config"
-      executions = component "@accounterbro/runtime-executions"
-      health = component "@accounterbro/runtime-health"
-      observability = component "@accounterbro/runtime-observability"
-      presenters = component "@accounterbro/runtime-presenters"
-    }
-
     data = boundary "Owned data boundaries" {
       apiDb = database "API PostgreSQL"
       documentsDb = database "Documents PostgreSQL"
       processingDb = database "Document Processing PostgreSQL"
-      objectStore = database "Object Storage"
+      objectStore = storage "Object Storage"
     }
   }
 }

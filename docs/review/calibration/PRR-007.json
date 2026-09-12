@@ -1,0 +1,17 @@
+{
+    "rule_id": "PRR-007",
+    "cases": [
+        {
+            "id": "new-service-relationship-with-stale-system-overview",
+            "expected": "violation",
+            "context": "The current System Overview models Web -> Documents but no Web -> Document Processing relationship. The reviewed change adds a Web development proxy to Document Processing and leaves docs/architecture/ unchanged.",
+            "diff": "diff --git a/apps/web/vite.config.mts b/apps/web/vite.config.mts\n-    const { api, documents, web } = runtimeConfig;\n+    const { api, documentProcessing, documents, web } = runtimeConfig;\n@@\n             proxy: {\n                 '/api': { target: `http://localhost:${api.port}`, changeOrigin: true },\n+                '/document-processing': {\n+                    target: `http://localhost:${documentProcessing.port}`,\n+                    changeOrigin: true,\n+                },\n                 '/documents': {\n"
+        },
+        {
+            "id": "internal-refactor-with-stable-topology",
+            "expected": "not-applicable",
+            "context": "The change only renames an internal runtime-composition variable inside an existing service; deployable systems, data ownership, external systems, and major relationships are unchanged.",
+            "diff": "diff --git a/apps/services/documents/src/app/infrastructure/infrastructure.module.ts b/apps/services/documents/src/app/infrastructure/infrastructure.module.ts\n-const documentsRuntimeModule = RuntimeExecutionsModule.register([documents]);\n+const documentsExecutionRuntimeModule = RuntimeExecutionsModule.register([documents]);\n"
+        }
+    ]
+}

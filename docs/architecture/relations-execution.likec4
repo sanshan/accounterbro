@@ -1,6 +1,0 @@
-model {
-  accounterbro.documents -> accounterbro.runtime.executions "uses"
-  accounterbro.processing -> accounterbro.runtime.executions "uses"
-  accounterbro.documents -> edp "uses"
-  accounterbro.processing -> edp "uses"
-}
