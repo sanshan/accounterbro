@@ -49,9 +49,9 @@ flowchart LR
         ProcessingService[Document Processing Service]
     end
 
-    DocumentsService --> DocumentsPackage[@accounterbro/documents]
-    ProcessingService --> ProcessingPackage[@accounterbro/document-processing]
-    ProcessingService --> Extraction[@accounterbro/document-extraction]
+    DocumentsService --> DocumentsPackage["@accounterbro/documents"]
+    ProcessingService --> ProcessingPackage["@accounterbro/document-processing"]
+    ProcessingService --> Extraction["@accounterbro/document-extraction"]
 
     Runtime[Shared runtime packages] -. compose .-> API
     Runtime -. compose .-> DocumentsService
