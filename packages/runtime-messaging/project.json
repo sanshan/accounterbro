@@ -3,7 +3,5 @@
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "packages/runtime-messaging/src",
     "projectType": "library",
-    "tags": ["type:runtime"],
-    "// targets": "to see all targets run: nx show project @accounterbro/runtime-messaging --web",
-    "targets": {}
+    "tags": ["type:runtime"]
 }
