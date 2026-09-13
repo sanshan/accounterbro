@@ -161,7 +161,5 @@ describe('RuntimeMessagingModule', () => {
                 }),
             ),
         ).rejects.toThrow('Event handler registry is not sealed.');
-
-        await moduleRef.close();
     });
 });
