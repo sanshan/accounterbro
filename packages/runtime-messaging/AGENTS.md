@@ -4,22 +4,53 @@ These rules apply to `@accounterbro/runtime-messaging` in addition to the root `
 
 ## Responsibility
 
-`@accounterbro/runtime-messaging` is the shared technical package for transport-neutral messaging ingress contracts and runtime composition owned by Epic #356.
+`@accounterbro/runtime-messaging` owns AccounterBro's transport-neutral event ingress boundary around the published EDP `EventEnvelope` contract.
 
-At the #357 scaffold stage, the package intentionally exposes no messaging behavior. The root entrypoint remains framework-independent and must not eagerly depend on NestJS, business packages, service internals, or a broker SDK. Framework-specific composition belongs behind an explicit subpath only when a concrete implementation requires it.
+The framework-independent root entrypoint owns:
 
-Keep the package focused on cross-project messaging runtime responsibilities. Do not add broker delivery, retries, DLQ, wire serialization, business mappings, or service-specific behavior here.
+- `EventIdentity`, exactly `eventName + schemaVersion`;
+- executable `EventHandler` contracts;
+- one structural `validateEventEnvelope(...)` boundary for untrusted logical envelope input;
+- `EventHandlerRegistry` registration, exact resolution, duplicate rejection and seal state;
+- `EventIngress` validation, exact dispatch and explicit unhandled outcomes.
+
+The validator checks the required published envelope structure and metadata before handlers can trust it. It returns the original envelope object unchanged, preserves additional fields, and treats `payload` as unknown business content. Business payload validation belongs to the selected EDP `EventContract`, not this package.
+
+Handler-thrown values, including EDP `ExecutionFailureError`, are not reclassified or wrapped by ingress. Invalid-envelope and unhandled outcomes remain distinct from execution failures.
+
+## Registry lifecycle
+
+One event identity maps to one handler. Resolution has no version fallback, latest selection, scanning, fan-out or dynamic post-startup mutation.
+
+Registration is explicit. A duplicate registration is a configuration failure and prevents the registry from being sealed even if the immediate registration exception is caught. Resolution before seal and registration after seal are configuration errors.
+
+`@accounterbro/runtime-messaging/nest` provides the ordinary `RuntimeMessagingModule`. It owns one Nest-managed registry per application context and exports that registry plus `EventIngress`. It is not global and does not use a static singleton.
+
+Explicit application-local registrars register handlers during `onModuleInit`. `RuntimeMessagingModule` seals during `onApplicationBootstrap`, after module initialization has completed. Future consumers must start only after that sealed state; broker lifecycle is not implemented here.
+
+## Boundaries
+
+MUST NOT:
+
+- import `runtime-presenters`, business packages or service internals;
+- add UseCase lookup, subscription mapping, Actor/application-context conversion or Intent derivation here;
+- add broker SDKs, wire codecs, retries, acknowledgement, DLQ, offsets, polling, consumer drain or database state;
+- add decorators/scanning for handler discovery or multiple handlers for one event identity;
+- turn structural validation into producer authentication or business payload validation.
+
+Framework-specific composition stays behind explicit integration subpaths such as `/nest`; the root entrypoint remains framework-independent.
 
 ## Verification
 
 The Nx project name is `@accounterbro/runtime-messaging`.
 
-For the scaffold, verify the supported targets:
+Run:
 
 ```bash
 pnpm nx run @accounterbro/runtime-messaging:lint
 pnpm nx run @accounterbro/runtime-messaging:typecheck
+pnpm nx run @accounterbro/runtime-messaging:test
 pnpm nx run @accounterbro/runtime-messaging:build
 ```
 
-There is no behavior test target in the scaffold. When runtime behavior is introduced, add focused tests at the boundary that owns that behavior and update these instructions to point to the proven implementation.
+Tests in this package cover only AccounterBro-owned validation, registry, ingress and Nest lifecycle behavior. Do not copy EDP execution, event-factory or business-contract test suites here.
