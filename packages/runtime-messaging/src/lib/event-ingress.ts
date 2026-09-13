@@ -1,5 +1,5 @@
 import type { EventHandlerOutcome } from './event-handler.js';
-import { EventHandlerRegistry } from './event-handler-registry.js';
+import type { EventHandlerRegistry } from './event-handler-registry.js';
 import type { EventIdentity } from './event-identity.js';
 import { validateEventEnvelope } from './validate-event-envelope.js';
 
