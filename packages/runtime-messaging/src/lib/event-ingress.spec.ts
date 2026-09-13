@@ -7,17 +7,17 @@ import { EventIngress } from './event-ingress.js';
 import { createEventEnvelope } from './testing/event-envelope.fixture.js';
 
 function createHandler(handle?: EventHandler['handle']): EventHandler {
+    const defaultHandle: EventHandler['handle'] = vi.fn(async () => ({
+        status: 'handled',
+        result: 'handled-result',
+    }));
+
     return {
         identity: {
             eventName: 'test.event',
             schemaVersion: 1,
         },
-        handle:
-            handle ??
-            vi.fn(async () => ({
-                status: 'handled',
-                result: 'handled-result',
-            })),
+        handle: handle ?? defaultHandle,
     };
 }
 
