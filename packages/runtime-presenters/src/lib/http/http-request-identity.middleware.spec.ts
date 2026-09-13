@@ -89,4 +89,18 @@ describe('httpRequestIdentityMiddleware', () => {
         );
         expect(next).not.toHaveBeenCalled();
     });
+
+    it('rejects actor identity outside the EDP Actor contract without mutating the request', () => {
+        const request = createRequest();
+        request.headers[HTTP_REQUEST_IDENTITY_HEADERS.actorType] = 'administrator';
+        delete request.rawHeaders;
+        const next = vi.fn();
+
+        expect(() => httpRequestIdentityMiddleware(request, {}, next)).toThrow(
+            UnauthorizedException,
+        );
+        expect(request.actor).toBeUndefined();
+        expect(request.tenant).toBeUndefined();
+        expect(next).not.toHaveBeenCalled();
+    });
 });
