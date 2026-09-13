@@ -45,6 +45,7 @@
         "@accounterbro/runtime-observability": "workspace:*",
         "@event-driven-platform/actor": "^0.1.7",
         "@event-driven-platform/execution": "^0.0.8",
+        "@event-driven-platform/tenant-reference": "^0.1.7",
         "@nestjs/common": "^11.0.0",
         "@nestjs/core": "^11.0.0",
         "@nestjs/swagger": "^11.4.7",
