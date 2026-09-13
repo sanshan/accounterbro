@@ -17,8 +17,8 @@ Preserve these local invariants:
 - `createSubscription(...)` is pure: it derives handler identity from the supplied contract but neither registers nor invokes anything;
 - `mapInput` receives only the parsed business Event, never the envelope or execution metadata;
 - the supported shared invocation context is the EDP base context plus AccounterBro `Actor` and `TenantReference`; a UseCase requiring additional mandatory context is not a supported subscription target until that metadata has a concrete source;
-- adapt EDP `EventActor` explicitly to application `Actor`, including nullable-origin conversion, and validate the AccounterBro tenant reference before execution;
-- derive the downstream Intent only through `IntentFactory.derive({ parent: { id: envelope.intentId }, slot: intentSlot, discriminator: envelope.eventId })`;
+- adapt the nullable EDP `EventActor.origin` shape explicitly, but delegate Actor and TenantReference semantic validation/construction to the published EDP default factories; retain only AccounterBro-specific compatibility checks such as `tenant.type === tenantName` and do not duplicate EDP schema rules locally;
+- derive the downstream Intent only through `IntentFactory.derive({ parent: { id: envelope.intentId }, slot: intentSlot, discriminator: envelope.eventId })`; when EDP rejects envelope-owned intent metadata, map that factory validation to the shared event-validation outcome rather than reimplementing its rules;
 - invoke only the supplied `UseCaseExecutor`; do not call the subscribed UseCase directly, add retries, wrap executor failures, or reinterpret normally returned business results;
 - invalid business payload/application metadata uses the shared event-validation outcome; mapper and executor failures remain thrown unchanged.
 
@@ -33,6 +33,7 @@ The canonical production path is:
 ```text
 trusted upstream identity headers
     -> httpRequestIdentityMiddleware
+    -> EDP Actor / TenantReference factories
     -> request.actor / request.tenant
     -> @Actor() / @Tenant()
     -> controller
@@ -43,17 +44,17 @@ The canonical trusted headers are defined only by `HTTP_REQUEST_IDENTITY_HEADERS
 `httpRequestIdentityMiddleware` MUST:
 
 - require exactly one non-blank canonical actor type, actor id, and tenant id header;
-- treat semantic validity of the trusted actor type as part of the upstream contract rather than duplicating the EDP Actor factory/schema inside this transport adapter;
-- use EDP/Core types for the resulting Actor and TenantReference values without introducing a runtime EDP factory dependency;
-- reject missing, repeated/ambiguous, blank, or padded identity before controller invocation;
-- write the resulting typed values to the request;
+- keep header multiplicity, presence, and trimming checks at the HTTP transport boundary;
+- create EDP-owned Actor and TenantReference values through the published EDP default factories so EDP remains the runtime source of truth for their semantic invariants;
+- map EDP identity-construction validation failures to the same unauthorized HTTP boundary without duplicating EDP schemas or validation rules locally;
+- write identity values to the request only after both factory calls succeed;
 - remain independent from application/domain behavior, persistence, concrete UseCases, and Nest DI.
 
-The middleware is a trusted-upstream adapter, not authentication or authorization. It MUST NOT parse credentials, verify tokens, call persistence, infer permissions, or claim caller authenticity. Production deployment must ensure the upstream auth/gateway boundary strips untrusted caller-supplied AccounterBro identity headers, validates the upstream identity contract, and injects trusted values.
+The middleware is a trusted-upstream adapter, not authentication or authorization. It MUST NOT parse credentials, verify tokens, call persistence, infer permissions, or claim caller authenticity. Production deployment must ensure the upstream auth/gateway boundary strips untrusted caller-supplied AccounterBro identity headers, validates the upstream identity contract, and injects trusted values. EDP factory validation is value-contract enforcement inside the service, not caller authentication.
 
 `@Actor()` and `@Tenant()` remain extraction-only decorators. Do not move validation or authentication into them.
 
-Tests in this package own request-identity transport behavior and should use plain request/header data. Service controller tests MUST NOT duplicate those cases; service E2E may send the canonical trusted headers to exercise the same production middleware path.
+Tests in this package own request-identity transport behavior and the adapter's delegation to EDP identity invariants. Service controller tests MUST NOT duplicate those cases; service E2E may send the canonical trusted headers to exercise the same production middleware path.
 
 ## HTTP errors
 
