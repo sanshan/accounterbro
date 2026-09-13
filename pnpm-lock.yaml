@@ -765,6 +765,9 @@ importers:
       '@event-driven-platform/execution':
         specifier: ^0.0.8
         version: 0.0.8
+      '@event-driven-platform/tenant-reference':
+        specifier: ^0.1.7
+        version: 0.1.7
       '@nestjs/common':
         specifier: ^11.0.0
         version: 11.2.3(reflect-metadata@0.2.2)(rxjs@7.8.2)
