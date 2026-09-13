@@ -38,15 +38,11 @@ type EventSubscriptionUseCase<TInput, TResult> = Omit<
     ) => Promise<TResult>;
 };
 
-export type CreateSubscriptionArgument<
-    TContract extends EventContractLike,
-    TInput,
-    TResult,
-> = {
-    readonly contract: TContract;
+export type CreateSubscriptionArgument<TEvent, TInput, TResult> = {
+    readonly contract: EventContractLike<TEvent>;
     readonly useCase: EventSubscriptionUseCase<TInput, TResult>;
     readonly intentSlot: string;
-    readonly mapInput: (event: ParsedEvent<TContract>) => NoInfer<TInput>;
+    readonly mapInput: (event: TEvent) => NoInfer<TInput>;
 };
 
 export interface EventSubscription {
@@ -286,12 +282,8 @@ function createSubscriptionHandler<TEvent, TInput, TResult>(options: {
     };
 }
 
-export function createSubscription<
-    TContract extends EventContractLike,
-    TInput,
-    TResult,
->(
-    options: CreateSubscriptionArgument<TContract, TInput, TResult>,
+export function createSubscription<TEvent, TInput, TResult>(
+    options: CreateSubscriptionArgument<TEvent, TInput, TResult>,
 ): EventSubscription {
     const identity = Object.freeze({
         eventName: options.contract.name,
