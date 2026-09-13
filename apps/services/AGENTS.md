@@ -20,6 +20,8 @@ Implementation-local invariants for changing a technical package itself remain i
 
 Use `apps/services/documents` as the current proven business-service host reference. Reuse only the behavior required by the service being changed; do not copy Documents-specific behavior mechanically.
 
+For explicit event-driven ingress, use `apps/services/document-processing/src/app/presenters/messaging` as the canonical service adopter. It owns only the concrete EventContract -> UseCase subscription and service input conversion; shared envelope validation, registry lifecycle, metadata adaptation, intent derivation and UseCase execution remain in the runtime packages. The current proof injects a complete logical EDP envelope directly into `EventIngress`; it does not imply that broker transport or Outbox publication is implemented.
+
 ## Verification
 
 Use the service's current Nx project configuration to select the smallest relevant lint, typecheck, test, build, migration, and E2E targets required by the change. Do not guess the Nx project name from the directory name.

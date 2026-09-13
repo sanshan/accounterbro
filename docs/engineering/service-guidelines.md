@@ -10,6 +10,7 @@ Use the closest proven implementation rather than copying service-specific behav
 
 - `apps/api` is the reference for a small HTTP host that owns its Nest bootstrap, typed configuration, and TypeORM `DataSource` lifecycle while composing shared runtime capabilities such as `@accounterbro/runtime-health/typeorm` and `@accounterbro/runtime-presenters/http/health`.
 - `apps/services/documents` is the reference for a business-service host. Its concrete UseCases orchestrate package-owned Operations/Reads through shared EDP runtime composition, while service infrastructure composes public package/runtime integration contracts.
+- `apps/services/document-processing/src/app/presenters/messaging` is the reference for explicit event ingress composition: a presenter-owned EventContract -> UseCase subscription uses the shared messaging/presenter runtime and obtains application capabilities through `ApplicationModule`.
 
 Reference implementations demonstrate responsibility and dependency direction. They are not templates requiring every service to have the same ports, DTOs, mappers, runtime capabilities, or domain behavior.
 
@@ -68,6 +69,16 @@ Presenters own transport adaptation and depend on the service through `Applicati
 Transport-specific DTOs, validation/binding concerns, response mapping, and framework-specific presenter adapters remain in the presenter boundary and MUST NOT leak into application/domain code.
 
 Internal HTTP presenters and HTTP service E2E follow `docs/engineering/http-presenter-guidelines.md`. Do not infer that every presenter or service is HTTP; a `PresentersModule` may remain empty until a transport is introduced.
+
+### Event ingress presenters
+
+A service that consumes business events declares each concrete EventContract -> UseCase mapping under its presenter boundary and composes it through `@accounterbro/runtime-presenters/events`. The service mapping owns only business-event-to-application-input conversion. It MUST NOT receive the full EventEnvelope, derive intents, adapt Actor/Tenant metadata, own handler lookup, or call the UseCase directly.
+
+`apps/services/document-processing/src/app/presenters/messaging` is the canonical implementation. Its local events module imports `ApplicationModule` for the concrete UseCase and shared `UseCaseExecutor`, and imports the shared event-subscription Nest composition for registration. `PresentersModule` imports the local events module without listing concrete subscriptions itself.
+
+The current canonical integration starts from a complete logical EDP EventEnvelope supplied directly to `EventIngress`. It proves production registration, exact dispatch and durable UseCase execution without a broker. It MUST NOT be described as an implemented Documents Outbox -> broker -> document-processing pipeline: broker transport, CDC/wire decoding, acknowledgement, retry/DLQ and consumer lifecycle are outside this integration.
+
+Future transport work must preserve the existing readiness/shutdown contracts: messaging must become not-ready/stopping before drain, intake and retry scheduling must stop, in-flight work must drain within a reviewed bounded budget, and dependency/telemetry teardown must happen after that drain. Retry timing, attempt budgets and lease-aware redelivery remain unresolved in #355 and MUST NOT be copied from earlier discussion as approved defaults.
 
 ## Nest modules and dependency injection
 
