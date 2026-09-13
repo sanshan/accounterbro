@@ -18,6 +18,9 @@
             "path": "../runtime-health/tsconfig.lib.json"
         },
         {
+            "path": "../runtime-messaging/tsconfig.lib.json"
+        },
+        {
             "path": "../core/tsconfig.lib.json"
         }
     ],
