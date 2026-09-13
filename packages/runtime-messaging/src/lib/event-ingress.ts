@@ -14,6 +14,10 @@ export class EventIngress {
     public constructor(private readonly registry: EventHandlerRegistry) {}
 
     public async dispatch(input: unknown): Promise<EventIngressOutcome> {
+        if (!this.registry.isSealed) {
+            throw new Error('Event handler registry is not sealed.');
+        }
+
         const validation = validateEventEnvelope(input);
 
         if (validation.status === 'invalid') {
