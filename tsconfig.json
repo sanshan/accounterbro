@@ -53,6 +53,9 @@
         },
         {
             "path": "./packages/document-extraction"
+        },
+        {
+            "path": "./packages/runtime-messaging"
         }
     ]
 }
