@@ -40,11 +40,7 @@ type IsEqual<TLeft, TRight> =
 type Expect<TValue extends true> = TValue;
 type ExpectFalse<TValue extends false> = TValue;
 
-type SupportedArgument = CreateSubscriptionArgument<
-    FixtureContract,
-    FixtureInput,
-    FixtureResult
->;
+type SupportedArgument = CreateSubscriptionArgument<FixtureEvent, FixtureInput, FixtureResult>;
 
 type SupportedCandidate = {
     readonly contract: FixtureContract;
