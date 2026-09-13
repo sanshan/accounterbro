@@ -15,7 +15,7 @@ const firstHandler: EventHandler = {
         eventName: 'first.event',
         schemaVersion: 1,
     },
-    handle: vi.fn(async () => ({ status: 'handled', result: 'first' })),
+    handle: vi.fn(async () => ({ status: 'handled' as const, result: 'first' })),
 };
 
 const secondHandler: EventHandler = {
@@ -23,7 +23,7 @@ const secondHandler: EventHandler = {
         eventName: 'second.event',
         schemaVersion: 2,
     },
-    handle: vi.fn(async () => ({ status: 'handled', result: 'second' })),
+    handle: vi.fn(async () => ({ status: 'handled' as const, result: 'second' })),
 };
 
 @Injectable()
@@ -67,7 +67,7 @@ const duplicateHandler: EventHandler = {
         eventName: 'duplicate.event',
         schemaVersion: 1,
     },
-    handle: vi.fn(async () => ({ status: 'handled', result: undefined })),
+    handle: vi.fn(async () => ({ status: 'handled' as const, result: undefined })),
 };
 
 @Injectable()
@@ -86,7 +86,7 @@ class SecondDuplicateRegistrar implements OnModuleInit {
     public onModuleInit(): void {
         this.registry.register({
             ...duplicateHandler,
-            handle: vi.fn(async () => ({ status: 'handled', result: undefined })),
+            handle: vi.fn(async () => ({ status: 'handled' as const, result: undefined })),
         });
     }
 }
