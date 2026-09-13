@@ -6,6 +6,24 @@ These rules apply to `packages/runtime-presenters/` in addition to the root work
 
 Consumer-facing internal-service HTTP guidance is owned by `docs/engineering/http-presenter-guidelines.md`. Cross-cutting failure/observability ownership is recorded in `docs/engineering/observability-and-http-errors.md`. This file owns only implementation-local invariants for changing the shared runtime-presenter package itself.
 
+## Event presenters
+
+`@accounterbro/runtime-presenters/events` owns the typed adapter from an explicit EDP `EventContract` subscription to the neutral `EventHandler` boundary provided by `@accounterbro/runtime-messaging`.
+
+The canonical adapter flow is contract parse -> application metadata adaptation -> deterministic downstream Intent derivation -> `mapInput(parsedEvent)` -> supplied `UseCaseExecutor.execute(...)`.
+
+Preserve these local invariants:
+
+- `createSubscription(...)` is pure: it derives handler identity from the supplied contract but neither registers nor invokes anything;
+- `mapInput` receives only the parsed business Event, never the envelope or execution metadata;
+- the supported shared invocation context is the EDP base context plus AccounterBro `Actor` and `TenantReference`; a UseCase requiring additional mandatory context is not a supported subscription target until that metadata has a concrete source;
+- adapt EDP `EventActor` explicitly to application `Actor`, including nullable-origin conversion, and validate the AccounterBro tenant reference before execution;
+- derive the downstream Intent only through `IntentFactory.derive({ parent: { id: envelope.intentId }, slot: intentSlot, discriminator: envelope.eventId })`;
+- invoke only the supplied `UseCaseExecutor`; do not call the subscribed UseCase directly, add retries, wrap executor failures, or reinterpret normally returned business results;
+- invalid business payload/application metadata uses the shared event-validation outcome; mapper and executor failures remain thrown unchanged.
+
+`@accounterbro/runtime-presenters/events/nest` owns only Nest composition for these subscriptions. `EventSubscriptionRegistrar` aggregates explicit subscription arrays into the application-local `EventHandlerRegistry` and rejects duplicate semantic `intentSlot` values across registration calls before application startup completes. It MUST NOT replace or redesign the neutral registry, create a UseCase lookup registry, scan decorators, or introduce broker lifecycle behavior.
+
 ## HTTP request identity
 
 `@accounterbro/runtime-presenters/http` owns the reusable Nest HTTP adapter that establishes typed presenter request identity before controllers run.
