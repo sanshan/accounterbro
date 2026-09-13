@@ -8,7 +8,7 @@ import { createEventEnvelope } from './testing/event-envelope.fixture.js';
 
 function createHandler(handle?: EventHandler['handle']): EventHandler {
     const defaultHandle: EventHandler['handle'] = vi.fn(async () => ({
-        status: 'handled',
+        status: 'handled' as const,
         result: 'handled-result',
     }));
 
