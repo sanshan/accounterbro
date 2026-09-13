@@ -6,7 +6,7 @@ import { EventHandlerRegistry } from './event-handler-registry.js';
 function createHandler(eventName: string, schemaVersion: number): EventHandler {
     return {
         identity: { eventName, schemaVersion },
-        handle: vi.fn(async () => ({ status: 'handled', result: undefined })),
+        handle: vi.fn(async () => ({ status: 'handled' as const, result: undefined })),
     };
 }
 
