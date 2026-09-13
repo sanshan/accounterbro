@@ -251,8 +251,44 @@ describe('event subscriptions', () => {
 
     it.each([
         ['actor type', { actor: createActor('external') }, ['actor', 'type']],
+        [
+            'actor id',
+            { actor: { ...createActor(), id: ' documents-service ' } },
+            ['actor', 'id'],
+        ],
         ['tenant type', { tenant: { type: 'workspace', id: 'tenant-1' } }, ['tenant', 'type']],
+        ['tenant id', { tenant: { type: 'tenant', id: ' tenant-1 ' } }, ['tenant', 'id']],
     ])('rejects incompatible application metadata: %s', async (_label, overrides, path) => {
+        const useCase = new FixtureUseCase();
+        const executor = new RecordingExecutor();
+        const mapInput = vi.fn((_event: FixtureEvent): FixtureInput => ({
+            documentId: 'unused',
+            sequence: 0,
+        }));
+        const handler = createEventHandlers(
+            [createFixtureSubscription(useCase, mapInput)],
+            executor,
+        )[0];
+
+        if (handler === undefined) {
+            throw new Error('Expected one event handler.');
+        }
+
+        await expect(handler.handle(createEnvelope(overrides))).resolves.toMatchObject({
+            status: 'invalid',
+            failure: {
+                kind: 'event-validation',
+                issues: [{ path }],
+            },
+        });
+        expect(mapInput).not.toHaveBeenCalled();
+        expect(executor.requests).toHaveLength(0);
+    });
+
+    it.each([
+        ['parent intent id', { intentId: ' parent-intent ' }, ['intentId']],
+        ['event id discriminator', { eventId: ' event-1 ' }, ['eventId']],
+    ])('maps EDP intent validation failures to invalid envelope metadata: %s', async (_label, overrides, path) => {
         const useCase = new FixtureUseCase();
         const executor = new RecordingExecutor();
         const mapInput = vi.fn((_event: FixtureEvent): FixtureInput => ({
