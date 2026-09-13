@@ -37,7 +37,8 @@ describe('EventHandlerRegistry', () => {
         const registry = new EventHandlerRegistry();
         const first = createHandler('test.event', 1);
         const second = createHandler('test.event', 1);
-        const [initial, duplicate] = reverse ? [second, first] : [first, second];
+        const initial = reverse ? second : first;
+        const duplicate = reverse ? first : second;
 
         registry.register(initial);
 
@@ -49,7 +50,7 @@ describe('EventHandlerRegistry', () => {
         );
     });
 
-    it('rejects dispatch resolution before seal and registration after seal', () => {
+    it('rejects resolution before seal and registration after seal', () => {
         const registry = new EventHandlerRegistry();
 
         expect(() => registry.resolve({ eventName: 'test.event', schemaVersion: 1 })).toThrow(
