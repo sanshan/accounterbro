@@ -13,6 +13,7 @@ import {
 } from '@event-driven-platform/actor';
 import type { AnyEventEnvelope, EventActor } from '@event-driven-platform/event';
 import { IntentFactory } from '@event-driven-platform/intent';
+import { DefaultTenantReferenceFactory } from '@event-driven-platform/tenant-reference';
 import type { UseCase } from '@event-driven-platform/use-case';
 import type { UseCaseExecutor } from '@event-driven-platform/use-case-executor';
 import { ZodError } from 'zod';
@@ -55,6 +56,7 @@ export interface EventSubscription {
 }
 
 const actorFactory = new DefaultActorFactory();
+const tenantReferenceFactory = new DefaultTenantReferenceFactory();
 
 function createValidationFailure(
     path: readonly string[],
@@ -79,15 +81,42 @@ function createZodValidationFailure(
     };
 }
 
+function createIntentValidationFailure(error: ZodError): EventValidationFailure | undefined {
+    const issues: EventValidationFailure['issues'][number][] = [];
+
+    for (const issue of error.issues) {
+        const path = issue.path.map(String);
+
+        if (path[0] === 'parent' && path[1] === 'id') {
+            issues.push({
+                path: ['intentId', ...path.slice(2)],
+                message: issue.message,
+            });
+            continue;
+        }
+
+        if (path[0] === 'discriminator') {
+            issues.push({
+                path: ['eventId', ...path.slice(1)],
+                message: issue.message,
+            });
+            continue;
+        }
+
+        return undefined;
+    }
+
+    return {
+        kind: 'event-validation',
+        issues,
+    };
+}
+
 function invalid(failure: EventValidationFailure): EventHandlerOutcome {
     return {
         status: 'invalid',
         failure,
     };
-}
-
-function isActorType(value: string): value is ActorType {
-    return value === 'user' || value === 'service' || value === 'system' || value === 'scheduler';
 }
 
 function adaptActorOrigin(origin: EventActor['origin']): ActorOrigin {
@@ -116,21 +145,11 @@ type ActorAdaptation =
       };
 
 function adaptActor(actor: EventActor): ActorAdaptation {
-    if (!isActorType(actor.type)) {
-        return {
-            status: 'invalid',
-            failure: createValidationFailure(
-                ['actor', 'type'],
-                'Expected an application Actor type.',
-            ),
-        };
-    }
-
     try {
         return {
             status: 'valid',
             value: actorFactory.create({
-                type: actor.type,
+                type: actor.type as ActorType,
                 id: actor.id,
                 origin: adaptActorOrigin(actor.origin),
             }),
@@ -168,23 +187,24 @@ function adaptTenant(tenant: AnyEventEnvelope['tenant']): TenantAdaptation {
         };
     }
 
-    if (tenant.id.length === 0 || tenant.id !== tenant.id.trim()) {
+    try {
         return {
-            status: 'invalid',
-            failure: createValidationFailure(
-                ['tenant', 'id'],
-                'Expected a non-empty tenant id without surrounding whitespace.',
-            ),
+            status: 'valid',
+            value: tenantReferenceFactory.create({
+                type: tenantName,
+                id: tenant.id as TenantId,
+            }),
         };
-    }
+    } catch (error) {
+        if (error instanceof ZodError) {
+            return {
+                status: 'invalid',
+                failure: createZodValidationFailure(error, ['tenant']),
+            };
+        }
 
-    return {
-        status: 'valid',
-        value: Object.freeze({
-            type: tenantName,
-            id: tenant.id as TenantId,
-        }) satisfies TenantReference,
-    };
+        throw error;
+    }
 }
 
 function createSubscriptionHandler<TEvent, TInput, TResult>(options: {
@@ -224,11 +244,26 @@ function createSubscriptionHandler<TEvent, TInput, TResult>(options: {
                 return invalid(tenant.failure);
             }
 
-            const intent = IntentFactory.derive({
-                parent: { id: envelope.intentId },
-                slot: options.intentSlot,
-                discriminator: envelope.eventId,
-            });
+            let intent: ReturnType<typeof IntentFactory.derive>;
+
+            try {
+                intent = IntentFactory.derive({
+                    parent: { id: envelope.intentId },
+                    slot: options.intentSlot,
+                    discriminator: envelope.eventId,
+                });
+            } catch (error) {
+                if (error instanceof ZodError) {
+                    const failure = createIntentValidationFailure(error);
+
+                    if (failure !== undefined) {
+                        return invalid(failure);
+                    }
+                }
+
+                throw error;
+            }
+
             const input = options.mapInput(event);
             const context = Object.freeze({
                 intent,
