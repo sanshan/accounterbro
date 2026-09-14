@@ -258,6 +258,9 @@ importers:
       '@accounterbro/document-processing':
         specifier: workspace:*
         version: link:../../../packages/document-processing
+      '@accounterbro/documents':
+        specifier: workspace:*
+        version: link:../../../packages/documents
       '@accounterbro/object-storage':
         specifier: workspace:*
         version: link:../../../packages/object-storage
@@ -270,6 +273,9 @@ importers:
       '@accounterbro/runtime-health':
         specifier: workspace:*
         version: link:../../../packages/runtime-health
+      '@accounterbro/runtime-messaging':
+        specifier: workspace:*
+        version: link:../../../packages/runtime-messaging
       '@accounterbro/runtime-observability':
         specifier: workspace:*
         version: link:../../../packages/runtime-observability
