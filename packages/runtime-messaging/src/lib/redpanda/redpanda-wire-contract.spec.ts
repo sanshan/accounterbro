@@ -27,27 +27,25 @@ function validEnvelope(overrides: Record<string, unknown> = {}) {
 }
 
 describe('Redpanda wire contract', () => {
-    it('uses a stable readable Avro name derived only from EventContract.name', () => {
-        expect(getEventAvroRenderOptions('documents.registered')).toEqual({
-            recordName: 'EventPayload_documents_registered',
+    it('uses a stable readable Avro name for the repository event-name convention', () => {
+        expect(getEventAvroRenderOptions('document.registration-finished')).toEqual({
+            recordName: 'EventPayload_document__registration_finished',
             namespace: EVENT_AVRO_NAMESPACE,
         });
-        expect(getEventAvroRecordName('documents.registered')).toBe(
-            getEventAvroRecordName('documents.registered'),
+        expect(getEventAvroRecordName('document-processing.completed')).toBe(
+            'EventPayload_document_processing__completed',
         );
-        expect(getEventAvroRecordName('documents.registered')).not.toBe(
-            getEventAvroRecordName('documentsregistered'),
-        );
+        expect(getEventAvroRecordName('a-b.c')).not.toBe(getEventAvroRecordName('a.b-c'));
     });
 
     it.each([
         '',
-        'documents-registered',
         'documents..registered',
         'documents_registered',
+        'documents/registered',
         'документы.registered',
         'events.🚀',
-    ])('rejects event names outside the simple ASCII dot-separated contract: %s', (eventName) => {
+    ])('rejects event names outside the simple ASCII dot-and-hyphen contract: %s', (eventName) => {
         expect(() => getEventAvroRecordName(eventName)).toThrow(TypeError);
     });
 
@@ -114,6 +112,19 @@ describe('Redpanda wire contract', () => {
             expect(() => encodeEventEnvelopeHeader(envelope)).toThrow(EventEnvelopeWireError);
         },
     );
+
+    it.each([
+        ['undefined', undefined],
+        ['function', () => undefined],
+        ['symbol', Symbol('metadata')],
+        ['bigint', 1n],
+    ])('rejects %s metadata that JSON cannot preserve', (_case, unsupported) => {
+        const envelope = validEnvelope({
+            producerExtension: { unsupported },
+        });
+
+        expect(() => encodeEventEnvelopeHeader(envelope)).toThrow(EventEnvelopeWireError);
+    });
 
     it('rejects invalid UTF-8 header bytes before JSON parsing', () => {
         const envelope = validEnvelope();

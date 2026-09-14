@@ -30,7 +30,20 @@ function stringifyEventEnvelopeMetadata(metadata: UnknownRecord): string {
 
     try {
         encoded = JSON.stringify(metadata, (_key, value: unknown) => {
-            if (typeof value === 'number' && !Number.isFinite(value)) {
+            const valueType = typeof value;
+
+            if (
+                value === undefined ||
+                valueType === 'function' ||
+                valueType === 'symbol' ||
+                valueType === 'bigint'
+            ) {
+                throw new EventEnvelopeWireError(
+                    `Header ${EVENT_ENVELOPE_HEADER} metadata must contain only JSON values.`,
+                );
+            }
+
+            if (valueType === 'number' && !Number.isFinite(value)) {
                 throw new EventEnvelopeWireError(
                     `Header ${EVENT_ENVELOPE_HEADER} metadata must not contain non-finite numbers.`,
                 );
