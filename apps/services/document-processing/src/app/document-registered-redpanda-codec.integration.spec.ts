@@ -8,7 +8,6 @@ import {
     renderEventPayloadAvroSchema,
     SchemaRegistryAvroEventCodec,
 } from '@accounterbro/runtime-messaging/redpanda';
-import { describe, expect, it } from 'vitest';
 
 const SCHEMA_ID = 17;
 const SUBJECT = 'documents.registered-value';
