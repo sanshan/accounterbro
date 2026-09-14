@@ -13,6 +13,16 @@
             "import": "./dist/index.js",
             "default": "./dist/index.js"
         },
+        "./events": {
+            "types": "./dist/events.d.ts",
+            "import": "./dist/events.js",
+            "default": "./dist/events.js"
+        },
+        "./events/nest": {
+            "types": "./dist/events/nest.d.ts",
+            "import": "./dist/events/nest.js",
+            "default": "./dist/events/nest.js"
+        },
         "./http": {
             "types": "./dist/http.d.ts",
             "import": "./dist/http.js",
@@ -42,13 +52,20 @@
     "dependencies": {
         "@accounterbro/core": "workspace:*",
         "@accounterbro/runtime-health": "workspace:*",
+        "@accounterbro/runtime-messaging": "workspace:*",
         "@accounterbro/runtime-observability": "workspace:*",
         "@event-driven-platform/actor": "^0.1.7",
+        "@event-driven-platform/event": "^0.2.0",
         "@event-driven-platform/execution": "^0.0.8",
+        "@event-driven-platform/intent": "^0.2.4",
+        "@event-driven-platform/tenant-reference": "^0.1.7",
+        "@event-driven-platform/use-case": "^0.1.0",
+        "@event-driven-platform/use-case-executor": "^0.1.2",
         "@nestjs/common": "^11.0.0",
         "@nestjs/core": "^11.0.0",
         "@nestjs/swagger": "^11.4.7",
-        "@nestjs/terminus": "^11.1.0"
+        "@nestjs/terminus": "^11.1.0",
+        "zod": "catalog:"
     },
     "devDependencies": {
         "@nestjs/platform-express": "^11.0.0",

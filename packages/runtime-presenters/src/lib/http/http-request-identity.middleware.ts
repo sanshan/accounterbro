@@ -1,5 +1,10 @@
 import { tenantName, type TenantId, type TenantReference } from '@accounterbro/core';
-import type { Actor, ActorType } from '@event-driven-platform/actor';
+import {
+    DefaultActorFactory,
+    type Actor,
+    type ActorType,
+} from '@event-driven-platform/actor';
+import { DefaultTenantReferenceFactory } from '@event-driven-platform/tenant-reference';
 import { UnauthorizedException } from '@nestjs/common';
 
 import { HTTP_REQUEST_IDENTITY_HEADERS } from './http-request-identity.headers.js';
@@ -12,6 +17,8 @@ interface MutableHttpIdentityRequest {
 }
 
 const unauthorizedIdentityMessage = 'Missing or invalid trusted request identity.';
+const actorFactory = new DefaultActorFactory();
+const tenantReferenceFactory = new DefaultTenantReferenceFactory();
 
 function countRawHeaderOccurrences(rawHeaders: readonly string[], name: string): number {
     let count = 0;
@@ -47,21 +54,31 @@ export function httpRequestIdentityMiddleware(
     _response: unknown,
     next: () => void,
 ): void {
-    request.actor = Object.freeze({
-        type: readRequiredIdentityHeader(
-            request,
-            HTTP_REQUEST_IDENTITY_HEADERS.actorType,
-        ) as ActorType,
-        id: readRequiredIdentityHeader(request, HTTP_REQUEST_IDENTITY_HEADERS.actorId),
-        origin: Object.freeze({}),
-    }) satisfies Actor;
-    request.tenant = Object.freeze({
-        type: tenantName,
-        id: readRequiredIdentityHeader(
-            request,
-            HTTP_REQUEST_IDENTITY_HEADERS.tenantId,
-        ) as TenantId,
-    }) satisfies TenantReference;
+    const actorType = readRequiredIdentityHeader(
+        request,
+        HTTP_REQUEST_IDENTITY_HEADERS.actorType,
+    );
+    const actorId = readRequiredIdentityHeader(request, HTTP_REQUEST_IDENTITY_HEADERS.actorId);
+    const tenantId = readRequiredIdentityHeader(request, HTTP_REQUEST_IDENTITY_HEADERS.tenantId);
+
+    let actor: Actor;
+    let tenant: TenantReference;
+
+    try {
+        actor = actorFactory.create({
+            type: actorType as ActorType,
+            id: actorId,
+        });
+        tenant = tenantReferenceFactory.create({
+            type: tenantName,
+            id: tenantId as TenantId,
+        });
+    } catch {
+        throw new UnauthorizedException(unauthorizedIdentityMessage);
+    }
+
+    request.actor = actor;
+    request.tenant = tenant;
 
     next();
 }
