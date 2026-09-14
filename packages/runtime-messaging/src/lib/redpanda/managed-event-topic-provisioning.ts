@@ -1,6 +1,7 @@
 import { COMPATIBILITY, SchemaRegistry } from '@kafkajs/confluent-schema-registry';
 import {
     ConfigResourceTypes,
+    ConfigSource,
     Kafka,
     type ConfigEntries,
     type IResourceConfigEntry,
@@ -70,13 +71,13 @@ export function buildSafeManagedEventTopicAlterConfigEntries(
     const entries = new Map<string, string>();
 
     for (const entry of existingConfigEntries) {
-        if (entry.isDefault || entry.readOnly) {
+        if (entry.configSource !== ConfigSource.TOPIC_CONFIG || entry.readOnly) {
             continue;
         }
 
         if (entry.isSensitive || typeof entry.configValue !== 'string') {
             throw new Error(
-                `Cannot safely preserve existing non-default topic config "${entry.configName}" while applying managed Event topic settings.`,
+                `Cannot safely preserve existing topic-level config "${entry.configName}" while applying managed Event topic settings.`,
             );
         }
 
