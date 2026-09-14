@@ -5,6 +5,7 @@ import { getEventValueSubject } from './event-avro-schema.js';
 import {
     buildSafeManagedEventTopicAlterConfigEntries,
     getManagedEventTopicConfigEntries,
+    getManagedEventTopicPartitionIncrease,
     REDPANDA_TOPIC_NAME_STRATEGY,
     REDPANDA_VALUE_SCHEMA_ID_VALIDATION_CONFIG,
     REDPANDA_VALUE_SUBJECT_NAME_STRATEGY_CONFIG,
@@ -100,5 +101,19 @@ describe('managed Redpanda Event topic provisioning contract', () => {
                 }),
             ]),
         ).toThrow('Cannot safely preserve existing topic-level config "sensitive.config"');
+    });
+
+    it('keeps the partition count when the existing topic already matches', () => {
+        expect(getManagedEventTopicPartitionIncrease('test.event', 3, 3)).toBeUndefined();
+    });
+
+    it('requests an increase when the existing topic has fewer partitions', () => {
+        expect(getManagedEventTopicPartitionIncrease('test.event', 2, 4)).toBe(4);
+    });
+
+    it('rejects a requested partition decrease', () => {
+        expect(() => getManagedEventTopicPartitionIncrease('test.event', 4, 2)).toThrow(
+            'Existing topic "test.event" has 4 partitions, which exceeds requested 2; Kafka partitions cannot be decreased.',
+        );
     });
 });
