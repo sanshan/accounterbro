@@ -2,6 +2,7 @@ import { COMPATIBILITY, SchemaRegistry } from '@kafkajs/confluent-schema-registr
 import {
     ConfigResourceTypes,
     Kafka,
+    type ConfigEntries,
     type IResourceConfigEntry,
     type KafkaConfig,
 } from 'kafkajs';
@@ -61,6 +62,34 @@ export function getManagedEventTopicConfigEntries(): IResourceConfigEntry[] {
     ];
 }
 
+export function buildSafeManagedEventTopicAlterConfigEntries(
+    existingConfigEntries: readonly ConfigEntries[],
+): IResourceConfigEntry[] {
+    const entries = new Map<string, string>();
+
+    for (const entry of existingConfigEntries) {
+        if (entry.isDefault || entry.readOnly) {
+            continue;
+        }
+
+        if (entry.isSensitive || typeof entry.configValue !== 'string') {
+            throw new Error(
+                `Cannot safely preserve existing non-default topic config "${entry.configName}" while applying managed Event topic settings.`,
+            );
+        }
+
+        entries.set(entry.configName, entry.configValue);
+    }
+
+    for (const entry of getManagedEventTopicConfigEntries()) {
+        entries.set(entry.name, entry.value);
+    }
+
+    return [...entries.entries()]
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([name, value]) => ({ name, value }));
+}
+
 export async function provisionEventContractSchema<
     const TName extends string,
     const TSchemaVersion extends number,
@@ -97,12 +126,12 @@ export async function provisionManagedEventTopic<
 
     const schema = await provisionEventContractSchema(options);
     const topic = options.contract.name;
-    const configEntries = getManagedEventTopicConfigEntries();
+    const managedConfigEntries = getManagedEventTopicConfigEntries();
     const admin = new Kafka(options.kafka).admin();
 
     await admin.connect();
     try {
-        await admin.createTopics({
+        const created = await admin.createTopics({
             waitForLeaders: true,
             topics: [
                 {
@@ -111,20 +140,42 @@ export async function provisionManagedEventTopic<
                     ...(options.replicationFactor === undefined
                         ? {}
                         : { replicationFactor: options.replicationFactor }),
-                    configEntries,
+                    configEntries: managedConfigEntries,
                 },
             ],
         });
-        await admin.alterConfigs({
-            validateOnly: false,
-            resources: [
-                {
-                    type: ConfigResourceTypes.TOPIC,
-                    name: topic,
-                    configEntries,
-                },
-            ],
-        });
+
+        if (!created) {
+            const described = await admin.describeConfigs({
+                includeSynonyms: false,
+                resources: [
+                    {
+                        type: ConfigResourceTypes.TOPIC,
+                        name: topic,
+                    },
+                ],
+            });
+            const resource = described.resources[0];
+
+            if (resource === undefined || resource.errorCode !== 0) {
+                throw new Error(
+                    `Failed to describe existing topic config for "${topic}": ${resource?.errorMessage ?? 'missing response'}`,
+                );
+            }
+
+            await admin.alterConfigs({
+                validateOnly: false,
+                resources: [
+                    {
+                        type: ConfigResourceTypes.TOPIC,
+                        name: topic,
+                        configEntries: buildSafeManagedEventTopicAlterConfigEntries(
+                            resource.configEntries,
+                        ),
+                    },
+                ],
+            });
+        }
     } finally {
         await admin.disconnect();
     }
