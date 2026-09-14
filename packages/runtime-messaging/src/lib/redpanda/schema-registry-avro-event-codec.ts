@@ -8,13 +8,20 @@ import {
 } from './event-avro-schema.js';
 
 export type SchemaRegistryConnectionOptions = ConstructorParameters<typeof SchemaRegistry>[0];
+export type SchemaRegistryAvroCodecClient = Pick<
+    SchemaRegistry,
+    'getRegistryIdBySchema' | 'encode' | 'decode'
+>;
 
 export class SchemaRegistryAvroEventCodec {
-    private readonly registry: SchemaRegistry;
+    private readonly registry: SchemaRegistryAvroCodecClient;
     private readonly schemaIds = new Map<string, Promise<number>>();
 
-    public constructor(options: SchemaRegistryConnectionOptions) {
-        this.registry = new SchemaRegistry(options);
+    public constructor(
+        options: SchemaRegistryConnectionOptions,
+        registry: SchemaRegistryAvroCodecClient = new SchemaRegistry(options),
+    ) {
+        this.registry = registry;
     }
 
     public async encode(contract: AvroEventContract, payload: unknown): Promise<Buffer> {
