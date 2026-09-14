@@ -68,4 +68,4 @@ pnpm nx run @accounterbro/runtime-messaging:test
 pnpm nx run @accounterbro/runtime-messaging:build
 ```
 
-Tests in this package cover only AccounterBro-owned validation, registry, ingress, wire mapping and Nest lifecycle behavior. Do not copy EDP execution, event-factory or business-contract test suites here.
+Tests in this package cover only AccounterBro-owned validation, registry, ingress, wire mapping and Nest lifecycle behavior. Redpanda/Schema Registry integration tests must likewise assert only AccounterBro-owned schema derivation, subject/config selection, provisioning-versus-runtime mutation boundaries and adapter usage. A minimal deterministic Registry stub may drive the selected client, but do not test Redpanda, Schema Registry, Avro codec or client implementation details already owned by dependencies. Do not copy EDP execution, event-factory or business-contract test suites here.
