@@ -690,7 +690,7 @@ importers:
     dependencies:
       '@event-driven-platform/event':
         specifier: ^0.2.0
-        version: 0.2.0(zod@4.6.2)
+        version: 0.2.0(zod@4.6.5)
       '@event-driven-platform/event-schema-avro':
         specifier: 0.0.3
         version: 0.0.3
@@ -703,9 +703,6 @@ importers:
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
-      zod:
-        specifier: 'catalog:'
-        version: 4.6.2
     devDependencies:
       '@event-driven-platform/execution':
         specifier: ^0.0.8
