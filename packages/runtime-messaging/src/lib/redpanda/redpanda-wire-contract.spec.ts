@@ -118,7 +118,8 @@ describe('Redpanda wire contract', () => {
         ['function', () => undefined],
         ['symbol', Symbol('metadata')],
         ['bigint', 1n],
-    ])('rejects %s metadata that JSON cannot preserve', (_case, unsupported) => {
+        ['custom JSON serialization', new Date('2026-09-14T18:00:00.000Z')],
+    ])('rejects %s metadata that JSON cannot preserve losslessly', (_case, unsupported) => {
         const envelope = validEnvelope({
             producerExtension: { unsupported },
         });

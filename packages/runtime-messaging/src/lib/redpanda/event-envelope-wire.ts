@@ -1,4 +1,4 @@
-import { TextDecoder } from 'node:util';
+import { isDeepStrictEqual, TextDecoder } from 'node:util';
 
 import type { AnyEventEnvelope } from '@event-driven-platform/event';
 
@@ -29,41 +29,24 @@ function stringifyEventEnvelopeMetadata(metadata: UnknownRecord): string {
     let encoded: string | undefined;
 
     try {
-        encoded = JSON.stringify(metadata, (_key, value: unknown) => {
-            const valueType = typeof value;
-
-            if (
-                value === undefined ||
-                valueType === 'function' ||
-                valueType === 'symbol' ||
-                valueType === 'bigint'
-            ) {
-                throw new EventEnvelopeWireError(
-                    `Header ${EVENT_ENVELOPE_HEADER} metadata must contain only JSON values.`,
-                );
-            }
-
-            if (valueType === 'number' && !Number.isFinite(value)) {
-                throw new EventEnvelopeWireError(
-                    `Header ${EVENT_ENVELOPE_HEADER} metadata must not contain non-finite numbers.`,
-                );
-            }
-
-            return value;
-        });
-    } catch (error) {
-        if (error instanceof EventEnvelopeWireError) {
-            throw error;
-        }
-
+        encoded = JSON.stringify(metadata);
+    } catch {
         throw new EventEnvelopeWireError(
-            `Header ${EVENT_ENVELOPE_HEADER} metadata must be JSON-serializable.`,
+            `Header ${EVENT_ENVELOPE_HEADER} metadata must be JSON-serializable without loss.`,
         );
     }
 
     if (encoded === undefined) {
         throw new EventEnvelopeWireError(
-            `Header ${EVENT_ENVELOPE_HEADER} metadata must be JSON-serializable.`,
+            `Header ${EVENT_ENVELOPE_HEADER} metadata must be JSON-serializable without loss.`,
+        );
+    }
+
+    const decoded = JSON.parse(encoded) as unknown;
+
+    if (!isDeepStrictEqual(decoded, metadata)) {
+        throw new EventEnvelopeWireError(
+            `Header ${EVENT_ENVELOPE_HEADER} metadata must round-trip through JSON without loss.`,
         );
     }
 
