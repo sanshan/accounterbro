@@ -30,6 +30,17 @@ export interface EventSchemaProvisioningResult {
     readonly schemaId: number;
 }
 
+export interface SchemaRegistrySchemaProvisioningClient {
+    register(
+        schema: ReturnType<typeof toSchemaRegistryAvroSchema>,
+        options: {
+            readonly subject: string;
+            readonly compatibility: COMPATIBILITY;
+            readonly updateConfig: boolean;
+        },
+    ): Promise<{ readonly id: number }>;
+}
+
 export interface ManagedEventTopicProvisioningOptions extends EventSchemaProvisioningOptions {
     readonly kafka: KafkaConfig;
     readonly numPartitions: number;
@@ -83,8 +94,8 @@ export function buildSafeManagedEventTopicAlterConfigEntries(
 
 export async function provisionEventContractSchema(
     options: EventSchemaProvisioningOptions,
+    registry: SchemaRegistrySchemaProvisioningClient = new SchemaRegistry(options.schemaRegistry),
 ): Promise<EventSchemaProvisioningResult> {
-    const registry = new SchemaRegistry(options.schemaRegistry);
     const subject = getEventValueSubject(options.contract.name);
     const schema = toSchemaRegistryAvroSchema(renderEventPayloadAvroSchema(options.contract));
     const registered = await registry.register(schema, {
