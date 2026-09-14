@@ -93,6 +93,26 @@ export function buildSafeManagedEventTopicAlterConfigEntries(
         .map(([name, value]) => ({ name, value }));
 }
 
+export function getManagedEventTopicPartitionIncrease(
+    topic: string,
+    existingCount: number,
+    requestedCount: number,
+): number | undefined {
+    if (!Number.isInteger(existingCount) || existingCount <= 0) {
+        throw new Error(
+            `Existing topic "${topic}" returned invalid partition count ${existingCount}.`,
+        );
+    }
+
+    if (existingCount > requestedCount) {
+        throw new Error(
+            `Existing topic "${topic}" has ${existingCount} partitions, which exceeds requested ${requestedCount}; Kafka partitions cannot be decreased.`,
+        );
+    }
+
+    return existingCount < requestedCount ? requestedCount : undefined;
+}
+
 export async function provisionEventContractSchema(
     options: EventSchemaProvisioningOptions,
     registry: SchemaRegistrySchemaProvisioningClient = new SchemaRegistry(options.schemaRegistry),
@@ -141,6 +161,31 @@ export async function provisionManagedEventTopic(
         });
 
         if (!created) {
+            const metadata = await admin.fetchTopicMetadata({ topics: [topic] });
+            const existingTopic = metadata.topics.find((candidate) => candidate.name === topic);
+
+            if (existingTopic === undefined) {
+                throw new Error(`Failed to fetch existing topic metadata for "${topic}".`);
+            }
+
+            const partitionIncrease = getManagedEventTopicPartitionIncrease(
+                topic,
+                existingTopic.partitions.length,
+                options.numPartitions,
+            );
+
+            if (partitionIncrease !== undefined) {
+                await admin.createPartitions({
+                    validateOnly: false,
+                    topicPartitions: [
+                        {
+                            topic,
+                            count: partitionIncrease,
+                        },
+                    ],
+                });
+            }
+
             const described = await admin.describeConfigs({
                 includeSynonyms: false,
                 resources: [
