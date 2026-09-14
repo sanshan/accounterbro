@@ -73,9 +73,13 @@ async function handleRegistryRequest(
     markSubjectExists: () => void,
 ): Promise<void> {
     const body = await readJsonBody(request);
-    requests.push({ method: request.method, url: request.url, body });
+    const url =
+        request.url === undefined
+            ? undefined
+            : decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+    requests.push({ method: request.method, url, body });
 
-    if (request.method === 'GET' && request.url === `/config/${SUBJECT}`) {
+    if (request.method === 'GET' && url === `/config/${SUBJECT}`) {
         if (!subjectExists()) {
             writeJson(response, 404, { error_code: 40401, message: 'Subject not found' });
             return;
@@ -85,23 +89,23 @@ async function handleRegistryRequest(
         return;
     }
 
-    if (request.method === 'POST' && request.url === `/subjects/${SUBJECT}/versions`) {
+    if (request.method === 'POST' && url === `/subjects/${SUBJECT}/versions`) {
         markSubjectExists();
         writeJson(response, 200, { id: SCHEMA_ID });
         return;
     }
 
-    if (request.method === 'PUT' && request.url === `/config/${SUBJECT}`) {
+    if (request.method === 'PUT' && url === `/config/${SUBJECT}`) {
         writeJson(response, 200, { compatibility: 'BACKWARD_TRANSITIVE' });
         return;
     }
 
-    if (request.method === 'POST' && request.url === `/subjects/${SUBJECT}`) {
+    if (request.method === 'POST' && url === `/subjects/${SUBJECT}`) {
         writeJson(response, 200, { id: SCHEMA_ID });
         return;
     }
 
-    if (request.method === 'GET' && request.url === `/schemas/ids/${SCHEMA_ID}`) {
+    if (request.method === 'GET' && url === `/schemas/ids/${SCHEMA_ID}`) {
         writeJson(response, 200, { schema: schemaJson });
         return;
     }
