@@ -29,8 +29,7 @@
         "@event-driven-platform/event-schema-avro": "0.0.3",
         "@kafkajs/confluent-schema-registry": "4.1.0",
         "@nestjs/common": "^11.0.0",
-        "kafkajs": "2.2.4",
-        "zod": "catalog:"
+        "kafkajs": "2.2.4"
     },
     "devDependencies": {
         "@event-driven-platform/execution": "^0.0.8",

@@ -1,17 +1,19 @@
-import type { EventContract } from '@event-driven-platform/event';
 import {
     renderEventContractAvroSchema,
     type AvroRecordSchema,
 } from '@event-driven-platform/event-schema-avro';
-import type { ZodType } from 'zod';
 
 import { getEventAvroRenderOptions, getEventAvroRecordName } from './avro-naming.js';
 
-export type AvroEventContract<
-    TName extends string,
-    TSchemaVersion extends number,
-    TPayloadSchema extends ZodType,
-> = EventContract<TName, TSchemaVersion, TPayloadSchema>;
+export interface AvroEventContract {
+    readonly name: string;
+    readonly schemaVersion: number;
+    readonly payload: {
+        parse(value: unknown): unknown;
+    };
+}
+
+type RendererEventContract = Parameters<typeof renderEventContractAvroSchema>[0];
 
 export function getEventValueSubject(eventName: string): string {
     getEventAvroRecordName(eventName);
@@ -19,12 +21,16 @@ export function getEventValueSubject(eventName: string): string {
     return `${eventName}-value`;
 }
 
-export function renderEventPayloadAvroSchema<
-    const TName extends string,
-    const TSchemaVersion extends number,
-    TPayloadSchema extends ZodType,
->(contract: AvroEventContract<TName, TSchemaVersion, TPayloadSchema>): AvroRecordSchema {
-    return renderEventContractAvroSchema(contract, getEventAvroRenderOptions(contract.name));
+export function renderEventPayloadAvroSchema(contract: AvroEventContract): AvroRecordSchema {
+    // Published EDP packages can resolve patch-different Zod copies. EventContract is
+    // structurally the same runtime contract; normalize that package-local type identity
+    // only at the renderer boundary instead of leaking Zod into transport APIs.
+    const rendererContract = contract as unknown as RendererEventContract;
+
+    return renderEventContractAvroSchema(
+        rendererContract,
+        getEventAvroRenderOptions(contract.name),
+    );
 }
 
 export function toSchemaRegistryAvroSchema(schema: AvroRecordSchema) {
