@@ -40,6 +40,17 @@ describe('Redpanda wire contract', () => {
         );
     });
 
+    it('rejects malformed Unicode before deriving the Avro record name', () => {
+        const firstMalformedName = String.fromCharCode(0xd800);
+        const secondMalformedName = String.fromCharCode(0xd801);
+
+        expect(() => getEventAvroRecordName(firstMalformedName)).toThrow(TypeError);
+        expect(() => getEventAvroRecordName(secondMalformedName)).toThrow(TypeError);
+        expect(getEventAvroRecordName('events.🚀')).not.toBe(
+            getEventAvroRecordName('events.replacement-character.�'),
+        );
+    });
+
     it('encodes aggregate identity deterministically without inspecting business payload', () => {
         const first = validEnvelope({
             aggregate: { type: 'document', id: 'document:1' },
@@ -85,6 +96,39 @@ describe('Redpanda wire contract', () => {
             status: 'valid',
             value: envelope,
         });
+    });
+
+    it('rejects envelope metadata that collides with the reserved wireVersion field', () => {
+        const envelope = validEnvelope({ wireVersion: 'producer-extension' });
+
+        expect(() => encodeEventEnvelopeHeader(envelope)).toThrow(EventEnvelopeWireError);
+    });
+
+    it.each([NaN, Infinity, -Infinity])(
+        'rejects non-finite metadata numbers before JSON serialization',
+        (nonFinite) => {
+            const envelope = validEnvelope({
+                producerExtension: { nonFinite },
+            });
+
+            expect(() => encodeEventEnvelopeHeader(envelope)).toThrow(EventEnvelopeWireError);
+        },
+    );
+
+    it('rejects invalid UTF-8 header bytes before JSON parsing', () => {
+        const envelope = validEnvelope();
+        const invalidHeader = Buffer.from(encodeEventEnvelopeHeader(envelope));
+        const eventNameOffset = invalidHeader.indexOf(Buffer.from('test.event', 'utf8'));
+
+        if (eventNameOffset < 0) {
+            throw new Error('Expected fixture eventName in encoded header.');
+        }
+
+        invalidHeader[eventNameOffset] = 0xff;
+
+        expect(() => reconstructEventEnvelope(invalidHeader, envelope.payload)).toThrow(
+            EventEnvelopeWireError,
+        );
     });
 
     it('leaves structural validation to the shared envelope validator after wire reconstruction', () => {

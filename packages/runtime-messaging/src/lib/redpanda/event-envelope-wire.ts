@@ -1,3 +1,5 @@
+import { TextDecoder } from 'node:util';
+
 import type { AnyEventEnvelope } from '@event-driven-platform/event';
 
 import type { EventValidationResult } from '../event-validation.js';
@@ -23,12 +25,50 @@ export class EventEnvelopeWireError extends Error {
     }
 }
 
+function stringifyEventEnvelopeMetadata(metadata: UnknownRecord): string {
+    let encoded: string | undefined;
+
+    try {
+        encoded = JSON.stringify(metadata, (_key, value: unknown) => {
+            if (typeof value === 'number' && !Number.isFinite(value)) {
+                throw new EventEnvelopeWireError(
+                    `Header ${EVENT_ENVELOPE_HEADER} metadata must not contain non-finite numbers.`,
+                );
+            }
+
+            return value;
+        });
+    } catch (error) {
+        if (error instanceof EventEnvelopeWireError) {
+            throw error;
+        }
+
+        throw new EventEnvelopeWireError(
+            `Header ${EVENT_ENVELOPE_HEADER} metadata must be JSON-serializable.`,
+        );
+    }
+
+    if (encoded === undefined) {
+        throw new EventEnvelopeWireError(
+            `Header ${EVENT_ENVELOPE_HEADER} metadata must be JSON-serializable.`,
+        );
+    }
+
+    return encoded;
+}
+
 export function encodeEventEnvelopeHeader(envelope: AnyEventEnvelope): Buffer {
+    if (Object.prototype.hasOwnProperty.call(envelope, 'wireVersion')) {
+        throw new EventEnvelopeWireError(
+            `Header ${EVENT_ENVELOPE_HEADER} reserves the wireVersion metadata field.`,
+        );
+    }
+
     const metadata: UnknownRecord = { ...envelope };
     delete metadata['payload'];
 
     return Buffer.from(
-        JSON.stringify({
+        stringifyEventEnvelopeMetadata({
             ...metadata,
             wireVersion: EVENT_ENVELOPE_WIRE_VERSION,
         }),
@@ -54,7 +94,13 @@ function parseEventEnvelopeHeader(headerValue: unknown): EventEnvelopeWireMetada
     let encodedHeader: string;
 
     if (Buffer.isBuffer(headerValue)) {
-        encodedHeader = headerValue.toString('utf8');
+        try {
+            encodedHeader = new TextDecoder('utf-8', { fatal: true }).decode(headerValue);
+        } catch {
+            throw new EventEnvelopeWireError(
+                `Header ${EVENT_ENVELOPE_HEADER} must contain valid UTF-8.`,
+            );
+        }
     } else if (typeof headerValue === 'string') {
         encodedHeader = headerValue;
     } else {
