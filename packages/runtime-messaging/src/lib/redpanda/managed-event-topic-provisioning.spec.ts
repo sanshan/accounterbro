@@ -26,7 +26,9 @@ function topicConfigEntry(
 
 describe('managed Redpanda Event topic provisioning contract', () => {
     it('uses TopicNameStrategy value subjects derived from the Event topic name', () => {
-        expect(getEventValueSubject('documents.registered')).toBe('documents.registered-value');
+        expect(getEventValueSubject('document.registration-finished')).toBe(
+            'document.registration-finished-value',
+        );
         expect(() => getEventValueSubject('documents_registered')).toThrow(TypeError);
     });
 
