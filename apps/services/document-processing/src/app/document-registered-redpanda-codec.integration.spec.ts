@@ -9,7 +9,7 @@ import {
 } from '@accounterbro/runtime-messaging/redpanda';
 
 const SCHEMA_ID = 17;
-const SUBJECT = 'documents.registered-value';
+const SUBJECT = 'document.registration-finished-value';
 const ENCODED_VALUE = Buffer.from('registry-framed-value-fixture');
 const UNUSED_REGISTRY_CONNECTION = { host: 'http://schema-registry.invalid' };
 
