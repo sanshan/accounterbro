@@ -16,15 +16,21 @@ This contract does not define a provider integration, GitHub event or comment re
 
 ## Merge workflow
 
-Before any pull request subject to independent review under this contract is merged:
+For every exact pull-request head subject to independent review, the required lifecycle is ordered:
 
-- the implementation agent MUST complete its own self-review; self-review does not satisfy the independent-review requirement;
-- deterministic repository CI MUST be green independently of AI review;
-- the exact current pull-request head MUST have a clean independent-review result under this contract;
-- an unresolved, non-outdated blocking `POLICY` or `CORRECTNESS` finding prevents a clean result and therefore prevents merge;
-- any relevant new commit invalidates the prior independent-review conclusion and requires a new review conclusion for the new head.
+1. the implementation agent MUST complete its own self-review; self-review does not satisfy the independent-review requirement;
+2. deterministic repository CI for that exact current head MUST be green before independent review is intentionally requested or triggered;
+3. only after deterministic CI is green, the independent review MUST be requested using the proven provider mechanism;
+4. the exact current pull-request head MUST have a clean independent-review result under this contract;
+5. only then may the pull request be merged.
 
-Provider-specific evidence owns only the proven mechanism for obtaining and recognizing that conclusion. When the configured provider has not demonstrated automatic re-review after a new commit, the merge workflow MUST explicitly request a new review using the proven provider mechanism and wait for the completed current-head result. A missing machine-enforced review-state gate does not waive these requirements.
+An unresolved, non-outdated blocking `POLICY` or `CORRECTNESS` finding prevents a clean result and therefore prevents merge.
+
+Any relevant new commit invalidates the prior independent-review conclusion and restarts the ordered lifecycle for the new head. Deterministic CI for that new head MUST become green before another independent-review request is made.
+
+Provider configuration SHOULD avoid automatically starting independent review on pull-request creation when the provider supports a manual post-CI trigger without adding brittle repository automation or separate metered review infrastructure. A review started before deterministic CI is green does not satisfy the required post-CI independent review; after CI becomes green for that same head, the workflow MUST request a fresh review using the proven provider mechanism.
+
+Provider-specific evidence owns only the proven mechanism for obtaining and recognizing the independent-review conclusion. When the configured provider has not demonstrated automatic re-review after a new commit, the merge workflow MUST explicitly request a new review after deterministic CI is green and wait for the completed current-head result. A missing machine-enforced review-state gate does not waive these requirements.
 
 ## Normative language
 
@@ -229,7 +235,7 @@ The catalog does not reproduce Nx project boundaries, service-layer import restr
 
 ## Provider integration evidence
 
-Provider-specific setup and empirically observed GitHub behavior are recorded in [`docs/review/codex-integration.md`](codex-integration.md). That evidence record does not redefine this contract or the provider-neutral rule semantics.
+Provider-specific setup and empirically observed GitHub behavior are recorded in [`docs/review/codex-integration.md`](codex-integration.md). Current provider-specific trigger guidance that implements the ordered lifecycle above is recorded in [`docs/review/codex-triggering.md`](codex-triggering.md). Neither document redefines this contract or the provider-neutral rule semantics.
 
 ## Reviewer procedure
 
