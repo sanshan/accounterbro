@@ -46,8 +46,8 @@ class FixtureDocumentExtractor extends DocumentExtractor {
 }
 
 const runtimeTelemetry = {
-    start(): void {},
-    async shutdown(): Promise<void> {},
+    start: jest.fn(),
+    shutdown: jest.fn().mockResolvedValue(undefined),
 };
 
 interface ProcessingRow {
