@@ -1,4 +1,4 @@
-import type { ConfigEntries } from 'kafkajs';
+import { ConfigSource, type ConfigEntries } from 'kafkajs';
 import { describe, expect, it } from 'vitest';
 
 import { getEventValueSubject } from './event-avro-schema.js';
@@ -17,7 +17,7 @@ function topicConfigEntry(
         configName: overrides.configName,
         configValue: overrides.configValue,
         isDefault: overrides.isDefault ?? false,
-        configSource: overrides.configSource ?? 1,
+        configSource: overrides.configSource ?? ConfigSource.TOPIC_CONFIG,
         isSensitive: overrides.isSensitive ?? false,
         readOnly: overrides.readOnly ?? false,
         configSynonyms: overrides.configSynonyms ?? [],
@@ -45,7 +45,7 @@ describe('managed Redpanda Event topic provisioning contract', () => {
         ]);
     });
 
-    it('preserves existing non-default mutable topic configs when AlterConfigs is required', () => {
+    it('preserves only existing topic-level overrides when AlterConfigs is required', () => {
         expect(
             buildSafeManagedEventTopicAlterConfigEntries([
                 topicConfigEntry({ configName: 'retention.ms', configValue: '86400000' }),
@@ -57,7 +57,18 @@ describe('managed Redpanda Event topic provisioning contract', () => {
                 topicConfigEntry({
                     configName: 'compression.type',
                     configValue: 'producer',
+                    configSource: ConfigSource.DYNAMIC_DEFAULT_BROKER_CONFIG,
+                }),
+                topicConfigEntry({
+                    configName: 'min.insync.replicas',
+                    configValue: '2',
+                    configSource: ConfigSource.STATIC_BROKER_CONFIG,
+                }),
+                topicConfigEntry({
+                    configName: 'default.config',
+                    configValue: 'ignored',
                     isDefault: true,
+                    configSource: ConfigSource.DEFAULT_CONFIG,
                 }),
                 topicConfigEntry({
                     configName: 'read.only.config',
@@ -79,7 +90,7 @@ describe('managed Redpanda Event topic provisioning contract', () => {
         ]);
     });
 
-    it('fails instead of resetting a non-default mutable config whose value cannot be preserved', () => {
+    it('fails instead of resetting a topic-level config whose value cannot be preserved', () => {
         expect(() =>
             buildSafeManagedEventTopicAlterConfigEntries([
                 topicConfigEntry({
@@ -88,6 +99,6 @@ describe('managed Redpanda Event topic provisioning contract', () => {
                     isSensitive: true,
                 }),
             ]),
-        ).toThrow('Cannot safely preserve existing non-default topic config "sensitive.config"');
+        ).toThrow('Cannot safely preserve existing topic-level config "sensitive.config"');
     });
 });
