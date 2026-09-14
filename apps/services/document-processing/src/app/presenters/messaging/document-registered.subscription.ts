@@ -3,7 +3,7 @@ import { DocumentRegisteredEventContract } from '@accounterbro/documents';
 import { createSubscription } from '@accounterbro/runtime-presenters/events';
 import { z } from 'zod';
 
-import { ProcessDocumentUseCase } from '../../application/use-cases/process-document/process-document.use-case';
+import type { ProcessDocumentUseCase } from '../../application/use-cases/process-document/process-document.use-case';
 
 const documentIdSchema = z.uuid();
 
