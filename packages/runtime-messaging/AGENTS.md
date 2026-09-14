@@ -36,6 +36,10 @@ The proven client combination is KafkaJS `2.2.4` plus `@kafkajs/confluent-schema
 
 Follow the canonical wire helpers under `src/lib/redpanda/` for the stable Avro Event-name mapping, `ab.event-envelope` metadata framing and aggregate Kafka-key encoding. Event names follow the repository convention of simple ASCII alphanumeric words separated by dots or hyphens, for example `document.registration-finished`; the Avro record mapping uses `_` for hyphens and `__` for dots so it stays readable, valid and collision-free. Header metadata is typed as `Omit<AnyEventEnvelope, 'payload'>` plus the transport `wireVersion`; producer-side serialization trusts the published EDP `EventEnvelope` type and does not sanitize undeclared runtime properties. Registry schema IDs remain transport infrastructure identifiers and MUST NOT become Event handler identity.
 
+Payload Avro schemas are rendered only by EDP `renderEventContractAvroSchema(...)` through the canonical helpers in `event-avro-schema.ts`. TopicNameStrategy subjects are exactly `<EventContract.name>-value`. Runtime encoding performs an exact read-only Registry lookup for that rendered schema before standard client encoding; decode resolves the writer schema from the Registry-framed schema ID and leaves exact business payload validation to the existing EventContract handler boundary.
+
+Schema/Registry mutation is explicit provisioning behavior, never service startup behavior. Repository deployment/tooling should call `provisionEventContractSchema(...)` or `provisionManagedEventTopic(...)` before applications start. Provisioning uses `BACKWARD_TRANSITIVE`, configures `redpanda.value.schema.id.validation=true` plus `redpanda.value.subject.name.strategy=TopicNameStrategy`, and surfaces broker/Registry configuration errors rather than weakening those guarantees. The Redpanda cluster must have schema ID validation enabled so these topic-level properties are accepted.
+
 This subpath does not own EventContract payload schema fields, Event/Envelope semantics, UseCase execution identity or producer/outbox behavior. Payload schema rendering remains EDP-owned.
 
 ## Boundaries

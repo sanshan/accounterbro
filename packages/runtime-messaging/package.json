@@ -27,14 +27,14 @@
     "dependencies": {
         "@event-driven-platform/event": "^0.2.0",
         "@event-driven-platform/event-schema-avro": "0.0.3",
-        "@nestjs/common": "^11.0.0"
+        "@kafkajs/confluent-schema-registry": "4.1.0",
+        "@nestjs/common": "^11.0.0",
+        "kafkajs": "2.2.4"
     },
     "devDependencies": {
         "@event-driven-platform/execution": "^0.0.8",
-        "@kafkajs/confluent-schema-registry": "4.1.0",
         "@nestjs/core": "^11.0.0",
         "@nestjs/testing": "^11.0.0",
-        "kafkajs": "2.2.4",
         "reflect-metadata": "^0.2.2"
     }
 }
