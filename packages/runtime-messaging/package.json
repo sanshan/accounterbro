@@ -17,6 +17,11 @@
             "types": "./dist/nest.d.ts",
             "import": "./dist/nest.js",
             "default": "./dist/nest.js"
+        },
+        "./redpanda": {
+            "types": "./dist/redpanda.d.ts",
+            "import": "./dist/redpanda.js",
+            "default": "./dist/redpanda.js"
         }
     },
     "dependencies": {
@@ -25,8 +30,10 @@
     },
     "devDependencies": {
         "@event-driven-platform/execution": "^0.0.8",
+        "@kafkajs/confluent-schema-registry": "4.1.0",
         "@nestjs/core": "^11.0.0",
         "@nestjs/testing": "^11.0.0",
+        "kafkajs": "2.2.4",
         "reflect-metadata": "^0.2.2"
     }
 }
