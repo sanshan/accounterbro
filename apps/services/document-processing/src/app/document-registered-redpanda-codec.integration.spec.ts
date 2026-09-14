@@ -1,185 +1,89 @@
-import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import type { AddressInfo } from 'node:net';
-
 import { DocumentRegisteredEventContract } from '@accounterbro/documents';
 import {
     getEventValueSubject,
     provisionEventContractSchema,
     renderEventPayloadAvroSchema,
     SchemaRegistryAvroEventCodec,
+    type SchemaRegistryAvroCodecClient,
+    type SchemaRegistrySchemaProvisioningClient,
 } from '@accounterbro/runtime-messaging/redpanda';
 
 const SCHEMA_ID = 17;
 const SUBJECT = 'documents.registered-value';
-
-interface RegistryRequest {
-    readonly method: string | undefined;
-    readonly url: string | undefined;
-    readonly body: unknown;
-}
-
-async function withSchemaRegistryStub<T>(
-    run: (host: string, requests: RegistryRequest[]) => Promise<T>,
-): Promise<T> {
-    const requests: RegistryRequest[] = [];
-    const schemaJson = JSON.stringify(renderEventPayloadAvroSchema(DocumentRegisteredEventContract));
-    let subjectExists = false;
-
-    const server = createServer((request, response) => {
-        void handleRegistryRequest(
-            request,
-            response,
-            requests,
-            schemaJson,
-            () => subjectExists,
-            () => {
-                subjectExists = true;
-            },
-        ).catch((error: unknown) => {
-            const message = error instanceof Error ? error.message : String(error);
-            writeJson(response, 500, { message });
-        });
-    });
-
-    await new Promise<void>((resolve, reject) => {
-        server.once('error', reject);
-        server.listen(0, '127.0.0.1', resolve);
-    });
-
-    const address = server.address() as AddressInfo;
-
-    try {
-        return await run(`http://127.0.0.1:${address.port}`, requests);
-    } finally {
-        await new Promise<void>((resolve, reject) => {
-            server.close((error) => {
-                if (error === undefined) {
-                    resolve();
-                } else {
-                    reject(error);
-                }
-            });
-        });
-    }
-}
-
-async function handleRegistryRequest(
-    request: IncomingMessage,
-    response: ServerResponse,
-    requests: RegistryRequest[],
-    schemaJson: string,
-    subjectExists: () => boolean,
-    markSubjectExists: () => void,
-): Promise<void> {
-    const body = await readJsonBody(request);
-    const url =
-        request.url === undefined
-            ? undefined
-            : decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
-    requests.push({ method: request.method, url, body });
-
-    if (request.method === 'GET' && url === `/config/${SUBJECT}`) {
-        if (!subjectExists()) {
-            writeJson(response, 404, { error_code: 40401, message: 'Subject not found' });
-            return;
-        }
-
-        writeJson(response, 200, { compatibilityLevel: 'BACKWARD_TRANSITIVE' });
-        return;
-    }
-
-    if (request.method === 'POST' && url === `/subjects/${SUBJECT}/versions`) {
-        markSubjectExists();
-        writeJson(response, 200, { id: SCHEMA_ID });
-        return;
-    }
-
-    if (request.method === 'PUT' && url === `/config/${SUBJECT}`) {
-        writeJson(response, 200, { compatibility: 'BACKWARD_TRANSITIVE' });
-        return;
-    }
-
-    if (request.method === 'POST' && url === `/subjects/${SUBJECT}`) {
-        writeJson(response, 200, { id: SCHEMA_ID });
-        return;
-    }
-
-    if (request.method === 'GET' && url === `/schemas/ids/${SCHEMA_ID}`) {
-        writeJson(response, 200, { schema: schemaJson });
-        return;
-    }
-
-    writeJson(response, 404, { error_code: 40403, message: 'Schema not found' });
-}
-
-async function readJsonBody(request: IncomingMessage): Promise<unknown> {
-    const chunks: Buffer[] = [];
-
-    for await (const chunk of request) {
-        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-    }
-
-    if (chunks.length === 0) {
-        return undefined;
-    }
-
-    return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
-}
-
-function writeJson(response: ServerResponse, statusCode: number, body: unknown): void {
-    response.statusCode = statusCode;
-    response.setHeader('content-type', 'application/json');
-    response.end(JSON.stringify(body));
-}
+const ENCODED_VALUE = Buffer.from('registry-framed-value-fixture');
+const UNUSED_REGISTRY_CONNECTION = { host: 'http://schema-registry.invalid' };
 
 describe('DocumentRegistered Schema Registry boundary', () => {
-    it('provisions the EDP-rendered schema and uses it at runtime without Registry mutation', async () => {
-        await withSchemaRegistryStub(async (host, requests) => {
-            const expectedSchema = renderEventPayloadAvroSchema(DocumentRegisteredEventContract);
-            const provisioned = await provisionEventContractSchema({
+    it('derives the EDP schema and keeps Registry mutation in explicit provisioning', async () => {
+        const expectedSchema = renderEventPayloadAvroSchema(DocumentRegisteredEventContract);
+        const payload = {
+            documentId: 'document-1',
+            storageReference: 'objects/document-1.pdf',
+        };
+
+        let registrationCount = 0;
+        let registeredSchema: unknown;
+        let registrationOptions: unknown;
+        let lookupSubject: string | undefined;
+        let lookupSchema: unknown;
+        let encodedSchemaId: number | undefined;
+        let encodedPayload: unknown;
+        let decodedValue: Buffer | undefined;
+
+        const registryClient: SchemaRegistryAvroCodecClient & SchemaRegistrySchemaProvisioningClient = {
+            async register(schema, options) {
+                registrationCount += 1;
+                registeredSchema = schema;
+                registrationOptions = options;
+                return { id: SCHEMA_ID };
+            },
+            async getRegistryIdBySchema(subject, schema) {
+                lookupSubject = subject;
+                lookupSchema = schema;
+                return SCHEMA_ID;
+            },
+            async encode(schemaId, value) {
+                encodedSchemaId = schemaId;
+                encodedPayload = value;
+                return ENCODED_VALUE;
+            },
+            async decode(value) {
+                decodedValue = value;
+                return payload;
+            },
+        };
+
+        const provisioned = await provisionEventContractSchema(
+            {
                 contract: DocumentRegisteredEventContract,
-                schemaRegistry: { host },
-            });
+                schemaRegistry: UNUSED_REGISTRY_CONNECTION,
+            },
+            registryClient,
+        );
 
-            expect(getEventValueSubject(DocumentRegisteredEventContract.name)).toBe(SUBJECT);
-            expect(provisioned).toEqual({ subject: SUBJECT, schemaId: SCHEMA_ID });
-
-            const registration = requests.find(
-                (request) =>
-                    request.method === 'POST' && request.url === `/subjects/${SUBJECT}/versions`,
-            );
-            expect(registration?.body).toEqual({ schema: JSON.stringify(expectedSchema) });
-            expect(
-                requests.find(
-                    (request) => request.method === 'PUT' && request.url === `/config/${SUBJECT}`,
-                )?.body,
-            ).toEqual({ compatibility: 'BACKWARD_TRANSITIVE' });
-
-            requests.length = 0;
-
-            const payload = {
-                documentId: 'document-1',
-                storageReference: 'objects/document-1.pdf',
-            };
-            const writer = new SchemaRegistryAvroEventCodec({ host });
-            const value = await writer.encode(DocumentRegisteredEventContract, payload);
-            const reader = new SchemaRegistryAvroEventCodec({ host });
-
-            await expect(reader.decode(value)).resolves.toEqual(payload);
-            expect(
-                requests.some(
-                    (request) =>
-                        request.method === 'POST' && request.url === `/subjects/${SUBJECT}`,
-                ),
-            ).toBe(true);
-            expect(
-                requests.some(
-                    (request) =>
-                        request.method === 'POST' &&
-                        request.url === `/subjects/${SUBJECT}/versions`,
-                ),
-            ).toBe(false);
-            expect(requests.some((request) => request.method === 'PUT')).toBe(false);
+        expect(getEventValueSubject(DocumentRegisteredEventContract.name)).toBe(SUBJECT);
+        expect(provisioned).toEqual({ subject: SUBJECT, schemaId: SCHEMA_ID });
+        expect(registeredSchema).toEqual(expectedSchema);
+        expect(registrationOptions).toEqual({
+            subject: SUBJECT,
+            compatibility: 'BACKWARD_TRANSITIVE',
+            updateConfig: true,
         });
+
+        const codec = new SchemaRegistryAvroEventCodec(
+            UNUSED_REGISTRY_CONNECTION,
+            registryClient,
+        );
+        const encoded = await codec.encode(DocumentRegisteredEventContract, payload);
+
+        expect(encoded).toEqual(ENCODED_VALUE);
+        expect(lookupSubject).toBe(SUBJECT);
+        expect(lookupSchema).toEqual(expectedSchema);
+        expect(encodedSchemaId).toBe(SCHEMA_ID);
+        expect(encodedPayload).toEqual(payload);
+
+        await expect(codec.decode(encoded)).resolves.toEqual(payload);
+        expect(decodedValue).toEqual(ENCODED_VALUE);
+        expect(registrationCount).toBe(1);
     });
 });
