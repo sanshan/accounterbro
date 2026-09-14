@@ -28,8 +28,18 @@ async function withSchemaRegistryStub<T>(
     let subjectExists = false;
 
     const server = createServer((request, response) => {
-        void handleRegistryRequest(request, response, requests, schemaJson, () => subjectExists, () => {
-            subjectExists = true;
+        void handleRegistryRequest(
+            request,
+            response,
+            requests,
+            schemaJson,
+            () => subjectExists,
+            () => {
+                subjectExists = true;
+            },
+        ).catch((error: unknown) => {
+            const message = error instanceof Error ? error.message : String(error);
+            writeJson(response, 500, { message });
         });
     });
 

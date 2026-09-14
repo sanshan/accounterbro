@@ -5,6 +5,7 @@ import {
     type IResourceConfigEntry,
     type KafkaConfig,
 } from 'kafkajs';
+import type { ZodType } from 'zod';
 
 import {
     getEventValueSubject,
@@ -19,8 +20,12 @@ export const REDPANDA_VALUE_SUBJECT_NAME_STRATEGY_CONFIG =
     'redpanda.value.subject.name.strategy';
 export const REDPANDA_TOPIC_NAME_STRATEGY = 'TopicNameStrategy';
 
-export interface EventSchemaProvisioningOptions {
-    readonly contract: AvroEventContract;
+export interface EventSchemaProvisioningOptions<
+    TName extends string,
+    TSchemaVersion extends number,
+    TPayloadSchema extends ZodType,
+> {
+    readonly contract: AvroEventContract<TName, TSchemaVersion, TPayloadSchema>;
     readonly schemaRegistry: SchemaRegistryConnectionOptions;
 }
 
@@ -29,7 +34,11 @@ export interface EventSchemaProvisioningResult {
     readonly schemaId: number;
 }
 
-export interface ManagedEventTopicProvisioningOptions extends EventSchemaProvisioningOptions {
+export interface ManagedEventTopicProvisioningOptions<
+    TName extends string,
+    TSchemaVersion extends number,
+    TPayloadSchema extends ZodType,
+> extends EventSchemaProvisioningOptions<TName, TSchemaVersion, TPayloadSchema> {
     readonly kafka: KafkaConfig;
     readonly numPartitions: number;
     readonly replicationFactor?: number;
@@ -52,8 +61,12 @@ export function getManagedEventTopicConfigEntries(): IResourceConfigEntry[] {
     ];
 }
 
-export async function provisionEventContractSchema(
-    options: EventSchemaProvisioningOptions,
+export async function provisionEventContractSchema<
+    const TName extends string,
+    const TSchemaVersion extends number,
+    TPayloadSchema extends ZodType,
+>(
+    options: EventSchemaProvisioningOptions<TName, TSchemaVersion, TPayloadSchema>,
 ): Promise<EventSchemaProvisioningResult> {
     const registry = new SchemaRegistry(options.schemaRegistry);
     const subject = getEventValueSubject(options.contract.name);
@@ -70,8 +83,12 @@ export async function provisionEventContractSchema(
     };
 }
 
-export async function provisionManagedEventTopic(
-    options: ManagedEventTopicProvisioningOptions,
+export async function provisionManagedEventTopic<
+    const TName extends string,
+    const TSchemaVersion extends number,
+    TPayloadSchema extends ZodType,
+>(
+    options: ManagedEventTopicProvisioningOptions<TName, TSchemaVersion, TPayloadSchema>,
 ): Promise<ManagedEventTopicProvisioningResult> {
     assertPositiveInteger(options.numPartitions, 'numPartitions');
     if (options.replicationFactor !== undefined) {

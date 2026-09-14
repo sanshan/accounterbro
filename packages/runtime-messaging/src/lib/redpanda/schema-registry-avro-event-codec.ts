@@ -1,4 +1,5 @@
 import { SchemaRegistry } from '@kafkajs/confluent-schema-registry';
+import type { ZodType } from 'zod';
 
 import {
     getEventValueSubject,
@@ -17,8 +18,15 @@ export class SchemaRegistryAvroEventCodec {
         this.registry = new SchemaRegistry(options);
     }
 
-    public async encode(contract: AvroEventContract, payload: unknown): Promise<Buffer> {
-        const parsedPayload = contract.create(payload).payload;
+    public async encode<
+        const TName extends string,
+        const TSchemaVersion extends number,
+        TPayloadSchema extends ZodType,
+    >(
+        contract: AvroEventContract<TName, TSchemaVersion, TPayloadSchema>,
+        payload: unknown,
+    ): Promise<Buffer> {
+        const parsedPayload = contract.payload.parse(payload);
         const schemaId = await this.resolveSchemaId(contract);
 
         return this.registry.encode(schemaId, parsedPayload);
@@ -28,7 +36,11 @@ export class SchemaRegistryAvroEventCodec {
         return this.registry.decode(value);
     }
 
-    private resolveSchemaId(contract: AvroEventContract): Promise<number> {
+    private resolveSchemaId<
+        const TName extends string,
+        const TSchemaVersion extends number,
+        TPayloadSchema extends ZodType,
+    >(contract: AvroEventContract<TName, TSchemaVersion, TPayloadSchema>): Promise<number> {
         const subject = getEventValueSubject(contract.name);
         const schema = toSchemaRegistryAvroSchema(renderEventPayloadAvroSchema(contract));
         const cacheKey = `${subject}\n${JSON.stringify(schema)}`;
