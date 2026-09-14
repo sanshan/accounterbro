@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 
 import { SchemaRegistry } from '@kafkajs/confluent-schema-registry';
+import { Kafka } from 'kafkajs';
 import { describe, expect, it } from 'vitest';
 
 import { getEventAvroRenderOptions } from './avro-naming.js';
@@ -63,7 +64,20 @@ async function withSchemaRegistryStub<T>(
     }
 }
 
-describe('Schema Registry Avro client POC', () => {
+describe('Redpanda client POC', () => {
+    it('uses KafkaJS 2.x consumer primitives without connecting during the wire POC', () => {
+        const kafka = new Kafka({
+            clientId: 'runtime-messaging-redpanda-poc',
+            brokers: ['127.0.0.1:9092'],
+        });
+        const consumer = kafka.consumer({ groupId: 'runtime-messaging-redpanda-poc' });
+
+        expect(consumer.run).toBeTypeOf('function');
+        expect(consumer.commitOffsets).toBeTypeOf('function');
+        expect(consumer.pause).toBeTypeOf('function');
+        expect(consumer.resume).toBeTypeOf('function');
+    });
+
     it('uses standard Confluent framing and schema lookup by id without registration', async () => {
         await withSchemaRegistryStub(async (host, requests) => {
             const writerRegistry = new SchemaRegistry({ host });
