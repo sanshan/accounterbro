@@ -5,10 +5,12 @@ import { Module } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
 import { ApplicationModule } from '../application/application.module';
+import { DocumentProcessingEventsModule } from './messaging/document-processing-events.module';
 
 @Module({
     imports: [
         ApplicationModule,
+        DocumentProcessingEventsModule,
         HttpErrorsModule,
         HttpHealthModule.register({
             imports: [ApplicationModule],

@@ -30,6 +30,9 @@
             "path": "../../../packages/runtime-observability/tsconfig.lib.json"
         },
         {
+            "path": "../../../packages/runtime-messaging/tsconfig.lib.json"
+        },
+        {
             "path": "../../../packages/runtime-health/tsconfig.lib.json"
         },
         {
@@ -40,6 +43,9 @@
         },
         {
             "path": "../../../packages/object-storage/tsconfig.lib.json"
+        },
+        {
+            "path": "../../../packages/documents/tsconfig.lib.json"
         },
         {
             "path": "../../../packages/document-processing/tsconfig.lib.json"

@@ -20,6 +20,8 @@ Implementation-local invariants for changing a technical package itself remain i
 
 Use `apps/services/documents` as the current proven business-service host reference. Reuse only the behavior required by the service being changed; do not copy Documents-specific behavior mechanically.
 
+For explicit event-driven ingress, follow the `Event ingress presenters` section in `docs/engineering/service-guidelines.md` and its canonical implementation reference.
+
 ## Verification
 
 Use the service's current Nx project configuration to select the smallest relevant lint, typecheck, test, build, migration, and E2E targets required by the change. Do not guess the Nx project name from the directory name.
