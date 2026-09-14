@@ -73,12 +73,16 @@ describe('Redpanda wire contract', () => {
         );
     });
 
-    it('keeps business payload out of the metadata header and reconstructs a valid EDP envelope', () => {
+    it('serializes only known EDP envelope metadata and reconstructs a valid envelope', () => {
         const payload = { documentId: 'document-1' };
         const envelope = validEnvelope({
             eventName: 'documents.registered',
             payload,
-            producerExtension: { preserved: true },
+            producerExtension: { ignored: true },
+        });
+        const expectedEnvelope = validEnvelope({
+            eventName: 'documents.registered',
+            payload,
         });
 
         const header = encodeEventEnvelopeHeader(envelope);
@@ -87,44 +91,14 @@ describe('Redpanda wire contract', () => {
         expect(EVENT_ENVELOPE_HEADER).toBe('ab.event-envelope');
         expect(decodedHeader['wireVersion']).toBe(EVENT_ENVELOPE_WIRE_VERSION);
         expect(decodedHeader).not.toHaveProperty('payload');
+        expect(decodedHeader).not.toHaveProperty('producerExtension');
 
         const reconstructed = reconstructEventEnvelope(header, payload);
 
         expect(reconstructed).toEqual({
             status: 'valid',
-            value: envelope,
+            value: expectedEnvelope,
         });
-    });
-
-    it('rejects envelope metadata that collides with the reserved wireVersion field', () => {
-        const envelope = validEnvelope({ wireVersion: 'producer-extension' });
-
-        expect(() => encodeEventEnvelopeHeader(envelope)).toThrow(EventEnvelopeWireError);
-    });
-
-    it.each([NaN, Infinity, -Infinity])(
-        'rejects non-finite metadata numbers before JSON serialization',
-        (nonFinite) => {
-            const envelope = validEnvelope({
-                producerExtension: { nonFinite },
-            });
-
-            expect(() => encodeEventEnvelopeHeader(envelope)).toThrow(EventEnvelopeWireError);
-        },
-    );
-
-    it.each([
-        ['undefined', undefined],
-        ['function', () => undefined],
-        ['symbol', Symbol('metadata')],
-        ['bigint', 1n],
-        ['custom JSON serialization', new Date('2026-09-14T18:00:00.000Z')],
-    ])('rejects %s metadata that JSON cannot preserve losslessly', (_case, unsupported) => {
-        const envelope = validEnvelope({
-            producerExtension: { unsupported },
-        });
-
-        expect(() => encodeEventEnvelopeHeader(envelope)).toThrow(EventEnvelopeWireError);
     });
 
     it('rejects invalid UTF-8 header bytes before JSON parsing', () => {

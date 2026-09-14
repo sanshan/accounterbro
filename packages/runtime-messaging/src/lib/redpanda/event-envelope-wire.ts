@@ -1,4 +1,4 @@
-import { isDeepStrictEqual, TextDecoder } from 'node:util';
+import { TextDecoder } from 'node:util';
 
 import type { AnyEventEnvelope } from '@event-driven-platform/event';
 
@@ -8,7 +8,20 @@ import { validateEventEnvelope } from '../validate-event-envelope.js';
 export const EVENT_ENVELOPE_HEADER = 'ab.event-envelope';
 export const EVENT_ENVELOPE_WIRE_VERSION = 1 as const;
 
-export type EventEnvelopeWireMetadataV1 = Omit<AnyEventEnvelope, 'payload'> & {
+type EventEnvelopeWireFields =
+    | 'eventId'
+    | 'eventName'
+    | 'schemaVersion'
+    | 'occurredAt'
+    | 'intentId'
+    | 'correlationId'
+    | 'operationName'
+    | 'tenant'
+    | 'actor'
+    | 'subject'
+    | 'aggregate';
+
+export type EventEnvelopeWireMetadataV1 = Pick<AnyEventEnvelope, EventEnvelopeWireFields> & {
     readonly wireVersion: typeof EVENT_ENVELOPE_WIRE_VERSION;
 };
 
@@ -25,28 +38,31 @@ export class EventEnvelopeWireError extends Error {
     }
 }
 
-function stringifyEventEnvelopeMetadata(metadata: UnknownRecord): string {
-    let encoded: string | undefined;
+function toEventEnvelopeWireMetadata(
+    envelope: AnyEventEnvelope,
+): EventEnvelopeWireMetadataV1 {
+    return {
+        wireVersion: EVENT_ENVELOPE_WIRE_VERSION,
+        eventId: envelope.eventId,
+        eventName: envelope.eventName,
+        schemaVersion: envelope.schemaVersion,
+        occurredAt: envelope.occurredAt,
+        intentId: envelope.intentId,
+        correlationId: envelope.correlationId,
+        operationName: envelope.operationName,
+        tenant: envelope.tenant,
+        actor: envelope.actor,
+        subject: envelope.subject,
+        aggregate: envelope.aggregate,
+    };
+}
 
-    try {
-        encoded = JSON.stringify(metadata);
-    } catch {
-        throw new EventEnvelopeWireError(
-            `Header ${EVENT_ENVELOPE_HEADER} metadata must be JSON-serializable without loss.`,
-        );
-    }
+function stringifyEventEnvelopeMetadata(metadata: EventEnvelopeWireMetadataV1): string {
+    const encoded = JSON.stringify(metadata);
 
     if (encoded === undefined) {
         throw new EventEnvelopeWireError(
-            `Header ${EVENT_ENVELOPE_HEADER} metadata must be JSON-serializable without loss.`,
-        );
-    }
-
-    const decoded = JSON.parse(encoded) as unknown;
-
-    if (!isDeepStrictEqual(decoded, metadata)) {
-        throw new EventEnvelopeWireError(
-            `Header ${EVENT_ENVELOPE_HEADER} metadata must round-trip through JSON without loss.`,
+            `Header ${EVENT_ENVELOPE_HEADER} metadata could not be serialized.`,
         );
     }
 
@@ -54,20 +70,8 @@ function stringifyEventEnvelopeMetadata(metadata: UnknownRecord): string {
 }
 
 export function encodeEventEnvelopeHeader(envelope: AnyEventEnvelope): Buffer {
-    if (Object.prototype.hasOwnProperty.call(envelope, 'wireVersion')) {
-        throw new EventEnvelopeWireError(
-            `Header ${EVENT_ENVELOPE_HEADER} reserves the wireVersion metadata field.`,
-        );
-    }
-
-    const metadata: UnknownRecord = { ...envelope };
-    delete metadata['payload'];
-
     return Buffer.from(
-        stringifyEventEnvelopeMetadata({
-            ...metadata,
-            wireVersion: EVENT_ENVELOPE_WIRE_VERSION,
-        }),
+        stringifyEventEnvelopeMetadata(toEventEnvelopeWireMetadata(envelope)),
         'utf8',
     );
 }
@@ -77,11 +81,19 @@ export function reconstructEventEnvelope(
     payload: unknown,
 ): EventValidationResult<AnyEventEnvelope> {
     const header = parseEventEnvelopeHeader(headerValue);
-    const metadata: UnknownRecord = { ...header };
-    delete metadata['wireVersion'];
 
     return validateEventEnvelope({
-        ...metadata,
+        eventId: header.eventId,
+        eventName: header.eventName,
+        schemaVersion: header.schemaVersion,
+        occurredAt: header.occurredAt,
+        intentId: header.intentId,
+        correlationId: header.correlationId,
+        operationName: header.operationName,
+        tenant: header.tenant,
+        actor: header.actor,
+        subject: header.subject,
+        aggregate: header.aggregate,
         payload,
     });
 }
