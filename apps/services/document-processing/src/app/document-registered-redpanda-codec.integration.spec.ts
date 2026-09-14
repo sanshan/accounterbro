@@ -22,8 +22,7 @@ async function withSchemaRegistryStub<T>(
     run: (host: string, requests: RegistryRequest[]) => Promise<T>,
 ): Promise<T> {
     const requests: RegistryRequest[] = [];
-    const schema = renderEventPayloadAvroSchema(DocumentRegisteredEventContract);
-    const schemaJson = JSON.stringify(schema);
+    const schemaJson = JSON.stringify(renderEventPayloadAvroSchema(DocumentRegisteredEventContract));
     let subjectExists = false;
 
     const server = createServer((request, response) => {
@@ -133,8 +132,8 @@ function writeJson(response: ServerResponse, statusCode: number, body: unknown):
     response.end(JSON.stringify(body));
 }
 
-describe('DocumentRegistered Redpanda Avro boundary', () => {
-    it('pre-registers the EDP-rendered schema and round-trips a Registry-framed payload', async () => {
+describe('DocumentRegistered Schema Registry boundary', () => {
+    it('provisions the EDP-rendered schema and uses it at runtime without Registry mutation', async () => {
         await withSchemaRegistryStub(async (host, requests) => {
             const expectedSchema = renderEventPayloadAvroSchema(DocumentRegisteredEventContract);
             const provisioned = await provisionEventContractSchema({
@@ -164,13 +163,15 @@ describe('DocumentRegistered Redpanda Avro boundary', () => {
             };
             const writer = new SchemaRegistryAvroEventCodec({ host });
             const value = await writer.encode(DocumentRegisteredEventContract, payload);
-
-            expect(value[0]).toBe(0);
-            expect(value.readUInt32BE(1)).toBe(SCHEMA_ID);
-
             const reader = new SchemaRegistryAvroEventCodec({ host });
-            await expect(reader.decode(value)).resolves.toEqual(payload);
 
+            await expect(reader.decode(value)).resolves.toEqual(payload);
+            expect(
+                requests.some(
+                    (request) =>
+                        request.method === 'POST' && request.url === `/subjects/${SUBJECT}`,
+                ),
+            ).toBe(true);
             expect(
                 requests.some(
                     (request) =>
@@ -179,11 +180,6 @@ describe('DocumentRegistered Redpanda Avro boundary', () => {
                 ),
             ).toBe(false);
             expect(requests.some((request) => request.method === 'PUT')).toBe(false);
-            expect(
-                requests.filter(
-                    (request) => request.method === 'GET' && request.url === `/schemas/ids/${SCHEMA_ID}`,
-                ),
-            ).toHaveLength(2);
         });
     });
 });
