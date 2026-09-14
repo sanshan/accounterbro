@@ -7,6 +7,7 @@ import { DocumentProcessingStatus } from '@accounterbro/document-processing';
 import { DocumentRegisteredEventContract } from '@accounterbro/documents';
 import { ObjectStorage } from '@accounterbro/object-storage';
 import { EventHandlerRegistry, EventIngress } from '@accounterbro/runtime-messaging';
+import { RuntimeTelemetry } from '@accounterbro/runtime-observability';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { ZodError } from 'zod';
@@ -43,6 +44,11 @@ class FixtureDocumentExtractor extends DocumentExtractor {
         this.extractCalls = 0;
     }
 }
+
+const runtimeTelemetry = {
+    start(): void {},
+    async shutdown(): Promise<void> {},
+};
 
 interface ProcessingRow {
     readonly tenant_id: string;
@@ -125,6 +131,8 @@ describe('Document Processing event ingress composition', () => {
             .useValue(objectStorage)
             .overrideProvider(DocumentExtractor)
             .useValue(documentExtractor)
+            .overrideProvider(RuntimeTelemetry)
+            .useValue(runtimeTelemetry)
             .compile();
         await moduleRef.init();
 
