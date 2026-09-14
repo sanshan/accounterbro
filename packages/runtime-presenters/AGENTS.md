@@ -15,6 +15,7 @@ The canonical adapter flow is contract parse -> application metadata adaptation 
 Preserve these local invariants:
 
 - `createSubscription(...)` is pure: it derives handler identity from the supplied contract but neither registers nor invokes anything;
+- `intentSlot` is application configuration: reject an invalid slot while constructing the subscription by delegating semantic validation to the published EDP `IntentFactory`; do not copy EDP's slot format/schema locally;
 - `mapInput` receives only the parsed business Event, never the envelope or execution metadata;
 - the supported shared invocation context is the EDP base context plus AccounterBro `Actor` and `TenantReference`; a UseCase requiring additional mandatory context is not a supported subscription target until that metadata has a concrete source;
 - adapt the nullable EDP `EventActor.origin` shape explicitly, but delegate Actor and TenantReference semantic validation/construction to the published EDP default factories; retain only AccounterBro-specific compatibility checks such as `tenant.type === tenantName` and do not duplicate EDP schema rules locally;
