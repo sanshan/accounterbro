@@ -40,6 +40,8 @@ Payload Avro schemas are rendered only by EDP `renderEventContractAvroSchema(...
 
 Schema/Registry mutation is explicit provisioning behavior, never service startup behavior. Repository deployment/tooling should call `provisionEventContractSchema(...)` or `provisionManagedEventTopic(...)` before applications start. Provisioning uses `BACKWARD_TRANSITIVE`, configures `redpanda.value.schema.id.validation=true` plus `redpanda.value.subject.name.strategy=TopicNameStrategy`, and surfaces broker/Registry configuration errors rather than weakening those guarantees. The Redpanda cluster must have schema ID validation enabled so these topic-level properties are accepted.
 
+The Schema Registry adapter exposes narrow structural client seams for tests while production defaults still instantiate `@kafkajs/confluent-schema-registry`. Tests should fake only those owned interaction points instead of emulating Schema Registry REST resources or reproducing dependency behavior.
+
 This subpath does not own EventContract payload schema fields, Event/Envelope semantics, UseCase execution identity or producer/outbox behavior. Payload schema rendering remains EDP-owned.
 
 ## Boundaries
@@ -68,4 +70,4 @@ pnpm nx run @accounterbro/runtime-messaging:test
 pnpm nx run @accounterbro/runtime-messaging:build
 ```
 
-Tests in this package cover only AccounterBro-owned validation, registry, ingress, wire mapping and Nest lifecycle behavior. Redpanda/Schema Registry integration tests must likewise assert only AccounterBro-owned schema derivation, subject/config selection, provisioning-versus-runtime mutation boundaries and adapter usage. A minimal deterministic Registry stub may drive the selected client, but do not test Redpanda, Schema Registry, Avro codec or client implementation details already owned by dependencies. Do not copy EDP execution, event-factory or business-contract test suites here.
+Tests in this package cover only AccounterBro-owned validation, registry, ingress, wire mapping and Nest lifecycle behavior. Redpanda/Schema Registry integration tests must likewise assert only AccounterBro-owned schema derivation, subject/config selection, provisioning-versus-runtime mutation boundaries and adapter usage. Prefer the narrow Registry client seams with deterministic in-memory fakes; do not maintain a local Schema Registry REST emulator and do not test Redpanda, Schema Registry, Avro codec or client implementation details already owned by dependencies. Do not copy EDP execution, event-factory or business-contract test suites here.
