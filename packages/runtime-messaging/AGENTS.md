@@ -34,7 +34,7 @@ Explicit application-local registrars register handlers during `onModuleInit`. `
 
 The proven client combination is KafkaJS `2.2.4` plus `@kafkajs/confluent-schema-registry` `4.1.0`. The Registry client owns standard Confluent framing, schema lookup and Avro binary encoding/decoding; do not reimplement those protocols locally.
 
-Follow the canonical wire helpers under `src/lib/redpanda/` for the stable Avro Event-name mapping, `ab.event-envelope` metadata framing and aggregate Kafka-key encoding. Registry schema IDs remain transport infrastructure identifiers and MUST NOT become Event handler identity.
+Follow the canonical wire helpers under `src/lib/redpanda/` for the stable Avro Event-name mapping, `ab.event-envelope` metadata framing and aggregate Kafka-key encoding. Event names at this boundary use simple ASCII alphanumeric segments separated by dots, for example `documents.registered`; the Avro record mapping remains readable and deterministic. Registry schema IDs remain transport infrastructure identifiers and MUST NOT become Event handler identity.
 
 This subpath does not own EventContract payload schema fields, Event/Envelope semantics, UseCase execution identity or producer/outbox behavior. Payload schema rendering remains EDP-owned.
 

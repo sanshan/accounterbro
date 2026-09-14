@@ -27,28 +27,28 @@ function validEnvelope(overrides: Record<string, unknown> = {}) {
 }
 
 describe('Redpanda wire contract', () => {
-    it('uses a stable Avro name derived only from EventContract.name', () => {
+    it('uses a stable readable Avro name derived only from EventContract.name', () => {
         expect(getEventAvroRenderOptions('documents.registered')).toEqual({
-            recordName: 'EventPayload_646f63756d656e74732e72656769737465726564',
+            recordName: 'EventPayload_documents_registered',
             namespace: EVENT_AVRO_NAMESPACE,
         });
         expect(getEventAvroRecordName('documents.registered')).toBe(
             getEventAvroRecordName('documents.registered'),
         );
-        expect(getEventAvroRecordName('documents-registered')).not.toBe(
-            getEventAvroRecordName('documents.registered'),
+        expect(getEventAvroRecordName('documents.registered')).not.toBe(
+            getEventAvroRecordName('documentsregistered'),
         );
     });
 
-    it('rejects malformed Unicode before deriving the Avro record name', () => {
-        const firstMalformedName = String.fromCharCode(0xd800);
-        const secondMalformedName = String.fromCharCode(0xd801);
-
-        expect(() => getEventAvroRecordName(firstMalformedName)).toThrow(TypeError);
-        expect(() => getEventAvroRecordName(secondMalformedName)).toThrow(TypeError);
-        expect(getEventAvroRecordName('events.🚀')).not.toBe(
-            getEventAvroRecordName('events.replacement-character.�'),
-        );
+    it.each([
+        '',
+        'documents-registered',
+        'documents..registered',
+        'documents_registered',
+        'документы.registered',
+        'events.🚀',
+    ])('rejects event names outside the simple ASCII dot-separated contract: %s', (eventName) => {
+        expect(() => getEventAvroRecordName(eventName)).toThrow(TypeError);
     });
 
     it('encodes aggregate identity deterministically without inspecting business payload', () => {
