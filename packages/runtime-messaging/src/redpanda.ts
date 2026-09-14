@@ -28,8 +28,10 @@ export {
     type EventSchemaProvisioningResult,
     type ManagedEventTopicProvisioningOptions,
     type ManagedEventTopicProvisioningResult,
+    type SchemaRegistrySchemaProvisioningClient,
 } from './lib/redpanda/managed-event-topic-provisioning.js';
 export {
     SchemaRegistryAvroEventCodec,
+    type SchemaRegistryAvroCodecClient,
     type SchemaRegistryConnectionOptions,
 } from './lib/redpanda/schema-registry-avro-event-codec.js';
