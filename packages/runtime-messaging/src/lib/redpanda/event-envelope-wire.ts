@@ -8,20 +8,7 @@ import { validateEventEnvelope } from '../validate-event-envelope.js';
 export const EVENT_ENVELOPE_HEADER = 'ab.event-envelope';
 export const EVENT_ENVELOPE_WIRE_VERSION = 1 as const;
 
-type EventEnvelopeWireFields =
-    | 'eventId'
-    | 'eventName'
-    | 'schemaVersion'
-    | 'occurredAt'
-    | 'intentId'
-    | 'correlationId'
-    | 'operationName'
-    | 'tenant'
-    | 'actor'
-    | 'subject'
-    | 'aggregate';
-
-export type EventEnvelopeWireMetadataV1 = Pick<AnyEventEnvelope, EventEnvelopeWireFields> & {
+export type EventEnvelopeWireMetadataV1 = Omit<AnyEventEnvelope, 'payload'> & {
     readonly wireVersion: typeof EVENT_ENVELOPE_WIRE_VERSION;
 };
 
@@ -38,22 +25,13 @@ export class EventEnvelopeWireError extends Error {
     }
 }
 
-function toEventEnvelopeWireMetadata(
-    envelope: AnyEventEnvelope,
-): EventEnvelopeWireMetadataV1 {
+function toEventEnvelopeWireMetadata({
+    payload: _payload,
+    ...metadata
+}: AnyEventEnvelope): EventEnvelopeWireMetadataV1 {
     return {
+        ...metadata,
         wireVersion: EVENT_ENVELOPE_WIRE_VERSION,
-        eventId: envelope.eventId,
-        eventName: envelope.eventName,
-        schemaVersion: envelope.schemaVersion,
-        occurredAt: envelope.occurredAt,
-        intentId: envelope.intentId,
-        correlationId: envelope.correlationId,
-        operationName: envelope.operationName,
-        tenant: envelope.tenant,
-        actor: envelope.actor,
-        subject: envelope.subject,
-        aggregate: envelope.aggregate,
     };
 }
 
@@ -80,20 +58,10 @@ export function reconstructEventEnvelope(
     headerValue: unknown,
     payload: unknown,
 ): EventValidationResult<AnyEventEnvelope> {
-    const header = parseEventEnvelopeHeader(headerValue);
+    const { wireVersion: _wireVersion, ...metadata } = parseEventEnvelopeHeader(headerValue);
 
     return validateEventEnvelope({
-        eventId: header.eventId,
-        eventName: header.eventName,
-        schemaVersion: header.schemaVersion,
-        occurredAt: header.occurredAt,
-        intentId: header.intentId,
-        correlationId: header.correlationId,
-        operationName: header.operationName,
-        tenant: header.tenant,
-        actor: header.actor,
-        subject: header.subject,
-        aggregate: header.aggregate,
+        ...metadata,
         payload,
     });
 }

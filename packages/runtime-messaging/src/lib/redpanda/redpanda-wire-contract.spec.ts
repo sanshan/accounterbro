@@ -73,14 +73,9 @@ describe('Redpanda wire contract', () => {
         );
     });
 
-    it('serializes only known EDP envelope metadata and reconstructs a valid envelope', () => {
+    it('serializes EDP envelope metadata without payload and reconstructs a valid envelope', () => {
         const payload = { documentId: 'document-1' };
         const envelope = validEnvelope({
-            eventName: 'documents.registered',
-            payload,
-            producerExtension: { ignored: true },
-        });
-        const expectedEnvelope = validEnvelope({
             eventName: 'documents.registered',
             payload,
         });
@@ -91,13 +86,12 @@ describe('Redpanda wire contract', () => {
         expect(EVENT_ENVELOPE_HEADER).toBe('ab.event-envelope');
         expect(decodedHeader['wireVersion']).toBe(EVENT_ENVELOPE_WIRE_VERSION);
         expect(decodedHeader).not.toHaveProperty('payload');
-        expect(decodedHeader).not.toHaveProperty('producerExtension');
 
         const reconstructed = reconstructEventEnvelope(header, payload);
 
         expect(reconstructed).toEqual({
             status: 'valid',
-            value: expectedEnvelope,
+            value: envelope,
         });
     });
 
