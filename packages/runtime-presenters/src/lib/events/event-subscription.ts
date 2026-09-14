@@ -53,6 +53,14 @@ export interface EventSubscription {
 
 const actorFactory = new DefaultActorFactory();
 const tenantReferenceFactory = new DefaultTenantReferenceFactory();
+const intentSlotValidationParentId = '00000000-0000-4000-8000-000000000000';
+
+function assertValidIntentSlot(intentSlot: string): void {
+    IntentFactory.derive({
+        parent: { id: intentSlotValidationParentId },
+        slot: intentSlot,
+    });
+}
 
 function createValidationFailure(
     path: readonly string[],
@@ -285,6 +293,8 @@ function createSubscriptionHandler<TEvent, TInput, TResult>(options: {
 export function createSubscription<TEvent, TInput, TResult>(
     options: CreateSubscriptionArgument<TEvent, TInput, TResult>,
 ): EventSubscription {
+    assertValidIntentSlot(options.intentSlot);
+
     const identity = Object.freeze({
         eventName: options.contract.name,
         schemaVersion: options.contract.schemaVersion,

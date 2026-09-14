@@ -372,6 +372,7 @@ describe('event subscriptions', () => {
         const derive = vi.spyOn(IntentFactory, 'derive');
         const useCase = new FixtureUseCase();
         const handler = getOnlyHandler(useCase, new RecordingExecutor());
+        derive.mockClear();
 
         await handler.handle(createEnvelope());
         await handler.handle(createEnvelope());
