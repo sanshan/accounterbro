@@ -1,12 +1,7 @@
-import { EventIngress } from '@accounterbro/runtime-messaging';
-import {
-    DynamicModule,
-    type FactoryProvider,
-    Module,
-    type Provider,
-} from '@nestjs/common';
+import { type DynamicModule, type FactoryProvider, Module, type Provider } from '@nestjs/common';
 import { Kafka, type ConsumerConfig, type KafkaConfig, type ProducerConfig } from 'kafkajs';
 
+import { EventIngress } from '../../event-ingress.js';
 import { RuntimeMessagingBootstrap } from '../../nest/runtime-messaging-bootstrap.js';
 import { RuntimeMessagingModule } from '../../nest/runtime-messaging.module.js';
 import { KafkaJsEventConsumer } from '../kafkajs-event-consumer.js';
