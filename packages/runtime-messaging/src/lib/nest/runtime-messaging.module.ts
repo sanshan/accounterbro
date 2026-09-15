@@ -14,6 +14,6 @@ const providers: Provider[] = [EventHandlerRegistry, eventIngressProvider, Runti
 
 @Module({
     providers,
-    exports: [EventHandlerRegistry, EventIngress],
+    exports: [EventHandlerRegistry, EventIngress, RuntimeMessagingBootstrap],
 })
 export class RuntimeMessagingModule {}
