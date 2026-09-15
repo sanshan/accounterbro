@@ -6,31 +6,31 @@ import {
     toSchemaRegistryAvroSchema,
     type AvroEventContract,
 } from './event-avro-schema.js';
-
-const CONFLUENT_WIRE_HEADER_BYTES = 5;
-const CONFLUENT_WIRE_MAGIC_BYTE = 0;
-const CONFLUENT_SCHEMA_ID_OFFSET = 1;
+import type { EventValueDecodeResult, EventValueDecoder } from './event-value-decoder.js';
 
 export type SchemaRegistryConnectionOptions = ConstructorParameters<typeof SchemaRegistry>[0];
 export type SchemaRegistryAvroCodecClient = Pick<
     SchemaRegistry,
-    'getRegistryIdBySchema' | 'getSchema' | 'encode' | 'decode'
+    'getRegistryIdBySchema' | 'encode' | 'decode'
 >;
 
-export class InvalidAvroEventPayloadError extends Error {
-    public constructor(cause: unknown) {
-        super('Schema Registry Avro event payload could not be decoded.', { cause });
-        this.name = 'InvalidAvroEventPayloadError';
-    }
-}
+export type SchemaRegistryAvroDecodeFailureClassification = 'invalid-payload' | 'unclassified';
+export type SchemaRegistryAvroDecodeFailureClassifier = (
+    error: unknown,
+) => SchemaRegistryAvroDecodeFailureClassification;
 
-export class SchemaRegistryAvroEventCodec {
+const DEFAULT_DECODE_FAILURE_CLASSIFIER: SchemaRegistryAvroDecodeFailureClassifier = () =>
+    'unclassified';
+
+export class SchemaRegistryAvroEventCodec implements EventValueDecoder {
     private readonly registry: SchemaRegistryAvroCodecClient;
     private readonly schemaIds = new Map<string, Promise<number>>();
 
     public constructor(
         options: SchemaRegistryConnectionOptions,
         registry: SchemaRegistryAvroCodecClient = new SchemaRegistry(options),
+        private readonly classifyDecodeFailure: SchemaRegistryAvroDecodeFailureClassifier =
+            DEFAULT_DECODE_FAILURE_CLASSIFIER,
     ) {
         this.registry = registry;
     }
@@ -42,18 +42,18 @@ export class SchemaRegistryAvroEventCodec {
         return this.registry.encode(schemaId, parsedPayload);
     }
 
-    public async decode(value: Buffer): Promise<unknown> {
-        if (!hasValidConfluentWireHeader(value)) {
-            return this.registry.decode(value);
-        }
-
-        const schemaId = value.readInt32BE(CONFLUENT_SCHEMA_ID_OFFSET);
-        await this.registry.getSchema(schemaId);
-
+    public async decode(value: Buffer): Promise<EventValueDecodeResult> {
         try {
-            return await this.registry.decode(value);
+            return {
+                status: 'decoded',
+                value: await this.registry.decode(value),
+            };
         } catch (error: unknown) {
-            throw new InvalidAvroEventPayloadError(error);
+            if (this.classifyDecodeFailure(error) === 'invalid-payload') {
+                return { status: 'invalid' };
+            }
+
+            throw error;
         }
     }
 
@@ -75,8 +75,4 @@ export class SchemaRegistryAvroEventCodec {
 
         return lookup;
     }
-}
-
-function hasValidConfluentWireHeader(value: Buffer): boolean {
-    return value.length >= CONFLUENT_WIRE_HEADER_BYTES && value[0] === CONFLUENT_WIRE_MAGIC_BYTE;
 }

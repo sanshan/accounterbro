@@ -2,14 +2,11 @@ import type { Consumer, ConsumerRunConfig, EachBatchPayload, Producer } from 'ka
 import { describe, expect, it, vi } from 'vitest';
 
 import type { EventIngress } from '../event-ingress.js';
-import {
-    KafkaJsEventConsumer,
-    type EventValueDecoder,
-} from './kafkajs-event-consumer.js';
-import { InvalidAvroEventPayloadError } from './schema-registry-avro-event-codec.js';
+import type { EventValueDecoder } from './event-value-decoder.js';
+import { KafkaJsEventConsumer } from './kafkajs-event-consumer.js';
 
 const TOPIC = 'test.event';
-const FRAMED_VALUE = Buffer.from([0, 0, 0, 0, 17, 1, 2]);
+const FRAMED_VALUE = Buffer.from('registry-framed-value-fixture');
 
 function createPayload(): EachBatchPayload {
     return {
@@ -77,13 +74,8 @@ function createHarness(decode: EventValueDecoder['decode']) {
 }
 
 describe('KafkaJsEventConsumer decode failure handling', () => {
-    it('publishes a permanently invalid Avro payload to the DLQ before committing its offset', async () => {
-        const decodeFailure = new InvalidAvroEventPayloadError(
-            new Error('truncated Avro payload'),
-        );
-        const harness = createHarness(async () => {
-            throw decodeFailure;
-        });
+    it('publishes an explicitly invalid decoded value to the DLQ before committing its offset', async () => {
+        const harness = createHarness(async () => ({ status: 'invalid' }));
 
         await harness.runBatch();
 
@@ -112,7 +104,7 @@ describe('KafkaJsEventConsumer decode failure handling', () => {
         ]);
     });
 
-    it('leaves Registry lookup failures uncommitted and out of the DLQ', async () => {
+    it('leaves unclassified decode failures uncommitted and out of the DLQ', async () => {
         const registryFailure = new Error('schema registry unavailable');
         const harness = createHarness(async () => {
             throw registryFailure;

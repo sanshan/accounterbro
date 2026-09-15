@@ -8,7 +8,6 @@ import {
     type SchemaRegistrySchemaProvisioningClient,
 } from './managed-event-topic-provisioning.js';
 import {
-    InvalidAvroEventPayloadError,
     SchemaRegistryAvroEventCodec,
     type SchemaRegistryAvroCodecClient,
 } from './schema-registry-avro-event-codec.js';
@@ -24,22 +23,11 @@ const TEST_EVENT_CONTRACT = defineEventContract({
 
 const SCHEMA_ID = 17;
 const SUBJECT = 'test.event-value';
-const ENCODED_VALUE = Buffer.from([0, 0, 0, 0, SCHEMA_ID, 1, 2]);
+const ENCODED_VALUE = Buffer.from('registry-framed-value-fixture');
 const UNUSED_REGISTRY_CONNECTION = { host: 'http://schema-registry.invalid' };
-const REGISTRY_SCHEMA = {
-    toBuffer() {
-        return Buffer.alloc(0);
-    },
-    fromBuffer() {
-        return {};
-    },
-    isValid() {
-        return true;
-    },
-};
 
 describe('Schema Registry Avro Event boundary', () => {
-    it('derives the EDP schema, provisions it explicitly, and keeps runtime codec lookup read-only', async () => {
+    it('derives the EDP schema, provisions it explicitly, and delegates framing and decode to the Registry client', async () => {
         const expectedSchema = renderEventPayloadAvroSchema(TEST_EVENT_CONTRACT);
         const payload = {
             id: 'event-1',
@@ -52,7 +40,6 @@ describe('Schema Registry Avro Event boundary', () => {
         let lookupCount = 0;
         let lookupSubject: string | undefined;
         let lookupSchema: unknown;
-        let decodedSchemaId: number | undefined;
         const encodedPayloads: unknown[] = [];
         let decodedValue: Buffer | undefined;
 
@@ -68,10 +55,6 @@ describe('Schema Registry Avro Event boundary', () => {
                 lookupSubject = subject;
                 lookupSchema = schema;
                 return SCHEMA_ID;
-            },
-            async getSchema(schemaId) {
-                decodedSchemaId = schemaId;
-                return REGISTRY_SCHEMA;
             },
             async encode(schemaId, value) {
                 expect(schemaId).toBe(SCHEMA_ID);
@@ -114,28 +97,25 @@ describe('Schema Registry Avro Event boundary', () => {
         expect(lookupSchema).toEqual(expectedSchema);
         expect(encodedPayloads).toEqual([payload, payload]);
 
-        await expect(codec.decode(ENCODED_VALUE)).resolves.toEqual(payload);
-        expect(decodedSchemaId).toBe(SCHEMA_ID);
-        expect(decodedValue).toEqual(ENCODED_VALUE);
+        await expect(codec.decode(ENCODED_VALUE)).resolves.toEqual({
+            status: 'decoded',
+            value: payload,
+        });
+        expect(decodedValue).toBe(ENCODED_VALUE);
         expect(registrationCount).toBe(1);
     });
 
-    it('preserves Schema Registry lookup failures without classifying the record as invalid', async () => {
+    it('preserves unclassified Registry decode failures unchanged', async () => {
         const registryFailure = new Error('schema registry unavailable');
-        let decodeCount = 0;
         const registryClient: SchemaRegistryAvroCodecClient = {
             async getRegistryIdBySchema() {
                 return SCHEMA_ID;
-            },
-            async getSchema() {
-                throw registryFailure;
             },
             async encode() {
                 return ENCODED_VALUE;
             },
             async decode() {
-                decodeCount += 1;
-                return {};
+                throw registryFailure;
             },
         };
         const codec = new SchemaRegistryAvroEventCodec(
@@ -144,17 +124,13 @@ describe('Schema Registry Avro Event boundary', () => {
         );
 
         await expect(codec.decode(ENCODED_VALUE)).rejects.toBe(registryFailure);
-        expect(decodeCount).toBe(0);
     });
 
-    it('marks decode failures as invalid only after the writer schema is available', async () => {
-        const decodeFailure = new Error('truncated Avro payload');
+    it('returns an explicit invalid result only when the decode failure is explicitly classified as invalid payload', async () => {
+        const decodeFailure = new Error('known permanent Avro payload failure');
         const registryClient: SchemaRegistryAvroCodecClient = {
             async getRegistryIdBySchema() {
                 return SCHEMA_ID;
-            },
-            async getSchema() {
-                return REGISTRY_SCHEMA;
             },
             async encode() {
                 return ENCODED_VALUE;
@@ -166,12 +142,9 @@ describe('Schema Registry Avro Event boundary', () => {
         const codec = new SchemaRegistryAvroEventCodec(
             UNUSED_REGISTRY_CONNECTION,
             registryClient,
+            (error) => (error === decodeFailure ? 'invalid-payload' : 'unclassified'),
         );
 
-        await expect(codec.decode(ENCODED_VALUE)).rejects.toMatchObject({
-            name: 'InvalidAvroEventPayloadError',
-            cause: decodeFailure,
-        });
-        await expect(codec.decode(ENCODED_VALUE)).rejects.toBeInstanceOf(InvalidAvroEventPayloadError);
+        await expect(codec.decode(ENCODED_VALUE)).resolves.toEqual({ status: 'invalid' });
     });
 });

@@ -14,19 +14,13 @@ import {
     EventEnvelopeWireError,
     reconstructEventEnvelope,
 } from './event-envelope-wire.js';
-import { InvalidAvroEventPayloadError } from './schema-registry-avro-event-codec.js';
+import type { EventValueDecoder } from './event-value-decoder.js';
 
 const ORDINARY_RETRY_DELAYS_MS = [1_000, 5_000, 15_000] as const;
 const CLAIM_RETRY_DELAYS_MS = [5_000, 10_000, 20_000, 30_000, 30_000] as const;
 const JITTER_FACTOR = 0.2;
-const CONFLUENT_WIRE_HEADER_BYTES = 5;
-const CONFLUENT_WIRE_MAGIC_BYTE = 0;
 
 export type DeliveryFailureKind = 'invalid' | 'unhandled' | 'execution-failure' | 'unknown';
-
-export interface EventValueDecoder {
-    decode(value: Buffer): Promise<unknown>;
-}
 
 export interface KafkaJsEventConsumerOptions {
     readonly consumer: Consumer;
@@ -149,19 +143,15 @@ export class KafkaJsEventConsumer {
     }
 
     private async dispatch(message: KafkaMessage): Promise<DeliveryOutcome> {
-        if (message.value === null || !hasValidConfluentWireHeader(message.value)) {
+        if (message.value === null) {
             return { type: 'terminal', failure: { kind: 'invalid' } };
         }
 
-        let payload: unknown;
-        try {
-            payload = await this.options.codec.decode(message.value);
-        } catch (error: unknown) {
-            if (error instanceof InvalidAvroEventPayloadError) {
-                return { type: 'terminal', failure: { kind: 'invalid' } };
-            }
-            throw error;
+        const decoded = await this.options.codec.decode(message.value);
+        if (decoded.status === 'invalid') {
+            return { type: 'terminal', failure: { kind: 'invalid' } };
         }
+        const payload = decoded.value;
 
         let reconstructed;
         try {
@@ -312,10 +302,6 @@ export class KafkaJsEventConsumer {
     private withJitter(baseMs: number): number {
         return baseMs + Math.floor(baseMs * JITTER_FACTOR * this.random());
     }
-}
-
-function hasValidConfluentWireHeader(value: Buffer): boolean {
-    return value.length >= CONFLUENT_WIRE_HEADER_BYTES && value[0] === CONFLUENT_WIRE_MAGIC_BYTE;
 }
 
 function sleep(delayMs: number): Promise<void> {
