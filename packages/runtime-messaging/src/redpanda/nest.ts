@@ -4,8 +4,8 @@ export {
     RedpandaEventConsumerReadinessCheck,
     type RedpandaEventConsumerLifecycleDependencies,
     type RedpandaEventConsumerLifecycleState,
-} from '../../lib/redpanda/nest/redpanda-event-consumer-lifecycle.js';
+} from '../lib/redpanda/nest/redpanda-event-consumer-lifecycle.js';
 export {
     RedpandaEventConsumerModule,
     type RedpandaEventConsumerModuleOptions,
-} from '../../lib/redpanda/nest/redpanda-event-consumer.module.js';
+} from '../lib/redpanda/nest/redpanda-event-consumer.module.js';
