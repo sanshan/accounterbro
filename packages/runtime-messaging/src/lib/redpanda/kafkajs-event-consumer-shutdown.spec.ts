@@ -2,7 +2,7 @@ import { ExecutionFailureError } from '@event-driven-platform/execution';
 import type { Consumer, ConsumerRunConfig, EachBatchPayload, Producer } from 'kafkajs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { EventIngress } from '../event-ingress.js';
+import type { EventIngress, EventIngressOutcome } from '../event-ingress.js';
 import { createEventEnvelope } from '../testing/event-envelope.fixture.js';
 import { validateEventEnvelope } from '../validate-event-envelope.js';
 import { EVENT_ENVELOPE_HEADER, encodeEventEnvelopeHeader } from './event-envelope-wire.js';
@@ -33,9 +33,10 @@ function createHarness(ingressDispatch: EventIngress['dispatch'], heartbeatInter
     const send = vi.fn(async () => []);
     const producer = { send } as unknown as Producer;
     const codec: EventValueDecoder = {
-        decode: vi.fn(async () => ({ status: 'decoded', value: envelope.payload })),
+        decode: async () => ({ status: 'decoded', value: envelope.payload }),
     };
-    const ingress = { dispatch: vi.fn(ingressDispatch) } as unknown as EventIngress;
+    const dispatch = vi.fn(ingressDispatch);
+    const ingress = { dispatch } as unknown as EventIngress;
     const adapter = new KafkaJsEventConsumer({
         consumer,
         producer,
@@ -76,7 +77,7 @@ function createHarness(ingressDispatch: EventIngress['dispatch'], heartbeatInter
         pause,
         commitOffsets,
         send,
-        ingress: ingress as unknown as { dispatch: ReturnType<typeof vi.fn> },
+        ingress: { dispatch },
         async startBatch() {
             await adapter.run();
             if (eachBatch === undefined) throw new Error('KafkaJS eachBatch callback was not configured.');
@@ -91,10 +92,10 @@ afterEach(() => {
 
 describe('KafkaJsEventConsumer shutdown', () => {
     it('stops scheduling new records while allowing the active terminal outcome to commit', async () => {
-        let finishDispatch: ((value: { status: 'handled' }) => void) | undefined;
+        let finishDispatch: ((value: EventIngressOutcome) => void) | undefined;
         const harness = createHarness(
             () =>
-                new Promise((resolve) => {
+                new Promise<EventIngressOutcome>((resolve) => {
                     finishDispatch = resolve;
                 }),
         );
@@ -105,7 +106,7 @@ describe('KafkaJsEventConsumer shutdown', () => {
         harness.adapter.beginShutdown();
         await expect(harness.adapter.drain(0)).resolves.toBe(false);
 
-        finishDispatch?.({ status: 'handled' });
+        finishDispatch?.({ status: 'handled', result: undefined });
         await batch;
 
         await expect(harness.adapter.drain(10)).resolves.toBe(true);
@@ -128,9 +129,7 @@ describe('KafkaJsEventConsumer shutdown', () => {
         }, 10);
 
         const batch = harness.startBatch();
-        await Promise.resolve();
-        await Promise.resolve();
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(0);
         expect(harness.ingress.dispatch).toHaveBeenCalledTimes(1);
 
         harness.adapter.beginShutdown();
