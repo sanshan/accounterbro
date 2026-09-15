@@ -14,6 +14,8 @@ import { EVENT_ENVELOPE_HEADER, reconstructEventEnvelope } from './event-envelop
 const ORDINARY_RETRY_DELAYS_MS = [1_000, 5_000, 15_000] as const;
 const CLAIM_RETRY_DELAYS_MS = [5_000, 10_000, 20_000, 30_000, 30_000] as const;
 const JITTER_FACTOR = 0.2;
+const CONFLUENT_WIRE_HEADER_BYTES = 5;
+const CONFLUENT_WIRE_MAGIC_BYTE = 0;
 
 export type DeliveryFailureKind = 'invalid' | 'unhandled' | 'execution-failure' | 'unknown';
 
@@ -27,6 +29,7 @@ export interface KafkaJsEventConsumerOptions {
     readonly codec: EventValueDecoder;
     readonly ingress: EventIngress;
     readonly consumerGroup: string;
+    readonly topics: readonly string[];
     readonly heartbeatIntervalMs?: number;
     readonly random?: () => number;
 }
@@ -71,14 +74,20 @@ export class KafkaJsEventConsumer {
         this.random = options.random ?? Math.random;
     }
 
-    public run(): Promise<void> {
+    public async run(): Promise<void> {
+        if (this.options.topics.length === 0) {
+            throw new Error('KafkaJS event consumer requires at least one topic.');
+        }
+
+        await this.options.consumer.subscribe({ topics: [...this.options.topics] });
+
         const config: ConsumerRunConfig = {
             autoCommit: false,
             eachBatchAutoResolve: false,
             eachBatch: (payload) => this.processBatch(payload),
         };
 
-        return this.options.consumer.run(config);
+        await this.options.consumer.run(config);
     }
 
     private async processBatch(payload: EachBatchPayload): Promise<void> {
@@ -128,20 +137,22 @@ export class KafkaJsEventConsumer {
     }
 
     private async dispatch(message: KafkaMessage): Promise<DeliveryOutcome> {
+        if (message.value === null || !hasValidConfluentWireHeader(message.value)) {
+            return { type: 'terminal', failure: { kind: 'invalid' } };
+        }
+
+        // Decode failures are infrastructure/registry failures unless the wire framing is
+        // positively invalid above. Let them escape so KafkaJS can redeliver after recovery.
+        const payload = await this.options.codec.decode(message.value);
+        const reconstructed = reconstructEventEnvelope(
+            message.headers?.[EVENT_ENVELOPE_HEADER],
+            payload,
+        );
+        if (reconstructed.status === 'invalid') {
+            return { type: 'terminal', failure: { kind: 'invalid' } };
+        }
+
         try {
-            if (message.value === null) {
-                return { type: 'terminal', failure: { kind: 'invalid' } };
-            }
-
-            const payload = await this.options.codec.decode(message.value);
-            const reconstructed = reconstructEventEnvelope(
-                message.headers?.[EVENT_ENVELOPE_HEADER],
-                payload,
-            );
-            if (reconstructed.status === 'invalid') {
-                return { type: 'terminal', failure: { kind: 'invalid' } };
-            }
-
             const ingressOutcome: EventIngressOutcome = await this.options.ingress.dispatch(
                 reconstructed.value,
             );
@@ -233,15 +244,22 @@ export class KafkaJsEventConsumer {
         operation: () => Promise<T>,
     ): Promise<T> {
         const controller = new AbortController();
-        const heartbeatLoop = this.heartbeatUntilStopped(context, controller.signal);
+        let heartbeatFailure: unknown;
+        const heartbeatLoop = this.heartbeatUntilStopped(context, controller.signal).catch(
+            (error: unknown) => {
+                heartbeatFailure = error;
+            },
+        );
 
         try {
             const result = await operation();
+            if (heartbeatFailure !== undefined) throw heartbeatFailure;
             this.assertOwnership(context);
             return result;
         } finally {
             controller.abort();
             await heartbeatLoop;
+            if (heartbeatFailure !== undefined) throw heartbeatFailure;
         }
     }
 
@@ -264,6 +282,10 @@ export class KafkaJsEventConsumer {
     private withJitter(baseMs: number): number {
         return baseMs + Math.floor(baseMs * JITTER_FACTOR * this.random());
     }
+}
+
+function hasValidConfluentWireHeader(value: Buffer): boolean {
+    return value.length >= CONFLUENT_WIRE_HEADER_BYTES && value[0] === CONFLUENT_WIRE_MAGIC_BYTE;
 }
 
 function sleep(delayMs: number): Promise<void> {
