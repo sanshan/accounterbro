@@ -38,6 +38,7 @@ export {
     type SchemaRegistrySchemaProvisioningClient,
 } from './lib/redpanda/managed-event-topic-provisioning.js';
 export {
+    InvalidAvroEventPayloadError,
     SchemaRegistryAvroEventCodec,
     type SchemaRegistryAvroCodecClient,
     type SchemaRegistryConnectionOptions,

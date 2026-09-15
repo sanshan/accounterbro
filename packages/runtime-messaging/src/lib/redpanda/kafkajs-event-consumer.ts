@@ -14,6 +14,7 @@ import {
     EventEnvelopeWireError,
     reconstructEventEnvelope,
 } from './event-envelope-wire.js';
+import { InvalidAvroEventPayloadError } from './schema-registry-avro-event-codec.js';
 
 const ORDINARY_RETRY_DELAYS_MS = [1_000, 5_000, 15_000] as const;
 const CLAIM_RETRY_DELAYS_MS = [5_000, 10_000, 20_000, 30_000, 30_000] as const;
@@ -152,7 +153,16 @@ export class KafkaJsEventConsumer {
             return { type: 'terminal', failure: { kind: 'invalid' } };
         }
 
-        const payload = await this.options.codec.decode(message.value);
+        let payload: unknown;
+        try {
+            payload = await this.options.codec.decode(message.value);
+        } catch (error: unknown) {
+            if (error instanceof InvalidAvroEventPayloadError) {
+                return { type: 'terminal', failure: { kind: 'invalid' } };
+            }
+            throw error;
+        }
+
         let reconstructed;
         try {
             reconstructed = reconstructEventEnvelope(

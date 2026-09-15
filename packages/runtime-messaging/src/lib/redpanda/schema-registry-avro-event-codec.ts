@@ -7,11 +7,22 @@ import {
     type AvroEventContract,
 } from './event-avro-schema.js';
 
+const CONFLUENT_WIRE_HEADER_BYTES = 5;
+const CONFLUENT_WIRE_MAGIC_BYTE = 0;
+const CONFLUENT_SCHEMA_ID_OFFSET = 1;
+
 export type SchemaRegistryConnectionOptions = ConstructorParameters<typeof SchemaRegistry>[0];
 export type SchemaRegistryAvroCodecClient = Pick<
     SchemaRegistry,
-    'getRegistryIdBySchema' | 'encode' | 'decode'
+    'getRegistryIdBySchema' | 'getSchema' | 'encode' | 'decode'
 >;
+
+export class InvalidAvroEventPayloadError extends Error {
+    public constructor(cause: unknown) {
+        super('Schema Registry Avro event payload could not be decoded.', { cause });
+        this.name = 'InvalidAvroEventPayloadError';
+    }
+}
 
 export class SchemaRegistryAvroEventCodec {
     private readonly registry: SchemaRegistryAvroCodecClient;
@@ -32,7 +43,18 @@ export class SchemaRegistryAvroEventCodec {
     }
 
     public async decode(value: Buffer): Promise<unknown> {
-        return this.registry.decode(value);
+        if (!hasValidConfluentWireHeader(value)) {
+            return this.registry.decode(value);
+        }
+
+        const schemaId = value.readInt32BE(CONFLUENT_SCHEMA_ID_OFFSET);
+        await this.registry.getSchema(schemaId);
+
+        try {
+            return await this.registry.decode(value);
+        } catch (error: unknown) {
+            throw new InvalidAvroEventPayloadError(error);
+        }
     }
 
     private resolveSchemaId(contract: AvroEventContract): Promise<number> {
@@ -53,4 +75,8 @@ export class SchemaRegistryAvroEventCodec {
 
         return lookup;
     }
+}
+
+function hasValidConfluentWireHeader(value: Buffer): boolean {
+    return value.length >= CONFLUENT_WIRE_HEADER_BYTES && value[0] === CONFLUENT_WIRE_MAGIC_BYTE;
 }
