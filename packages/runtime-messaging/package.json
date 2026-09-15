@@ -22,9 +22,15 @@
             "types": "./dist/redpanda.d.ts",
             "import": "./dist/redpanda.js",
             "default": "./dist/redpanda.js"
+        },
+        "./redpanda/nest": {
+            "types": "./dist/redpanda/nest.d.ts",
+            "import": "./dist/redpanda/nest.js",
+            "default": "./dist/redpanda/nest.js"
         }
     },
     "dependencies": {
+        "@accounterbro/runtime-health": "workspace:*",
         "@event-driven-platform/event": "^0.2.0",
         "@event-driven-platform/event-schema-avro": "0.0.3",
         "@event-driven-platform/execution": "^0.0.8",
