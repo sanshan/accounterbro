@@ -1,4 +1,3 @@
-import type { ReadinessCheck } from '@accounterbro/runtime-health';
 import {
     Injectable,
     type BeforeApplicationShutdown,
@@ -191,7 +190,7 @@ export class RedpandaEventConsumerLifecycle
     }
 }
 
-export class RedpandaEventConsumerReadinessCheck implements ReadinessCheck {
+export class RedpandaEventConsumerReadinessCheck {
     public readonly name = 'redpanda-consumer';
 
     public constructor(private readonly lifecycle: RedpandaEventConsumerLifecycle) {}
