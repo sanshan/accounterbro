@@ -141,8 +141,6 @@ export class KafkaJsEventConsumer {
             return { type: 'terminal', failure: { kind: 'invalid' } };
         }
 
-        // Decode failures are infrastructure/registry failures unless the wire framing is
-        // positively invalid above. Let them escape so KafkaJS can redeliver after recovery.
         const payload = await this.options.codec.decode(message.value);
         const reconstructed = reconstructEventEnvelope(
             message.headers?.[EVENT_ENVELOPE_HEADER],
@@ -250,17 +248,18 @@ export class KafkaJsEventConsumer {
                 heartbeatFailure = error;
             },
         );
+        let result: T;
 
         try {
-            const result = await operation();
-            if (heartbeatFailure !== undefined) throw heartbeatFailure;
-            this.assertOwnership(context);
-            return result;
+            result = await operation();
         } finally {
             controller.abort();
             await heartbeatLoop;
-            if (heartbeatFailure !== undefined) throw heartbeatFailure;
         }
+
+        if (heartbeatFailure !== undefined) throw heartbeatFailure;
+        this.assertOwnership(context);
+        return result;
     }
 
     private async heartbeatUntilStopped(
