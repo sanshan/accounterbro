@@ -18,6 +18,16 @@ export {
     type EventEnvelopeWireMetadataV1,
 } from './lib/redpanda/event-envelope-wire.js';
 export {
+    type EventValueDecodeResult,
+    type EventValueDecoder,
+} from './lib/redpanda/event-value-decoder.js';
+export {
+    KafkaJsDeliveryOwnershipLostError,
+    KafkaJsEventConsumer,
+    type DeliveryFailureKind,
+    type KafkaJsEventConsumerOptions,
+} from './lib/redpanda/kafkajs-event-consumer.js';
+export {
     getManagedEventTopicConfigEntries,
     provisionEventContractSchema,
     provisionManagedEventTopic,
@@ -33,5 +43,7 @@ export {
 export {
     SchemaRegistryAvroEventCodec,
     type SchemaRegistryAvroCodecClient,
+    type SchemaRegistryAvroDecodeFailureClassification,
+    type SchemaRegistryAvroDecodeFailureClassifier,
     type SchemaRegistryConnectionOptions,
 } from './lib/redpanda/schema-registry-avro-event-codec.js';
