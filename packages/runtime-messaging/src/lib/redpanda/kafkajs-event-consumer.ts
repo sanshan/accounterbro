@@ -9,7 +9,11 @@ import type {
 } from 'kafkajs';
 
 import type { EventIngress, EventIngressOutcome } from '../event-ingress.js';
-import { EVENT_ENVELOPE_HEADER, reconstructEventEnvelope } from './event-envelope-wire.js';
+import {
+    EVENT_ENVELOPE_HEADER,
+    EventEnvelopeWireError,
+    reconstructEventEnvelope,
+} from './event-envelope-wire.js';
 
 const ORDINARY_RETRY_DELAYS_MS = [1_000, 5_000, 15_000] as const;
 const CLAIM_RETRY_DELAYS_MS = [5_000, 10_000, 20_000, 30_000, 30_000] as const;
@@ -71,6 +75,9 @@ export class KafkaJsEventConsumer {
 
     public constructor(private readonly options: KafkaJsEventConsumerOptions) {
         this.heartbeatIntervalMs = options.heartbeatIntervalMs ?? 3_000;
+        if (!Number.isFinite(this.heartbeatIntervalMs) || this.heartbeatIntervalMs <= 0) {
+            throw new Error('KafkaJS event consumer heartbeatIntervalMs must be a positive duration.');
+        }
         this.random = options.random ?? Math.random;
     }
 
@@ -107,7 +114,8 @@ export class KafkaJsEventConsumer {
 
     private async deliver(context: DeliveryContext): Promise<void> {
         let attempts = 0;
-        let retryDelays: readonly number[] | undefined;
+        let ordinaryRetries = 0;
+        let claimRetries = 0;
 
         while (true) {
             this.assertOwnership(context);
@@ -123,14 +131,17 @@ export class KafkaJsEventConsumer {
                 return;
             }
 
-            retryDelays ??= outcome.claimRejected
+            const retryDelays = outcome.claimRejected
                 ? CLAIM_RETRY_DELAYS_MS
                 : ORDINARY_RETRY_DELAYS_MS;
-            const delay = retryDelays[attempts - 1];
+            const retryIndex = outcome.claimRejected ? claimRetries : ordinaryRetries;
+            const delay = retryDelays[retryIndex];
             if (delay === undefined) {
                 await this.publishDlqThenCommit(context, attempts, outcome.failure);
                 return;
             }
+            if (outcome.claimRejected) claimRetries += 1;
+            else ordinaryRetries += 1;
 
             await this.backoff(context, this.withJitter(delay));
         }
@@ -142,10 +153,18 @@ export class KafkaJsEventConsumer {
         }
 
         const payload = await this.options.codec.decode(message.value);
-        const reconstructed = reconstructEventEnvelope(
-            message.headers?.[EVENT_ENVELOPE_HEADER],
-            payload,
-        );
+        let reconstructed;
+        try {
+            reconstructed = reconstructEventEnvelope(
+                message.headers?.[EVENT_ENVELOPE_HEADER],
+                payload,
+            );
+        } catch (error: unknown) {
+            if (error instanceof EventEnvelopeWireError) {
+                return { type: 'terminal', failure: { kind: 'invalid' } };
+            }
+            throw error;
+        }
         if (reconstructed.status === 'invalid') {
             return { type: 'terminal', failure: { kind: 'invalid' } };
         }
@@ -216,13 +235,15 @@ export class KafkaJsEventConsumer {
 
     private async commit(context: DeliveryContext): Promise<void> {
         this.assertOwnership(context);
-        await this.options.consumer.commitOffsets([
-            {
-                topic: context.topic,
-                partition: context.partition,
-                offset: (BigInt(context.message.offset) + 1n).toString(),
-            },
-        ]);
+        await this.withHeartbeats(context, () =>
+            this.options.consumer.commitOffsets([
+                {
+                    topic: context.topic,
+                    partition: context.partition,
+                    offset: (BigInt(context.message.offset) + 1n).toString(),
+                },
+            ]),
+        );
     }
 
     private async backoff(context: DeliveryContext, delayMs: number): Promise<void> {
