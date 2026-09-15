@@ -26,7 +26,7 @@ Registration is explicit. A duplicate registration is a configuration failure an
 
 `@accounterbro/runtime-messaging/nest` provides the ordinary `RuntimeMessagingModule`. It owns one Nest-managed registry per application context and exports that registry plus `EventIngress`. It is not global and does not use a static singleton.
 
-Explicit application-local registrars register handlers during `onModuleInit`. `RuntimeMessagingModule` seals during `onApplicationBootstrap`, after module initialization has completed. Future consumers must start only after that sealed state; broker lifecycle is not implemented in the transport-neutral `/nest` entrypoint.
+Explicit application-local registrars register handlers before application bootstrap. `RuntimeMessagingBootstrap` owns sealing and exposes the same idempotent `seal()` prerequisite used by broker-specific bootstrap code. A broker consumer MUST invoke that prerequisite explicitly before opening intake instead of relying on the relative order of independent Nest bootstrap hooks.
 
 ## Redpanda boundary
 
@@ -41,6 +41,10 @@ Payload Avro schemas are rendered only by EDP `renderEventContractAvroSchema(...
 Schema/Registry mutation is explicit provisioning behavior, never service startup behavior. Repository deployment/tooling should call `provisionEventContractSchema(...)` or `provisionManagedEventTopic(...)` before applications start. Provisioning uses `BACKWARD_TRANSITIVE`, configures `redpanda.value.schema.id.validation=true` plus `redpanda.value.subject.name.strategy=TopicNameStrategy`, and surfaces broker/Registry configuration errors rather than weakening those guarantees. For an existing managed topic, the requested partition count is authoritative only in the safe direction: keep an equal count, increase a smaller topic to the requested count, and fail explicitly when the existing topic has more partitions because Kafka partitions cannot be decreased. When legacy KafkaJS `AlterConfigs` is required for an existing topic, preserve only mutable `ConfigSource.TOPIC_CONFIG` overrides; do not copy broker/default inherited values into topic overrides, because that would break future inheritance. The Redpanda cluster must have schema ID validation enabled so these topic-level properties are accepted.
 
 The Schema Registry adapter exposes narrow structural client seams for tests while production defaults still instantiate `@kafkajs/confluent-schema-registry`. Tests should fake only those owned interaction points instead of emulating Schema Registry REST resources or reproducing dependency behavior.
+
+`@accounterbro/runtime-messaging/redpanda/nest` is the canonical Nest composition layer for the Redpanda consumer. It owns creation of the KafkaJS consumer and DLQ producer, the Schema Registry codec, startup after explicit registry seal, readiness state, and graceful shutdown. Its `RedpandaEventConsumerReadinessCheck` intentionally has the transport-independent `{ name, check() }` shape consumed by `@accounterbro/runtime-health`; no second health registry or HTTP contract belongs here.
+
+Shutdown marks readiness as stopping before broker work is drained. The framework-independent consumer then pauses topic intake, does not schedule another retry after shutdown is requested, and allows an already active terminal outcome to finish its normal commit or DLQ-then-commit path while ownership remains valid. The Nest layer bounds that drain (30 seconds by default, configurable), then stops/disconnects the KafkaJS consumer before disconnecting the DLQ producer. A drain timeout is only a shutdown bound: it does not claim to cancel arbitrary JavaScript work, and unfinished records retain replay semantics rather than receiving a false commit.
 
 This subpath does not own EventContract payload schema fields, Event/Envelope semantics, UseCase execution identity or producer/outbox behavior. Payload schema rendering remains EDP-owned.
 
