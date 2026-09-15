@@ -18,6 +18,13 @@ export {
     type EventEnvelopeWireMetadataV1,
 } from './lib/redpanda/event-envelope-wire.js';
 export {
+    KafkaJsDeliveryOwnershipLostError,
+    KafkaJsEventConsumer,
+    type DeliveryFailureKind,
+    type EventValueDecoder,
+    type KafkaJsEventConsumerOptions,
+} from './lib/redpanda/kafkajs-event-consumer.js';
+export {
     getManagedEventTopicConfigEntries,
     provisionEventContractSchema,
     provisionManagedEventTopic,
