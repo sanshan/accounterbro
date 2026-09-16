@@ -67,10 +67,6 @@ export class KafkaJsDeliveryOwnershipLostError extends Error {
 export class KafkaJsEventConsumer {
     private readonly heartbeatIntervalMs: number;
     private readonly random: () => number;
-    private readonly drainWaiters = new Set<() => void>();
-
-    private acceptingDeliveries = true;
-    private activeDeliveries = 0;
 
     public constructor(private readonly options: KafkaJsEventConsumerOptions) {
         this.heartbeatIntervalMs = options.heartbeatIntervalMs ?? 3_000;
@@ -96,55 +92,18 @@ export class KafkaJsEventConsumer {
         await this.options.consumer.run(config);
     }
 
-    public beginShutdown(): void {
-        if (!this.acceptingDeliveries) return;
-
-        this.acceptingDeliveries = false;
-        this.options.consumer.pause(this.options.topics.map((topic) => ({ topic })));
-        this.notifyDrained();
-    }
-
-    public async drain(timeoutMs: number): Promise<boolean> {
-        if (!Number.isFinite(timeoutMs) || timeoutMs < 0) {
-            throw new Error('KafkaJS event consumer drain timeout must be a non-negative duration.');
-        }
-
-        this.beginShutdown();
-        if (this.activeDeliveries === 0) return true;
-
-        return new Promise<boolean>((resolve) => {
-            const onDrained = () => {
-                clearTimeout(timeout);
-                this.drainWaiters.delete(onDrained);
-                resolve(true);
-            };
-            const timeout = setTimeout(() => {
-                this.drainWaiters.delete(onDrained);
-                resolve(false);
-            }, timeoutMs);
-
-            this.drainWaiters.add(onDrained);
-        });
-    }
-
     private async processBatch(payload: EachBatchPayload): Promise<void> {
         for (const message of payload.batch.messages) {
-            if (!this.acceptingDeliveries || !payload.isRunning() || payload.isStale()) return;
+            if (!payload.isRunning() || payload.isStale()) return;
 
-            this.activeDeliveries += 1;
-            try {
-                await this.deliver({
-                    topic: payload.batch.topic,
-                    partition: payload.batch.partition,
-                    message,
-                    heartbeat: payload.heartbeat,
-                    isRunning: payload.isRunning,
-                    isStale: payload.isStale,
-                });
-            } finally {
-                this.activeDeliveries -= 1;
-                this.notifyDrained();
-            }
+            await this.deliver({
+                topic: payload.batch.topic,
+                partition: payload.batch.partition,
+                message,
+                heartbeat: payload.heartbeat,
+                isRunning: payload.isRunning,
+                isStale: payload.isStale,
+            });
         }
     }
 
@@ -166,7 +125,6 @@ export class KafkaJsEventConsumer {
                 await this.publishDlqThenCommit(context, attempts, outcome.failure);
                 return;
             }
-            if (!this.acceptingDeliveries) return;
 
             const retryDelays = outcome.claimRejected
                 ? CLAIM_RETRY_DELAYS_MS
@@ -180,7 +138,7 @@ export class KafkaJsEventConsumer {
             if (outcome.claimRejected) claimRetries += 1;
             else ordinaryRetries += 1;
 
-            if (!(await this.backoff(context, this.withJitter(delay)))) return;
+            await this.backoff(context, this.withJitter(delay));
         }
     }
 
@@ -288,20 +246,16 @@ export class KafkaJsEventConsumer {
         );
     }
 
-    private async backoff(context: DeliveryContext, delayMs: number): Promise<boolean> {
+    private async backoff(context: DeliveryContext, delayMs: number): Promise<void> {
         let remaining = delayMs;
         while (remaining > 0) {
-            if (!this.acceptingDeliveries) return false;
             this.assertOwnership(context);
             const interval = Math.min(remaining, this.heartbeatIntervalMs);
             await sleep(interval);
             remaining -= interval;
-            if (!this.acceptingDeliveries) return false;
             this.assertOwnership(context);
             await context.heartbeat();
         }
-
-        return true;
     }
 
     private async withHeartbeats<T>(
@@ -343,13 +297,6 @@ export class KafkaJsEventConsumer {
         if (!context.isRunning() || context.isStale()) {
             throw new KafkaJsDeliveryOwnershipLostError();
         }
-    }
-
-    private notifyDrained(): void {
-        if (this.activeDeliveries !== 0) return;
-
-        for (const resolve of this.drainWaiters) resolve();
-        this.drainWaiters.clear();
     }
 
     private withJitter(baseMs: number): number {

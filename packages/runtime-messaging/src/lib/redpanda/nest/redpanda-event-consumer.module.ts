@@ -19,7 +19,6 @@ export interface RedpandaEventConsumerModuleOptions {
     readonly consumer: ConsumerConfig;
     readonly producer?: ProducerConfig;
     readonly topics: readonly string[];
-    readonly drainTimeoutMs: number;
 }
 
 @Module({})
@@ -55,7 +54,6 @@ export class RedpandaEventConsumerModule {
                     consumer,
                     producer,
                     delivery,
-                    drainTimeoutMs: consumerOptions.drainTimeoutMs,
                 });
             },
         };

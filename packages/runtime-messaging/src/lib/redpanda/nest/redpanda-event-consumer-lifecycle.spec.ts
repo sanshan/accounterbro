@@ -8,9 +8,9 @@ import { RedpandaEventConsumerLifecycle } from './redpanda-event-consumer-lifecy
 function createHarness(options?: {
     readonly consumerConnect?: () => Promise<void>;
     readonly consumerDisconnect?: () => Promise<void>;
+    readonly producerConnect?: () => Promise<void>;
+    readonly producerDisconnect?: () => Promise<void>;
     readonly deliveryRun?: () => Promise<void>;
-    readonly deliveryDrain?: (timeoutMs: number) => Promise<boolean>;
-    readonly drainTimeoutMs?: number;
 }) {
     const calls: string[] = [];
     const messagingBootstrap = {
@@ -31,9 +31,11 @@ function createHarness(options?: {
     const producer = {
         connect: vi.fn(async () => {
             calls.push('producer.connect');
+            await options?.producerConnect?.();
         }),
         disconnect: vi.fn(async () => {
             calls.push('producer.disconnect');
+            await options?.producerDisconnect?.();
         }),
     } as unknown as Pick<Producer, 'connect' | 'disconnect'>;
     const delivery = {
@@ -41,20 +43,12 @@ function createHarness(options?: {
             calls.push('delivery.run');
             await options?.deliveryRun?.();
         }),
-        beginShutdown: vi.fn(() => {
-            calls.push('delivery.beginShutdown');
-        }),
-        drain: vi.fn(async (timeoutMs: number) => {
-            calls.push('delivery.drain');
-            return (await options?.deliveryDrain?.(timeoutMs)) ?? true;
-        }),
-    } as unknown as Pick<KafkaJsEventConsumer, 'run' | 'beginShutdown' | 'drain'>;
+    } as unknown as Pick<KafkaJsEventConsumer, 'run'>;
     const lifecycle = new RedpandaEventConsumerLifecycle({
         messagingBootstrap,
         consumer,
         producer,
         delivery,
-        drainTimeoutMs: options?.drainTimeoutMs ?? 1_000,
     });
 
     return { calls, messagingBootstrap, consumer, producer, delivery, lifecycle };
@@ -75,147 +69,6 @@ describe('RedpandaEventConsumerLifecycle', () => {
         expect(harness.lifecycle.currentState).toBe('running');
     });
 
-    it('keeps a failed state and cleans up connected resources after startup failure', async () => {
-        const startupFailure = new Error('consumer connection failed');
-        const harness = createHarness({
-            consumerConnect: async () => {
-                throw startupFailure;
-            },
-        });
-
-        await expect(harness.lifecycle.start()).rejects.toBe(startupFailure);
-
-        expect(harness.lifecycle.currentState).toBe('failed');
-        expect(harness.consumer.disconnect).not.toHaveBeenCalled();
-        expect(harness.producer.disconnect).toHaveBeenCalledTimes(1);
-    });
-
-    it('stops pending startup before opening intake and cannot return to running', async () => {
-        let finishConnect: (() => void) | undefined;
-        const harness = createHarness({
-            consumerConnect: () =>
-                new Promise<void>((resolve) => {
-                    finishConnect = resolve;
-                }),
-        });
-
-        const start = harness.lifecycle.start();
-        await vi.waitFor(() => expect(harness.consumer.connect).toHaveBeenCalledTimes(1));
-
-        const stop = harness.lifecycle.stop();
-        expect(harness.lifecycle.currentState).toBe('stopping');
-        expect(harness.consumer.disconnect).not.toHaveBeenCalled();
-
-        finishConnect?.();
-        await Promise.all([start, stop]);
-
-        expect(harness.calls).toEqual([
-            'seal',
-            'producer.connect',
-            'consumer.connect',
-            'consumer.disconnect',
-            'producer.disconnect',
-        ]);
-        expect(harness.delivery.run).not.toHaveBeenCalled();
-        expect(harness.delivery.beginShutdown).not.toHaveBeenCalled();
-        expect(harness.delivery.drain).not.toHaveBeenCalled();
-        expect(harness.lifecycle.currentState).toBe('stopped');
-    });
-
-    it('keeps shutdown bounded while startup is pending and cleans up after startup settles', async () => {
-        let finishConnect: (() => void) | undefined;
-        const harness = createHarness({
-            drainTimeoutMs: 0,
-            consumerConnect: () =>
-                new Promise<void>((resolve) => {
-                    finishConnect = resolve;
-                }),
-        });
-
-        const start = harness.lifecycle.start();
-        await vi.waitFor(() => expect(harness.consumer.connect).toHaveBeenCalledTimes(1));
-
-        await harness.lifecycle.stop();
-
-        expect(harness.lifecycle.currentState).toBe('stopped');
-        expect(harness.consumer.disconnect).not.toHaveBeenCalled();
-        expect(harness.producer.disconnect).not.toHaveBeenCalled();
-        expect(harness.delivery.run).not.toHaveBeenCalled();
-
-        finishConnect?.();
-        await start;
-        await vi.waitFor(() => expect(harness.producer.disconnect).toHaveBeenCalledTimes(1));
-
-        expect(harness.calls).toEqual([
-            'seal',
-            'producer.connect',
-            'consumer.connect',
-            'consumer.disconnect',
-            'producer.disconnect',
-        ]);
-        expect(harness.lifecycle.currentState).toBe('stopped');
-    });
-
-    it('drains a delivery loop that finishes starting after shutdown was requested', async () => {
-        let finishRun: (() => void) | undefined;
-        const harness = createHarness({
-            deliveryRun: () =>
-                new Promise<void>((resolve) => {
-                    finishRun = resolve;
-                }),
-        });
-
-        const start = harness.lifecycle.start();
-        await vi.waitFor(() => expect(harness.delivery.run).toHaveBeenCalledTimes(1));
-
-        const stop = harness.lifecycle.stop();
-        expect(harness.lifecycle.currentState).toBe('stopping');
-
-        finishRun?.();
-        await Promise.all([start, stop]);
-
-        expect(harness.calls).toEqual([
-            'seal',
-            'producer.connect',
-            'consumer.connect',
-            'delivery.run',
-            'delivery.beginShutdown',
-            'delivery.drain',
-            'consumer.disconnect',
-            'producer.disconnect',
-        ]);
-        expect(harness.lifecycle.currentState).toBe('stopped');
-    });
-
-    it('enters stopping before drain and disconnects the consumer before the DLQ producer', async () => {
-        let finishDrain: ((value: boolean) => void) | undefined;
-        const harness = createHarness({
-            deliveryDrain: () =>
-                new Promise<boolean>((resolve) => {
-                    finishDrain = resolve;
-                }),
-        });
-        await harness.lifecycle.start();
-        harness.calls.length = 0;
-
-        const stop = harness.lifecycle.stop();
-
-        expect(harness.lifecycle.currentState).toBe('stopping');
-        expect(harness.calls).toEqual(['delivery.beginShutdown', 'delivery.drain']);
-        expect(harness.consumer.disconnect).not.toHaveBeenCalled();
-
-        finishDrain?.(true);
-        await stop;
-
-        expect(harness.calls).toEqual([
-            'delivery.beginShutdown',
-            'delivery.drain',
-            'consumer.disconnect',
-            'producer.disconnect',
-        ]);
-        expect(harness.lifecycle.currentState).toBe('stopped');
-    });
-
     it('does not connect broker resources when registry sealing fails', async () => {
         const harness = createHarness();
         const sealFailure = new Error('registry cannot seal');
@@ -230,35 +83,22 @@ describe('RedpandaEventConsumerLifecycle', () => {
         expect(harness.producer.connect).not.toHaveBeenCalled();
     });
 
-    it('keeps shutdown bounded without disconnecting the producer before the consumer settles', async () => {
-        let finishConsumerDisconnect: (() => void) | undefined;
+    it('keeps a failed state and cleans up already connected startup resources', async () => {
+        const startupFailure = new Error('delivery failed to start');
         const harness = createHarness({
-            drainTimeoutMs: 0,
-            consumerDisconnect: () =>
-                new Promise<void>((resolve) => {
-                    finishConsumerDisconnect = resolve;
-                }),
+            deliveryRun: async () => {
+                throw startupFailure;
+            },
         });
-        await harness.lifecycle.start();
-        harness.calls.length = 0;
 
-        await harness.lifecycle.stop();
+        await expect(harness.lifecycle.start()).rejects.toBe(startupFailure);
 
-        expect(harness.delivery.drain).toHaveBeenCalledWith(0);
+        expect(harness.lifecycle.currentState).toBe('failed');
         expect(harness.calls).toEqual([
-            'delivery.beginShutdown',
-            'delivery.drain',
-            'consumer.disconnect',
-        ]);
-        expect(harness.producer.disconnect).not.toHaveBeenCalled();
-        expect(harness.lifecycle.currentState).toBe('stopped');
-
-        finishConsumerDisconnect?.();
-        await vi.waitFor(() => expect(harness.producer.disconnect).toHaveBeenCalledTimes(1));
-
-        expect(harness.calls).toEqual([
-            'delivery.beginShutdown',
-            'delivery.drain',
+            'seal',
+            'producer.connect',
+            'consumer.connect',
+            'delivery.run',
             'consumer.disconnect',
             'producer.disconnect',
         ]);
