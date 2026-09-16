@@ -9,10 +9,7 @@ import {
     SchemaRegistryAvroEventCodec,
     type SchemaRegistryConnectionOptions,
 } from '../schema-registry-avro-event-codec.js';
-import {
-    RedpandaEventConsumerLifecycle,
-    RedpandaEventConsumerReadinessCheck,
-} from './redpanda-event-consumer-lifecycle.js';
+import { RedpandaEventConsumerLifecycle } from './redpanda-event-consumer-lifecycle.js';
 
 const REDPANDA_EVENT_CONSUMER_OPTIONS = Symbol('REDPANDA_EVENT_CONSUMER_OPTIONS');
 
@@ -22,7 +19,7 @@ export interface RedpandaEventConsumerModuleOptions {
     readonly consumer: ConsumerConfig;
     readonly producer?: ProducerConfig;
     readonly topics: readonly string[];
-    readonly drainTimeoutMs?: number;
+    readonly drainTimeoutMs: number;
 }
 
 @Module({})
@@ -62,18 +59,11 @@ export class RedpandaEventConsumerModule {
                 });
             },
         };
-        const readinessProvider: FactoryProvider<RedpandaEventConsumerReadinessCheck> = {
-            provide: RedpandaEventConsumerReadinessCheck,
-            inject: [RedpandaEventConsumerLifecycle],
-            useFactory: (lifecycle: RedpandaEventConsumerLifecycle) =>
-                new RedpandaEventConsumerReadinessCheck(lifecycle),
-        };
 
         return {
             module: RedpandaEventConsumerModule,
             imports: [RuntimeMessagingModule],
-            providers: [optionsProvider, lifecycleProvider, readinessProvider],
-            exports: [RedpandaEventConsumerLifecycle, RedpandaEventConsumerReadinessCheck],
+            providers: [optionsProvider, lifecycleProvider],
         };
     }
 }
