@@ -122,6 +122,40 @@ describe('RedpandaEventConsumerLifecycle', () => {
         expect(harness.lifecycle.currentState).toBe('stopped');
     });
 
+    it('keeps shutdown bounded while startup is pending and cleans up after startup settles', async () => {
+        let finishConnect: (() => void) | undefined;
+        const harness = createHarness({
+            drainTimeoutMs: 0,
+            consumerConnect: () =>
+                new Promise<void>((resolve) => {
+                    finishConnect = resolve;
+                }),
+        });
+
+        const start = harness.lifecycle.start();
+        await vi.waitFor(() => expect(harness.consumer.connect).toHaveBeenCalledTimes(1));
+
+        await harness.lifecycle.stop();
+
+        expect(harness.lifecycle.currentState).toBe('stopped');
+        expect(harness.consumer.disconnect).not.toHaveBeenCalled();
+        expect(harness.producer.disconnect).not.toHaveBeenCalled();
+        expect(harness.delivery.run).not.toHaveBeenCalled();
+
+        finishConnect?.();
+        await start;
+        await vi.waitFor(() => expect(harness.producer.disconnect).toHaveBeenCalledTimes(1));
+
+        expect(harness.calls).toEqual([
+            'seal',
+            'producer.connect',
+            'consumer.connect',
+            'consumer.disconnect',
+            'producer.disconnect',
+        ]);
+        expect(harness.lifecycle.currentState).toBe('stopped');
+    });
+
     it('drains a delivery loop that finishes starting after shutdown was requested', async () => {
         let finishRun: (() => void) | undefined;
         const harness = createHarness({
@@ -196,10 +230,14 @@ describe('RedpandaEventConsumerLifecycle', () => {
         expect(harness.producer.connect).not.toHaveBeenCalled();
     });
 
-    it('keeps shutdown bounded when a broker disconnect does not settle', async () => {
+    it('keeps shutdown bounded without disconnecting the producer before the consumer settles', async () => {
+        let finishConsumerDisconnect: (() => void) | undefined;
         const harness = createHarness({
             drainTimeoutMs: 0,
-            consumerDisconnect: () => new Promise<void>(() => undefined),
+            consumerDisconnect: () =>
+                new Promise<void>((resolve) => {
+                    finishConsumerDisconnect = resolve;
+                }),
         });
         await harness.lifecycle.start();
         harness.calls.length = 0;
@@ -211,8 +249,18 @@ describe('RedpandaEventConsumerLifecycle', () => {
             'delivery.beginShutdown',
             'delivery.drain',
             'consumer.disconnect',
+        ]);
+        expect(harness.producer.disconnect).not.toHaveBeenCalled();
+        expect(harness.lifecycle.currentState).toBe('stopped');
+
+        finishConsumerDisconnect?.();
+        await vi.waitFor(() => expect(harness.producer.disconnect).toHaveBeenCalledTimes(1));
+
+        expect(harness.calls).toEqual([
+            'delivery.beginShutdown',
+            'delivery.drain',
+            'consumer.disconnect',
             'producer.disconnect',
         ]);
-        expect(harness.lifecycle.currentState).toBe('stopped');
     });
 });

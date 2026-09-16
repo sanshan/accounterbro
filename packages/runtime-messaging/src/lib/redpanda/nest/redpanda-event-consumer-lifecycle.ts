@@ -43,10 +43,10 @@ export class RedpandaEventConsumerLifecycle implements OnApplicationBootstrap, O
     }
 
     public async start(): Promise<void> {
-        if (this.startPromise !== undefined) return this.startPromise;
-        if (this.state === 'stopping' || this.state === 'stopped') {
+        if (this.isShutdownRequested()) {
             throw new Error('Redpanda event consumer cannot be started after shutdown has begun.');
         }
+        if (this.startPromise !== undefined) return this.startPromise;
 
         this.startPromise = this.startInternal();
         return this.startPromise;
@@ -75,19 +75,19 @@ export class RedpandaEventConsumerLifecycle implements OnApplicationBootstrap, O
 
             await this.dependencies.producer.connect();
             this.producerConnected = true;
-            if (this.isStopping()) return;
+            if (this.isShutdownRequested()) return;
 
             await this.dependencies.consumer.connect();
             this.consumerConnected = true;
-            if (this.isStopping()) return;
+            if (this.isShutdownRequested()) return;
 
             await this.dependencies.delivery.run();
             this.deliveryStarted = true;
-            if (this.isStopping()) return;
+            if (this.isShutdownRequested()) return;
 
             this.state = 'running';
         } catch (error: unknown) {
-            if (!this.isStopping()) this.state = 'failed';
+            if (!this.isShutdownRequested()) this.state = 'failed';
             await this.cleanupAfterStartupFailure();
             throw error;
         }
@@ -103,32 +103,30 @@ export class RedpandaEventConsumerLifecycle implements OnApplicationBootstrap, O
             return;
         }
 
+        const deadline = Date.now() + this.drainTimeoutMs;
         const startupWasPending = this.state === 'starting';
         this.state = 'stopping';
-        if (startupWasPending) await this.awaitStartupSettlement();
 
-        const deadline = Date.now() + this.drainTimeoutMs;
+        if (startupWasPending) {
+            const startupSettled = await this.settleWithin(this.awaitStartupSettlement(), deadline);
+            if (!startupSettled) {
+                this.state = 'stopped';
+                this.deferShutdownAfterStartup();
+                return;
+            }
+        }
 
         if (this.deliveryStarted) {
             this.dependencies.delivery.beginShutdown();
             await this.dependencies.delivery.drain(this.remaining(deadline));
         }
 
-        if (this.consumerConnected) {
-            await this.settleWithin(this.dependencies.consumer.disconnect(), deadline);
-            this.consumerConnected = false;
-        }
-
-        if (this.producerConnected) {
-            await this.settleWithin(this.dependencies.producer.disconnect(), deadline);
-            this.producerConnected = false;
-        }
-
+        await this.disconnectWithin(deadline);
         this.state = 'stopped';
     }
 
-    private isStopping(): boolean {
-        return this.state === 'stopping';
+    private isShutdownRequested(): boolean {
+        return this.state === 'stopping' || this.state === 'stopped';
     }
 
     private async awaitStartupSettlement(): Promise<void> {
@@ -141,43 +139,98 @@ export class RedpandaEventConsumerLifecycle implements OnApplicationBootstrap, O
         }
     }
 
-    private async cleanupAfterStartupFailure(): Promise<void> {
+    private deferShutdownAfterStartup(): void {
+        void this.awaitStartupSettlement().then(() => this.finishDeferredShutdown());
+    }
+
+    private async finishDeferredShutdown(): Promise<void> {
+        if (this.deliveryStarted) {
+            this.dependencies.delivery.beginShutdown();
+            await this.ignoreFailure(this.dependencies.delivery.drain(0));
+        }
+
+        await this.disconnectConsumerThenProducerBestEffort();
+    }
+
+    private async disconnectWithin(deadline: number): Promise<void> {
+        if (this.consumerConnected) {
+            const consumerDisconnect = this.dependencies.consumer.disconnect();
+            const consumerSettled = await this.settleWithin(consumerDisconnect, deadline);
+            if (!consumerSettled) {
+                this.deferProducerDisconnectAfterConsumer(consumerDisconnect);
+                return;
+            }
+            this.consumerConnected = false;
+        }
+
+        if (!this.producerConnected) return;
+
+        const producerDisconnect = this.dependencies.producer.disconnect();
+        const producerSettled = await this.settleWithin(producerDisconnect, deadline);
+        if (producerSettled) {
+            this.producerConnected = false;
+            return;
+        }
+
+        void this.ignoreFailure(producerDisconnect).then(() => {
+            this.producerConnected = false;
+        });
+    }
+
+    private deferProducerDisconnectAfterConsumer(consumerDisconnect: Promise<unknown>): void {
+        void this.ignoreFailure(consumerDisconnect).then(async () => {
+            this.consumerConnected = false;
+            await this.disconnectProducerBestEffort();
+        });
+    }
+
+    private async disconnectConsumerThenProducerBestEffort(): Promise<void> {
         if (this.consumerConnected) {
             await this.ignoreFailure(this.dependencies.consumer.disconnect());
             this.consumerConnected = false;
         }
-        if (this.producerConnected) {
-            await this.ignoreFailure(this.dependencies.producer.disconnect());
-            this.producerConnected = false;
-        }
+
+        await this.disconnectProducerBestEffort();
+    }
+
+    private async disconnectProducerBestEffort(): Promise<void> {
+        if (!this.producerConnected) return;
+
+        await this.ignoreFailure(this.dependencies.producer.disconnect());
+        this.producerConnected = false;
+    }
+
+    private async cleanupAfterStartupFailure(): Promise<void> {
+        await this.disconnectConsumerThenProducerBestEffort();
     }
 
     private remaining(deadline: number): number {
         return Math.max(0, deadline - Date.now());
     }
 
-    private async settleWithin(operation: Promise<unknown>, deadline: number): Promise<void> {
+    private async settleWithin(operation: Promise<unknown>, deadline: number): Promise<boolean> {
         const timeoutMs = this.remaining(deadline);
-        if (timeoutMs === 0) {
-            void operation.catch(() => undefined);
-            return;
-        }
+        if (timeoutMs === 0) return false;
 
         let timeout: ReturnType<typeof setTimeout> | undefined;
-        await Promise.race([
-            operation.catch(() => undefined),
-            new Promise<void>((resolve) => {
-                timeout = setTimeout(resolve, timeoutMs);
+        const settled = await Promise.race([
+            operation.then(
+                () => true,
+                () => true,
+            ),
+            new Promise<boolean>((resolve) => {
+                timeout = setTimeout(() => resolve(false), timeoutMs);
             }),
         ]);
         if (timeout !== undefined) clearTimeout(timeout);
+        return settled;
     }
 
     private async ignoreFailure(operation: Promise<unknown>): Promise<void> {
         try {
             await operation;
         } catch {
-            // Startup cleanup is best effort; the original startup failure remains authoritative.
+            // Shutdown cleanup is best effort; lifecycle state remains authoritative.
         }
     }
 }
