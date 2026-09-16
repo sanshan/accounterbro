@@ -75,19 +75,19 @@ export class RedpandaEventConsumerLifecycle implements OnApplicationBootstrap, O
 
             await this.dependencies.producer.connect();
             this.producerConnected = true;
-            if (this.state === 'stopping') return;
+            if (this.isStopping()) return;
 
             await this.dependencies.consumer.connect();
             this.consumerConnected = true;
-            if (this.state === 'stopping') return;
+            if (this.isStopping()) return;
 
             await this.dependencies.delivery.run();
             this.deliveryStarted = true;
-            if (this.state === 'stopping') return;
+            if (this.isStopping()) return;
 
             this.state = 'running';
         } catch (error: unknown) {
-            if (this.state !== 'stopping') this.state = 'failed';
+            if (!this.isStopping()) this.state = 'failed';
             await this.cleanupAfterStartupFailure();
             throw error;
         }
@@ -125,6 +125,10 @@ export class RedpandaEventConsumerLifecycle implements OnApplicationBootstrap, O
         }
 
         this.state = 'stopped';
+    }
+
+    private isStopping(): boolean {
+        return this.state === 'stopping';
     }
 
     private async awaitStartupSettlement(): Promise<void> {
