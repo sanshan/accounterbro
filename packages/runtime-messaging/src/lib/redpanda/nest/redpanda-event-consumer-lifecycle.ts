@@ -88,6 +88,8 @@ export class RedpandaEventConsumerLifecycle implements OnApplicationBootstrap, O
     }
 
     private async stopInternal(): Promise<void> {
+        await this.awaitStartupSettlement();
+
         if (this.state === 'idle' || this.state === 'stopped') {
             this.state = 'stopped';
             return;
@@ -114,6 +116,16 @@ export class RedpandaEventConsumerLifecycle implements OnApplicationBootstrap, O
         }
 
         this.state = 'stopped';
+    }
+
+    private async awaitStartupSettlement(): Promise<void> {
+        if (this.startPromise === undefined) return;
+
+        try {
+            await this.startPromise;
+        } catch {
+            // Startup owns its failure and cleanup; shutdown only waits until that work has settled.
+        }
     }
 
     private async cleanupAfterStartupFailure(): Promise<void> {

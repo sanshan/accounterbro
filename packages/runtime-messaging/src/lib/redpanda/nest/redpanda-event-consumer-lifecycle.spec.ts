@@ -88,6 +88,37 @@ describe('RedpandaEventConsumerLifecycle', () => {
         expect(harness.producer.disconnect).toHaveBeenCalledTimes(1);
     });
 
+    it('waits for pending startup before draining and cannot return to running after stop', async () => {
+        let finishConnect: (() => void) | undefined;
+        const harness = createHarness({
+            consumerConnect: () =>
+                new Promise<void>((resolve) => {
+                    finishConnect = resolve;
+                }),
+        });
+
+        const start = harness.lifecycle.start();
+        await vi.waitFor(() => expect(harness.consumer.connect).toHaveBeenCalledTimes(1));
+
+        const stop = harness.lifecycle.stop();
+        expect(harness.consumer.disconnect).not.toHaveBeenCalled();
+
+        finishConnect?.();
+        await Promise.all([start, stop]);
+
+        expect(harness.calls).toEqual([
+            'seal',
+            'producer.connect',
+            'consumer.connect',
+            'delivery.run',
+            'delivery.beginShutdown',
+            'delivery.drain',
+            'consumer.disconnect',
+            'producer.disconnect',
+        ]);
+        expect(harness.lifecycle.currentState).toBe('stopped');
+    });
+
     it('enters stopping before drain and disconnects the consumer before the DLQ producer', async () => {
         let finishDrain: ((value: boolean) => void) | undefined;
         const harness = createHarness({
