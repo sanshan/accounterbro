@@ -6,7 +6,13 @@ import { EventHandlerRegistry } from '../event-handler-registry.js';
 export class RuntimeMessagingBootstrap implements OnApplicationBootstrap {
     public constructor(private readonly registry: EventHandlerRegistry) {}
 
-    public onApplicationBootstrap(): void {
+    public seal(): void {
+        if (this.registry.isSealed) return;
+
         this.registry.seal();
+    }
+
+    public onApplicationBootstrap(): void {
+        this.seal();
     }
 }

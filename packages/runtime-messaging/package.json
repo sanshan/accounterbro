@@ -22,6 +22,11 @@
             "types": "./dist/redpanda.d.ts",
             "import": "./dist/redpanda.js",
             "default": "./dist/redpanda.js"
+        },
+        "./redpanda/nest": {
+            "types": "./dist/redpanda/nest.d.ts",
+            "import": "./dist/redpanda/nest.js",
+            "default": "./dist/redpanda/nest.js"
         }
     },
     "dependencies": {

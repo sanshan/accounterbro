@@ -24,9 +24,9 @@ One event identity maps to one handler. Resolution has no version fallback, late
 
 Registration is explicit. A duplicate registration is a configuration failure and prevents the registry from being sealed even if the immediate registration exception is caught. Resolution before seal and registration after seal are configuration errors.
 
-`@accounterbro/runtime-messaging/nest` provides the ordinary `RuntimeMessagingModule`. It owns one Nest-managed registry per application context and exports that registry plus `EventIngress`. It is not global and does not use a static singleton.
+`@accounterbro/runtime-messaging/nest` provides the ordinary `RuntimeMessagingModule`. It owns one Nest-managed registry per application context and exports that registry, `EventIngress`, and the shared bootstrap prerequisite. It is not global and does not use a static singleton.
 
-Explicit application-local registrars register handlers during `onModuleInit`. `RuntimeMessagingModule` seals during `onApplicationBootstrap`, after module initialization has completed. Future consumers must start only after that sealed state; broker lifecycle is not implemented in the transport-neutral `/nest` entrypoint.
+Explicit application-local registrars register handlers before application bootstrap. `RuntimeMessagingBootstrap` owns sealing and exposes the same idempotent `seal()` prerequisite used by broker-specific bootstrap code. A broker consumer MUST invoke that prerequisite explicitly before opening intake instead of relying on the relative order of independent Nest bootstrap hooks.
 
 ## Redpanda boundary
 
@@ -41,6 +41,8 @@ Payload Avro schemas are rendered only by EDP `renderEventContractAvroSchema(...
 Schema/Registry mutation is explicit provisioning behavior, never service startup behavior. Repository deployment/tooling should call `provisionEventContractSchema(...)` or `provisionManagedEventTopic(...)` before applications start. Provisioning uses `BACKWARD_TRANSITIVE`, configures `redpanda.value.schema.id.validation=true` plus `redpanda.value.subject.name.strategy=TopicNameStrategy`, and surfaces broker/Registry configuration errors rather than weakening those guarantees. For an existing managed topic, the requested partition count is authoritative only in the safe direction: keep an equal count, increase a smaller topic to the requested count, and fail explicitly when the existing topic has more partitions because Kafka partitions cannot be decreased. When legacy KafkaJS `AlterConfigs` is required for an existing topic, preserve only mutable `ConfigSource.TOPIC_CONFIG` overrides; do not copy broker/default inherited values into topic overrides, because that would break future inheritance. The Redpanda cluster must have schema ID validation enabled so these topic-level properties are accepted.
 
 The Schema Registry adapter exposes narrow structural client seams for tests while production defaults still instantiate `@kafkajs/confluent-schema-registry`. Tests should fake only those owned interaction points instead of emulating Schema Registry REST resources or reproducing dependency behavior.
+
+`@accounterbro/runtime-messaging/redpanda/nest` is the Nest composition layer for the Redpanda consumer. It owns creation of the KafkaJS consumer and DLQ producer, the Schema Registry codec, and startup after explicit registry seal. Service-level readiness and graceful shutdown are intentionally not established by this startup composition.
 
 This subpath does not own EventContract payload schema fields, Event/Envelope semantics, UseCase execution identity or producer/outbox behavior. Payload schema rendering remains EDP-owned.
 
@@ -70,4 +72,4 @@ pnpm nx run @accounterbro/runtime-messaging:test
 pnpm nx run @accounterbro/runtime-messaging:build
 ```
 
-Tests in this package cover only AccounterBro-owned validation, registry, ingress, wire mapping and Nest lifecycle behavior. Redpanda/Schema Registry integration tests must likewise assert only AccounterBro-owned schema derivation, subject/config selection, provisioning-versus-runtime mutation boundaries and adapter usage. Prefer the narrow Registry client seams with deterministic in-memory fakes; do not maintain a local Schema Registry REST emulator and do not test Redpanda, Schema Registry, Avro codec or client implementation details already owned by dependencies. Do not copy EDP execution, event-factory or business-contract test suites here.
+Tests in this package cover only AccounterBro-owned validation, registry, ingress, wire mapping and Nest bootstrap behavior. Redpanda/Schema Registry integration tests must likewise assert only AccounterBro-owned schema derivation, subject/config selection, provisioning-versus-runtime mutation boundaries and adapter usage. Prefer the narrow Registry client seams with deterministic in-memory fakes; do not maintain a local Schema Registry REST emulator and do not test Redpanda, Schema Registry, Avro codec or client implementation details already owned by dependencies. Do not copy EDP execution, event-factory or business-contract test suites here.
