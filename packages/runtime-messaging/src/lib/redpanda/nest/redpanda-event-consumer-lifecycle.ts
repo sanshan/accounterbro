@@ -29,6 +29,7 @@ export class RedpandaEventConsumerLifecycle implements OnApplicationBootstrap, O
     private stopPromise: Promise<void> | undefined;
     private consumerConnected = false;
     private producerConnected = false;
+    private deliveryStarted = false;
 
     public constructor(private readonly dependencies: RedpandaEventConsumerLifecycleDependencies) {
         this.drainTimeoutMs = dependencies.drainTimeoutMs;
@@ -74,22 +75,25 @@ export class RedpandaEventConsumerLifecycle implements OnApplicationBootstrap, O
 
             await this.dependencies.producer.connect();
             this.producerConnected = true;
+            if (this.state === 'stopping') return;
 
             await this.dependencies.consumer.connect();
             this.consumerConnected = true;
+            if (this.state === 'stopping') return;
 
             await this.dependencies.delivery.run();
+            this.deliveryStarted = true;
+            if (this.state === 'stopping') return;
+
             this.state = 'running';
         } catch (error: unknown) {
-            this.state = 'failed';
+            if (this.state !== 'stopping') this.state = 'failed';
             await this.cleanupAfterStartupFailure();
             throw error;
         }
     }
 
     private async stopInternal(): Promise<void> {
-        await this.awaitStartupSettlement();
-
         if (this.state === 'idle' || this.state === 'stopped') {
             this.state = 'stopped';
             return;
@@ -99,11 +103,16 @@ export class RedpandaEventConsumerLifecycle implements OnApplicationBootstrap, O
             return;
         }
 
+        const startupWasPending = this.state === 'starting';
         this.state = 'stopping';
+        if (startupWasPending) await this.awaitStartupSettlement();
+
         const deadline = Date.now() + this.drainTimeoutMs;
 
-        this.dependencies.delivery.beginShutdown();
-        await this.dependencies.delivery.drain(this.remaining(deadline));
+        if (this.deliveryStarted) {
+            this.dependencies.delivery.beginShutdown();
+            await this.dependencies.delivery.drain(this.remaining(deadline));
+        }
 
         if (this.consumerConnected) {
             await this.settleWithin(this.dependencies.consumer.disconnect(), deadline);
