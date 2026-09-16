@@ -8,6 +8,7 @@ import { RedpandaEventConsumerLifecycle } from './redpanda-event-consumer-lifecy
 function createHarness(options?: {
     readonly consumerConnect?: () => Promise<void>;
     readonly consumerDisconnect?: () => Promise<void>;
+    readonly deliveryRun?: () => Promise<void>;
     readonly deliveryDrain?: (timeoutMs: number) => Promise<boolean>;
     readonly drainTimeoutMs?: number;
 }) {
@@ -38,6 +39,7 @@ function createHarness(options?: {
     const delivery = {
         run: vi.fn(async () => {
             calls.push('delivery.run');
+            await options?.deliveryRun?.();
         }),
         beginShutdown: vi.fn(() => {
             calls.push('delivery.beginShutdown');
@@ -88,7 +90,7 @@ describe('RedpandaEventConsumerLifecycle', () => {
         expect(harness.producer.disconnect).toHaveBeenCalledTimes(1);
     });
 
-    it('waits for pending startup before draining and cannot return to running after stop', async () => {
+    it('stops pending startup before opening intake and cannot return to running', async () => {
         let finishConnect: (() => void) | undefined;
         const harness = createHarness({
             consumerConnect: () =>
@@ -101,9 +103,41 @@ describe('RedpandaEventConsumerLifecycle', () => {
         await vi.waitFor(() => expect(harness.consumer.connect).toHaveBeenCalledTimes(1));
 
         const stop = harness.lifecycle.stop();
+        expect(harness.lifecycle.currentState).toBe('stopping');
         expect(harness.consumer.disconnect).not.toHaveBeenCalled();
 
         finishConnect?.();
+        await Promise.all([start, stop]);
+
+        expect(harness.calls).toEqual([
+            'seal',
+            'producer.connect',
+            'consumer.connect',
+            'consumer.disconnect',
+            'producer.disconnect',
+        ]);
+        expect(harness.delivery.run).not.toHaveBeenCalled();
+        expect(harness.delivery.beginShutdown).not.toHaveBeenCalled();
+        expect(harness.delivery.drain).not.toHaveBeenCalled();
+        expect(harness.lifecycle.currentState).toBe('stopped');
+    });
+
+    it('drains a delivery loop that finishes starting after shutdown was requested', async () => {
+        let finishRun: (() => void) | undefined;
+        const harness = createHarness({
+            deliveryRun: () =>
+                new Promise<void>((resolve) => {
+                    finishRun = resolve;
+                }),
+        });
+
+        const start = harness.lifecycle.start();
+        await vi.waitFor(() => expect(harness.delivery.run).toHaveBeenCalledTimes(1));
+
+        const stop = harness.lifecycle.stop();
+        expect(harness.lifecycle.currentState).toBe('stopping');
+
+        finishRun?.();
         await Promise.all([start, stop]);
 
         expect(harness.calls).toEqual([
